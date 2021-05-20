@@ -5,4 +5,15 @@ fn main() {
     let arr = models::Array::from(data.as_slice());
 
     dbg!(arr);
+
+    let atom = models::Atom::from(34);
+    println!("{}", atom);
+
+    let v = vec![
+        models::Atom::from(1),
+        models::Atom::from(2),
+        models::Atom::from(3),
+    ];
+
+    // println!("{}", &v);
 }
