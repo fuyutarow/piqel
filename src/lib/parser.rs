@@ -22,7 +22,7 @@ pub fn sql<'a>(input: &'a str) -> IResult<&'a str, ()> {
         preceded(space, tag("SELECT")),
         preceded(space, tag("*")),
         preceded(space, tag("FROM")),
-        preceded(space, tag("[1,2,3]")),
+        preceded(space, array),
     ))(input)?;
     dbg!(res);
 
