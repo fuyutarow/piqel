@@ -4,10 +4,11 @@ fn main() {
     let data = vec![1, 2, 3];
     let arr = models::Array::from(data.as_slice());
 
-    dbg!(arr);
+    dbg!(&arr);
 
     let atom = models::Atom::from(34);
     println!("{}", atom);
+    println!("{}", arr);
 
     let v = vec![
         models::Atom::from(1),

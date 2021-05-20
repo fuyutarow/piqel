@@ -32,3 +32,14 @@ impl From<&[u64]> for Array {
         }
     }
 }
+
+impl fmt::Display for Array {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(f, "<<");
+        for atom in self.data.iter() {
+            writeln!(f, "  {},", atom);
+        }
+        writeln!(f, ">>");
+        Ok(())
+    }
+}
