@@ -1,6 +1,12 @@
 [package]
 name = "partiql-rs"
-version = "0.1.0"
+version = "0.202105.0"
 edition = "2018"
 
+[lib]
+name = "partiql"
+path = "src/lib/mod.rs"
+
 [dependencies]
+anyhow = "1.0.40"
+nom = "6.1.2"
