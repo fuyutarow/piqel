@@ -13,5 +13,8 @@ fn parse() -> anyhow::Result<()> {
 
     let _ = parser::sql(input)?;
 
+    let input = "[1,2,3]";
+    let r = parser::array(input)?;
+    dbg!(r);
     Ok(())
 }
