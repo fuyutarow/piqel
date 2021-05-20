@@ -13,7 +13,7 @@ use nom::{
 };
 
 pub fn space<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
-    let chars = " \t\r\n ";
+    let chars = " \t\r\n";
     take_while(move |c| chars.contains(c))(input)
 }
 
