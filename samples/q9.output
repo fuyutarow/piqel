@@ -1,0 +1,18 @@
+<<
+  {
+    'id': 3,
+    'employeeName': 'Bob Smith'
+  },
+  {
+    'id': 4,
+    'employeeName': 'Susan Smith',
+    'outputTitle': 'Dev Mgr'
+  },
+  {
+    'id': 6,
+    'employeeName': 'Jane Smith',
+    'outputTitle': 'Software Eng 2'
+  }
+>>
+--- 
+OK! (10 ms)

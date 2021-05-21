@@ -42,7 +42,7 @@ pub fn field<'a>(input: &'a str) -> IResult<&'a str, ()> {
             0,
             1,
             tuple((
-                preceded(whitespace, tag("AS")),
+                preceded(whitespace, many_m_n(0, 1, tag("AS"))),
                 preceded(whitespace, alphanumeric1),
             )),
         ),

@@ -1,0 +1,34 @@
+<<
+  {
+    'id': 3,
+    'employeeName': 'Bob Smith',
+    'title': NULL,
+    'projectName': 'AWS Redshift Spectrum querying'
+  },
+  {
+    'id': 3,
+    'employeeName': 'Bob Smith',
+    'title': NULL,
+    'projectName': 'AWS Redshift security'
+  },
+  {
+    'id': 3,
+    'employeeName': 'Bob Smith',
+    'title': NULL,
+    'projectName': 'AWS Aurora security'
+  },
+  {
+    'id': 4,
+    'employeeName': 'Susan Smith',
+    'title': 'Dev Mgr'
+  },
+  {
+    'id': 6,
+    'employeeName': 'Jane Smith',
+    'title': 'Software Eng 2',
+    'projectName': 'AWS Redshift security'
+  }
+>>
+--- 
+OK! (6 ms)
+

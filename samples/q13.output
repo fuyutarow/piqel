@@ -1,0 +1,20 @@
+<<
+  {
+    'employeeName': 'Bob Smith',
+    'projectName': 'AWS Redshift security',
+    'projectPriority': 1
+  },
+  {
+    'employeeName': 'Bob Smith',
+    'projectName': 'AWS Aurora security',
+    'projectPriority': 2
+  },
+  {
+    'employeeName': 'Jane Smith',
+    'projectName': 'AWS Redshift security',
+    'projectPriority': 0
+  }
+>>
+--- 
+OK! (12 ms)
+

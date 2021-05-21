@@ -13,18 +13,8 @@ fn parse() -> anyhow::Result<()> {
     let r = parser::array(input)?;
     dbg!(r);
 
-    //     let input = r#"
-    // SELECT e.id,
-    //     e.name AS employeeName,
-    //     e.title AS title
-    // FROM hr.employees e
-    // WHERE e.title = 'Dev Mgr'
-    //     "#;
-    //         let input = r#"
-    //  "#;
-    //         let r = parser::sql(input)?;
-    //         dbg!(r);
-
+    let input = std::fs::read_to_string("samples/q1.sql").unwrap();
+    dbg!(input);
     let input = r#"
     SELECT e.id,
         e.name AS employeeName,

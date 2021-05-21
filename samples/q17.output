@@ -1,0 +1,28 @@
+<<
+  {
+    'id': 3,
+    'name': 'Bob Smith',
+    'title': NULL,
+    'securityProjects': <<
+      'AWS Redshift security',
+      'AWS Aurora security'
+    >>
+  },
+  {
+    'id': 4,
+    'name': 'Susan Smith',
+    'title': 'Dev Mgr',
+    'securityProjects': <<>>
+  },
+  {
+    'id': 6,
+    'name': 'Jane Smith',
+    'title': 'Software Eng 2',
+    'securityProjects': <<
+      'AWS Redshift security'
+    >>
+  }
+>>
+--- 
+OK! (35 ms)
+

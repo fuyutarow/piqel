@@ -18,12 +18,8 @@ fn array123() {
 
 #[test]
 fn q1() {
-    let input = r#"
-    SELECT e.id,
-        e.name AS employeeName,
-        e.title AS title
-    FROM hr.employees AS e
-    WHERE e.title = 'Dev Mgr'"#;
+    let input = std::fs::read_to_string("samples/q1.sql").unwrap();
+    let input = input.trim_end();
 
     let res = parser::sql(input);
     assert_eq!(Ok(("", ())), res)
