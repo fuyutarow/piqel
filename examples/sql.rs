@@ -19,21 +19,26 @@ fn parse() -> anyhow::Result<()> {
     let r = parser::parse_left_join(input);
     dbg!(r);
 
-    // let input = std::fs::read_to_string("samples/q3.sql").unwrap();
-    // println!("{}", input);
-    // let r = parser::parse_left_join(&input);
-    // dbg!(r);
-
-    let input = r#"
-    SELECT e.id AS id,
-       e.name AS employeeName,
-       e.title AS title,
-       p.name AS projectName
-FROM hr.employeesNest AS e
-    LEFT JOIN e.projects AS p
-    "#;
+    let input = std::fs::read_to_string("samples/q1.sql").unwrap();
+    println!("{}", input);
     let r = parser::sql(&input);
-    dbg!(r);
+    match r {
+        Ok((input, sql)) => {
+            dbg!(sql);
+        }
+        Err(err) => eprintln!("{}", err),
+    }
+
+    //     let input = r#"
+    //     SELECT e.id AS id,
+    //        e.name AS employeeName,
+    //        e.title AS title,
+    //        p.name AS projectName
+    // FROM hr.employeesNest AS e
+    //     LEFT JOIN e.projects AS p
+    //     "#;
+    //     let r = parser::sql(&input);
+    //     dbg!(r);
 
     dbg!("=======");
 
