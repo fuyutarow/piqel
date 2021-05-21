@@ -20,10 +20,9 @@ pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str
 
 pub fn sql<'a>(input: &'a str) -> IResult<&'a str, ()> {
     let (input, res) = tuple((
-        // preceded(space, tag("SELECT")),
-        preceded(whitespace, select),
-        // preceded(space, tag("FROM")),
-        // preceded(space, array),
+        preceded(whitespace, parse_select),
+        preceded(whitespace, parse_from),
+        preceded(whitespace, parse_where),
     ))(input)?;
     dbg!(res);
 
@@ -54,27 +53,54 @@ pub fn field<'a>(input: &'a str) -> IResult<&'a str, ()> {
     Ok((input, ()))
 }
 
-pub fn select<'a>(input: &'a str) -> IResult<&'a str, ()> {
+pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, ()> {
     let (input, res) = preceded(
         tag("SELECT"),
         preceded(
             whitespace,
-            cut(terminated(
-                separated_list0(char(','), preceded(whitespace, many1(field))),
-                preceded(whitespace, tag("FROM")),
-            )),
+            separated_list0(char(','), preceded(whitespace, many1(field))),
         ),
     )(input)?;
-    // let (input, res) = separated_list1(char(','), tag("abc"))(input)?;
-
     dbg!(res);
 
     Ok((input, ()))
 }
 
-pub fn select_a<'a>(input: &'a str) -> IResult<&'a str, ()> {
-    let (input, res) = separated_list0(char('|'), alphanumeric1)(input)?;
+pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, ()> {
+    let (input, res) = preceded(
+        tag("FROM"),
+        preceded(
+            whitespace,
+            separated_list0(char(','), preceded(whitespace, many1(field))),
+        ),
+    )(input)?;
+    dbg!(res);
 
+    Ok((input, ()))
+}
+
+fn string<'a>(input: &'a str) -> IResult<&'a str, ()> {
+    let (input, res) = alt((
+        preceded(char('"'), cut(terminated(parse_str, char('"')))),
+        preceded(char('\''), cut(terminated(parse_str, char('\'')))),
+    ))(input)?;
+    dbg!(res);
+
+    Ok((input, ()))
+}
+
+pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, ()> {
+    let (input, res) = preceded(
+        tag("WHERE"),
+        preceded(
+            whitespace,
+            tuple((
+                field,
+                preceded(whitespace, tag("=")),
+                preceded(whitespace, string),
+            )),
+        ),
+    )(input)?;
     dbg!(res);
 
     Ok((input, ()))

@@ -29,7 +29,8 @@ fn parse() -> anyhow::Result<()> {
     SELECT e.id,
         e.name AS employeeName,
         e.title AS title
-    FROM
+    FROM hr.employees AS e
+    WHERE e.title = 'Dev Mgr'
  "#;
     // let r = parser::sql(input)?;
     let r = parser::sql(input)?;
