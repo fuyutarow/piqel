@@ -22,7 +22,8 @@ pub fn sql<'a>(input: &'a str) -> IResult<&'a str, ()> {
     let (input, res) = tuple((
         preceded(whitespace, parse_select),
         preceded(whitespace, parse_from),
-        preceded(whitespace, parse_where),
+        many_m_n(0, 1, preceded(whitespace, parse_left_join)),
+        many_m_n(0, 1, preceded(whitespace, parse_where)),
     ))(input)?;
     dbg!(res);
 
@@ -81,6 +82,20 @@ pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, ()> {
 pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, ()> {
     let (input, res) = preceded(
         tag("FROM"),
+        preceded(
+            whitespace,
+            separated_list0(char(','), preceded(whitespace, many1(field_with))),
+        ),
+    )(input)?;
+    dbg!(res);
+
+    Ok((input, ()))
+}
+
+pub fn parse_left_join<'a>(input: &'a str) -> IResult<&'a str, ()> {
+    let (input, res) = preceded(
+        // tuple((tag("LEFT"), preceded(whitespace, tag("JOIN")))),
+        tag("LEFT JOIN"),
         preceded(
             whitespace,
             separated_list0(char(','), preceded(whitespace, many1(field_with))),

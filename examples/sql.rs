@@ -13,29 +13,26 @@ fn parse() -> anyhow::Result<()> {
     let r = parser::array(input)?;
     dbg!(r);
 
-    let input = std::fs::read_to_string("samples/q1.sql").unwrap();
-    dbg!(input);
+    // dbg!(input);
+
+    let input = "LEFT JOIN e.projects AS p";
+    let r = parser::parse_left_join(input);
+    dbg!(r);
+
+    // let input = std::fs::read_to_string("samples/q3.sql").unwrap();
+    // println!("{}", input);
+    // let r = parser::parse_left_join(&input);
+    // dbg!(r);
+
     let input = r#"
-    SELECT e.id,
-        e.name AS employeeName,
-        e.title AS title
-    FROM hr.employees AS e
-    WHERE e.title = 'Dev Mgr'
- "#;
-    // let r = parser::sql(input)?;
-    let r = parser::sql(input)?;
-    dbg!(r);
-
-    let input = "'%security%'";
-    let r = parser::string(input)?;
-    dbg!(r);
-
-    // let input = " WHERE p.name = 'security'";
-    let input = "WHERE e.title = 'Dev Mgr'";
-    let input = "WHERE p.name = 'security'";
-    let input = "WHERE p.name = '%security%'";
-    let input = "WHERE p.name LIKE '%security%'";
-    let r = parser::parse_where(input)?;
+    SELECT e.id AS id,
+       e.name AS employeeName,
+       e.title AS title,
+       p.name AS projectName
+FROM hr.employeesNest AS e
+    LEFT JOIN e.projects AS p
+    "#;
+    let r = parser::sql(&input);
     dbg!(r);
 
     dbg!("=======");

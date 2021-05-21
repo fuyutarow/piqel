@@ -33,3 +33,12 @@ fn q2() {
     let res = parser::sql(input);
     assert_eq!(Ok(("", ())), res)
 }
+
+#[test]
+fn q3() {
+    let input = std::fs::read_to_string("samples/q3.sql").unwrap();
+    let input = input.trim_end();
+
+    let res = parser::sql(input);
+    assert_eq!(Ok(("", ())), res)
+}
