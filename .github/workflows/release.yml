@@ -1,0 +1,111 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+        rust: [stable]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Set envs
+        id: set_envs
+        run: |
+          echo ::set-output name=bin_name::partiql-cli
+          echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
+        env:
+          GITHUB_REF: ${{ github.ref }}
+      - name: Setup Rust
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Build for Linux
+        if: matrix.os == 'ubuntu-latest'
+        id: build_linux
+        run: |
+          BIN_ZIP=./${BIN_NAME}-${VERSION}-x86_64-linux.zip
+          rustup target add x86_64-unknown-linux-musl
+          sudo apt-get -qq install musl-tools
+          cargo build --locked --release --target=x86_64-unknown-linux-musl --bin partiql-cli
+          zip -j ${BIN_ZIP} target/x86_64-unknown-linux-musl/release/${BIN_NAME}
+          echo "::set-output name=sha::$(shasum -a 256 ${BIN_ZIP} |awk '{print $1}')"
+        env:
+          BIN_NAME: ${{ steps.set_envs.outputs.bin_name }}
+          VERSION: ${{ steps.set_envs.outputs.version }}
+      - name: Build for macOS
+        if: matrix.os == 'macOS-latest'
+        id: build_mac
+        run: |
+          BIN_ZIP=./${BIN_NAME}-${VERSION}-x86_64-mac.zip
+          cargo build --locked --release --target=x86_64-apple-darwin --bin partiql-cli
+          zip -j ${BIN_ZIP} target/x86_64-apple-darwin/release/${BIN_NAME}
+          echo "::set-output name=sha::$(shasum -a 256 ${BIN_ZIP} |awk '{print $1}')"
+        env:
+          BIN_NAME: ${{ steps.set_envs.outputs.bin_name }}
+          VERSION: ${{ steps.set_envs.outputs.version }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: "[Changelog](https://github.com/dalance/procs/blob/master/CHANGELOG.md)"
+          files: "*.zip\n*.rpm"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Dispatch homebrew Repository update for Linux
+        if: matrix.os == 'ubuntu-latest'
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.HOMEBREW_REPO_GITHUB_TOKEN }}
+          repository: fuyutarow/homebrew-tap
+          event-type: update
+          client-payload: |
+            {
+              "type": "update_sha",
+              "os": "linux",
+              "bin_name": "${{ steps.set_envs.outputs.bin_name }}",
+              "version": "${{ steps.set_envs.outputs.version }}",
+              "sha": "${{ steps.build_linux.outputs.sha }}"
+            }
+      - name: Dispatch homebrew Repository update for mac
+        if: matrix.os == 'macOS-latest'
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.HOMEBREW_REPO_GITHUB_TOKEN }}
+          repository: fuyutarow/homebrew-tap
+          event-type: update
+          client-payload: |
+            {
+              "type": "update_sha",
+              "os": "mac",
+              "bin_name": "${{ steps.set_envs.outputs.bin_name }}",
+              "version": "${{ steps.set_envs.outputs.version }}",
+              "sha": "${{ steps.build_mac.outputs.sha }}"
+            }
+
+  final:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Set envs
+        id: set_envs
+        run: |
+          echo ::set-output name=bin_name::partiql-cli
+      - name: Dispatch homebrew Repository final
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.HOMEBREW_REPO_GITHUB_TOKEN }}
+          repository: fuyutarow/homebrew-tap
+          event-type: update
+          client-payload: |
+            {
+              "type": "update_formula",
+              "bin_name": "${{ steps.set_envs.outputs.bin_name }}"
+            }
