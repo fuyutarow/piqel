@@ -30,10 +30,22 @@ pub fn sql<'a>(input: &'a str) -> IResult<&'a str, ()> {
 }
 
 fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
-    escaped(alt((alphanumeric1, space1)), '\\', one_of("\"n\\"))(i)
+    escaped(
+        alt((alphanumeric1, space1, tag("%"))),
+        '\\',
+        one_of("\"n\\"),
+    )(i)
 }
 
 pub fn field<'a>(input: &'a str) -> IResult<&'a str, ()> {
+    let (input, res) = tuple((alphanumeric1, char('.'), alphanumeric1))(input)?;
+
+    dbg!(res);
+
+    Ok((input, ()))
+}
+
+pub fn field_with<'a>(input: &'a str) -> IResult<&'a str, ()> {
     let (input, res) = tuple((
         alphanumeric1,
         char('.'),
@@ -58,7 +70,7 @@ pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, ()> {
         tag("SELECT"),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(field))),
+            separated_list0(char(','), preceded(whitespace, many1(field_with))),
         ),
     )(input)?;
     dbg!(res);
@@ -71,7 +83,7 @@ pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, ()> {
         tag("FROM"),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(field))),
+            separated_list0(char(','), preceded(whitespace, many1(field_with))),
         ),
     )(input)?;
     dbg!(res);
@@ -79,7 +91,7 @@ pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, ()> {
     Ok((input, ()))
 }
 
-fn string<'a>(input: &'a str) -> IResult<&'a str, ()> {
+pub fn string<'a>(input: &'a str) -> IResult<&'a str, ()> {
     let (input, res) = alt((
         preceded(char('"'), cut(terminated(parse_str, char('"')))),
         preceded(char('\''), cut(terminated(parse_str, char('\'')))),
@@ -96,7 +108,7 @@ pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, ()> {
             whitespace,
             tuple((
                 field,
-                preceded(whitespace, tag("=")),
+                preceded(whitespace, alt((tag("="), tag("LIKE")))),
                 preceded(whitespace, string),
             )),
         ),
