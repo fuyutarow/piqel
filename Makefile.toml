@@ -1,0 +1,14 @@
+[tasks.version-up]
+script = '''
+version-make up -rz Cargo.toml
+'''
+
+[tasks.version-tag]
+script = '''
+git tag v$(version-make show Cargo.toml)
+'''
+
+[tasks.fix]
+script = '''
+cargo fix
+'''
