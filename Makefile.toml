@@ -1,3 +1,8 @@
+[tasks.release-cli]
+script = '''
+cargo build --release --bin partiql-cli
+'''
+
 [tasks.version-up]
 script = '''
 version-make up -rz Cargo.toml
