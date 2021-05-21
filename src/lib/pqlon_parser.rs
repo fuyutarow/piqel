@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use nom::{
     branch::alt,
     bytes::complete::{escaped, tag, take_till, take_while, take_while_m_n},
-    character::complete::{alphanumeric1, char, digit0, digit1, multispace0, multispace1, one_of},
+    character::complete::{
+        alphanumeric1, char, digit0, digit1, multispace0, multispace1, one_of, space1,
+    },
     character::is_alphabetic,
     combinator::{cut, map, map_res, opt, value},
     error::{context, ContextError, ParseError},
@@ -13,6 +15,7 @@ use nom::{
     IResult, Parser,
 };
 
+pub use nom::error::convert_error;
 pub use nom::error::VerboseError;
 
 #[derive(Debug, PartialEq)]
@@ -24,13 +27,13 @@ pub enum JsonValue {
     Object(HashMap<String, JsonValue>),
 }
 
-pub fn space<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
+pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";
     take_while(move |c| chars.contains(c))(input)
 }
 
 fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
-    escaped(alphanumeric1, '\\', one_of("\"n\\"))(i)
+    escaped(alt((alphanumeric1, space1)), '\\', one_of("\"n\\"))(i)
 }
 
 fn boolean<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, bool, E> {
@@ -52,7 +55,10 @@ fn string<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 ) -> IResult<&'a str, &'a str, E> {
     context(
         "string",
-        preceded(char('\"'), cut(terminated(parse_str, char('\"')))),
+        alt((
+            preceded(char('"'), cut(terminated(parse_str, char('"')))),
+            preceded(char('\''), cut(terminated(parse_str, char('\'')))),
+        )),
     )(i)
 }
 
@@ -62,10 +68,10 @@ fn array<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     context(
         "array",
         preceded(
-            char('['),
+            tag("<<"),
             cut(terminated(
-                separated_list0(preceded(space, char(',')), json_value),
-                preceded(space, char(']')),
+                separated_list0(preceded(whitespace, char(',')), json_value),
+                preceded(whitespace, tag(">>")),
             )),
         ),
     )(i)
@@ -75,8 +81,8 @@ fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, (&'a str, JsonValue), E> {
     separated_pair(
-        preceded(space, string),
-        cut(preceded(space, char(':'))),
+        preceded(whitespace, string),
+        cut(preceded(whitespace, char(':'))),
         json_value,
     )(i)
 }
@@ -90,7 +96,7 @@ fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
             char('{'),
             cut(terminated(
                 map(
-                    separated_list0(preceded(space, char(',')), key_value),
+                    separated_list0(preceded(whitespace, char(',')), key_value),
                     |tuple_vec| {
                         tuple_vec
                             .into_iter()
@@ -98,7 +104,7 @@ fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
                             .collect()
                     },
                 ),
-                preceded(space, char('}')),
+                preceded(whitespace, char('}')),
             )),
         ),
     )(i)
@@ -108,7 +114,7 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, JsonValue, E> {
     preceded(
-        space,
+        whitespace,
         alt((
             map(hash, JsonValue::Object),
             map(array, JsonValue::Array),
@@ -123,8 +129,8 @@ pub fn root<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, JsonValue, E> {
     delimited(
-        space,
+        whitespace,
         alt((map(hash, JsonValue::Object), map(array, JsonValue::Array))),
-        opt(space),
+        opt(whitespace),
     )(i)
 }

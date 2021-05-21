@@ -5,15 +5,36 @@ fn main() {
 }
 
 fn parse() -> anyhow::Result<()> {
-    let input = "[1,2,3]";
-    let input = "  { \"a\"\t: 42,
-  \"b\": [ \"x\", \"y\", 12 ] ,
-  \"c\": { \"hello\" : \"world\"
-  }
-  } ";
+    let input = r#"
+{
+    'hr': {
+        'employees': <<
+            { 'id': 3, 'name': 'Bob Smith',   'title': null },
+            { 'id': 4, 'name': 'Susan Smith', 'title': 'Dev Mgr' },
+            { 'id': 6, 'name': 'Jane Smith',  'title': 'Software Eng 2'}
+        >>
+    }
+}
+    "#;
+    let input = r#"
+    {
+        "hr": {
+            "employees": <<
+                { "id": 4, "name": "Susan Smith", "title": "Dev Mgr" },
+                { "id": 6, "name": "Jane Smith",  "title": "Software Eng 2"}
+            >>
+        }
+    }
+    "#;
 
-    let r = pqlon_parser::root::<pqlon_parser::VerboseError<&str>>(input)?;
-    dbg!(r);
+    match pqlon_parser::root::<pqlon_parser::VerboseError<&str>>(input) {
+        Ok(r) => {
+            dbg!(r);
+        }
+        Err(err) => {
+            dbg!(err);
+        }
+    }
 
     Ok(())
 }
