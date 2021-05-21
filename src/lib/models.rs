@@ -1,4 +1,18 @@
+use std::collections::HashMap;
 use std::fmt;
+
+use serde_derive::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum JsonValue {
+    Null,
+    Str(String),
+    Boolean(bool),
+    Num(f64),
+    Array(Vec<JsonValue>),
+    Object(HashMap<String, JsonValue>),
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Atom {

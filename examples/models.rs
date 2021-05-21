@@ -13,11 +13,5 @@ fn main() {
     let input = std::fs::read_to_string("samples/q1.env").unwrap();
     println!("{}", input);
 
-    let v = vec![
-        models::Atom::from(1),
-        models::Atom::from(2),
-        models::Atom::from(3),
-    ];
-
     // println!("{}", &v);
 }

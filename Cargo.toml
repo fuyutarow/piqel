@@ -11,3 +11,6 @@ path = "src/lib/mod.rs"
 anyhow = "1.0.40"
 nom = "6.1.2"
 regex = "1.5.4"
+serde = "1.0.126"
+serde_derive = "1.0.126"
+serde_partiql = { git = "https://github.com/fuyutarow/serde-partiql" }

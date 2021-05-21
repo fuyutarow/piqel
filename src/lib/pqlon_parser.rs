@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+pub use nom::error::convert_error;
+pub use nom::error::VerboseError;
 use nom::{
     branch::alt,
     bytes::complete::{escaped, tag, take_till, take_while, take_while_m_n},
@@ -15,18 +17,7 @@ use nom::{
     IResult, Parser,
 };
 
-pub use nom::error::convert_error;
-pub use nom::error::VerboseError;
-
-#[derive(Debug, PartialEq)]
-pub enum JsonValue {
-    Null,
-    Str(String),
-    Boolean(bool),
-    Num(f64),
-    Array(Vec<JsonValue>),
-    Object(HashMap<String, JsonValue>),
-}
+use crate::models::JsonValue;
 
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";

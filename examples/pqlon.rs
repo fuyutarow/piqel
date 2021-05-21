@@ -1,5 +1,6 @@
 use regex::Regex;
 
+use partiql::models::JsonValue;
 use partiql::pqlon_parser as parser;
 
 fn main() {
@@ -7,7 +8,11 @@ fn main() {
     dbg!(r);
 }
 
-fn parse() -> anyhow::Result<parser::JsonValue> {
+fn parse() -> anyhow::Result<()> {
     let input = std::fs::read_to_string("samples/q1.env").unwrap();
-    parser::pql_model(&input)
+    let model = parser::pql_model(&input)?;
+    dbg!(&model);
+    let s = serde_partiql::to_string(&model).unwrap();
+    println!("{}", s);
+    Ok(())
 }
