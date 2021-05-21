@@ -10,3 +10,4 @@ path = "src/lib/mod.rs"
 [dependencies]
 anyhow = "1.0.40"
 nom = "6.1.2"
+regex = "1.5.4"
