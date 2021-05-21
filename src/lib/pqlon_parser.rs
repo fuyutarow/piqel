@@ -20,6 +20,7 @@ pub use nom::error::VerboseError;
 
 #[derive(Debug, PartialEq)]
 pub enum JsonValue {
+    Null,
     Str(String),
     Boolean(bool),
     Num(f64),
@@ -48,6 +49,12 @@ fn boolean<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, bool,
     // `alt` combines the two parsers. It returns the result of the first
     // successful parser, or an error
     alt((parse_true, parse_false))(input)
+}
+
+fn null<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, &'a str, E> {
+    context("null", tag("null"))(i)
 }
 
 fn string<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
@@ -116,6 +123,7 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     preceded(
         whitespace,
         alt((
+            map(null, |s| JsonValue::Null),
             map(hash, JsonValue::Object),
             map(array, JsonValue::Array),
             map(string, |s| JsonValue::Str(String::from(s))),
