@@ -142,3 +142,16 @@ pub fn root<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
         opt(whitespace),
     )(i)
 }
+
+pub fn pql_model(input: &str) -> anyhow::Result<JsonValue> {
+    let re = regex::Regex::new(r"(^|\n)\s*--[\w\s\.{}]*\n").unwrap();
+    let input = re.replace_all(input, "");
+
+    match root::<VerboseError<&str>>(&input) {
+        Ok((_, r)) => Ok(r),
+        Err(err) => {
+            dbg!(err);
+            anyhow::bail!("failed")
+        }
+    }
+}
