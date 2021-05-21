@@ -1,6 +1,6 @@
 [package]
 name = "partiql-rs"
-version = "0.202105.2"
+version = "0.202105.3"
 edition = "2018"
 
 [lib]

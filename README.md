@@ -2,6 +2,15 @@
 
 WIP
 
+
+## `partiql-cli`
+
+### Installation
+```
+brew install fuyutarow/tap/partiql-cli
+```
+
+### Usage
 ```
 $ cat 
 { 
