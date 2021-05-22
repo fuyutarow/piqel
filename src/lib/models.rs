@@ -3,6 +3,8 @@ use std::fmt;
 
 use serde_derive::{Deserialize, Serialize};
 
+use crate::sql::Field;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum JsonValue {
@@ -67,6 +69,38 @@ impl JsonValue {
                 let new_array = array
                     .into_iter()
                     .filter_map(|value| value.filter(path))
+                    .collect::<Vec<_>>();
+
+                Some(JsonValue::Array(new_array))
+            }
+            _ => None,
+        }
+    }
+
+    pub fn m_filter(self, field_list: &[Field]) -> Option<JsonValue> {
+        match self {
+            JsonValue::Object(map) => {
+                let mut new_map = HashMap::<String, JsonValue>::new();
+
+                for field in field_list {
+                    if let Some(value) = map.get(&field.path) {
+                        let key = field.alias.as_ref().unwrap_or(&field.path);
+                        new_map.insert(key.to_string(), value.to_owned());
+                    }
+                }
+
+                Some(JsonValue::Object(new_map))
+            }
+            _ => None,
+        }
+    }
+
+    pub fn m_filter_map(self, field_list: &[Field]) -> Option<JsonValue> {
+        match self {
+            JsonValue::Array(array) => {
+                let new_array = array
+                    .into_iter()
+                    .filter_map(|value| value.m_filter(field_list))
                     .collect::<Vec<_>>();
 
                 Some(JsonValue::Array(new_array))

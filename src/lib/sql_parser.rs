@@ -94,7 +94,7 @@ pub fn field_with<'a>(input: &'a str) -> IResult<&'a str, Field> {
     let f = Field {
         source: p1.to_string(),
         path: p2.to_string(),
-        alias: None,
+        alias,
     };
     Ok((input, f))
 }
