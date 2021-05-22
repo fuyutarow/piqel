@@ -14,6 +14,38 @@ pub enum JsonValue {
     Object(HashMap<String, JsonValue>),
 }
 
+impl JsonValue {
+    pub fn get(self, key: &str) -> Option<JsonValue> {
+        match self {
+            JsonValue::Object(map) => {
+                if let Some(value) = map.get(key) {
+                    Some(value.to_owned())
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_path(self, path: &[String]) -> Option<JsonValue> {
+        if let Some((key, path)) = path.split_first() {
+            dbg!(&key);
+            if let Some(obj) = self.get(key) {
+                if path.len() > 0 {
+                    obj.get_path(path)
+                } else {
+                    Some(obj)
+                }
+            } else {
+                None
+            }
+        } else {
+            unreachable!();
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Atom {
     data: u64,

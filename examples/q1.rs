@@ -1,6 +1,6 @@
+use partiql::models::JsonValue;
 use partiql::pqlon_parser as parser;
 use partiql::sql_parser;
-
 fn main() {
     parse();
 }
@@ -11,14 +11,33 @@ fn parse() -> anyhow::Result<()> {
         let sql = sql_parser::sql(&input)?;
         sql
     };
-    dbg!(sql);
+    dbg!(&sql);
 
     let data = {
         let input = std::fs::read_to_string("samples/q1.env").unwrap();
         let model = parser::pql_model(&input)?;
         model
     };
-    dbg!(data);
+    dbg!(&data);
+
+    // let s = data.get("hr");
+    // dbg!(s);
+
+    // let data = data.get("hr").unwrap();
+    // dbg!(&data);
+    // let data = data.get("employees");
+    // dbg!(&data);
+
+    let s = data.get_path(&["hr".to_string(), "employees".to_string()]);
+    dbg!(s);
+
+    // match data {
+    //     JsonValue::Object(map) => {
+    //         let s = map.get("hr");
+    //         dbg!(s);
+    //     }
+    //     _ => {}
+    // }
 
     let output = {
         let input = std::fs::read_to_string("samples/q1.output").unwrap();
@@ -27,7 +46,7 @@ fn parse() -> anyhow::Result<()> {
         let model = parser::pql_model(&input)?;
         model
     };
-    dbg!(output);
+    dbg!(&output);
 
     Ok(())
 }
