@@ -23,7 +23,7 @@ fn parse() -> anyhow::Result<()> {
     println!("{}", input);
     let r = parser::sql(&input);
     match r {
-        Ok((input, sql)) => {
+        Ok(sql) => {
             dbg!(sql);
         }
         Err(err) => eprintln!("{}", err),

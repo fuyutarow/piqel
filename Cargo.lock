@@ -158,7 +158,7 @@ dependencies = [
 
 [[package]]
 name = "partiql-rs"
-version = "0.202105.3"
+version = "0.202105.4"
 dependencies = [
  "anyhow",
  "nom",
