@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use nom::{
     branch::alt,
     bytes::complete::{escaped, tag, take_till, take_while, take_while_m_n},
@@ -41,9 +43,19 @@ pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
             many_m_n(0, 1, preceded(whitespace, parse_where)),
         ))(input)?;
 
+    let alias_map = from_clause
+        .clone()
+        .into_iter()
+        .filter_map(|field| match field.clone().alias {
+            Some(alias) => Some((alias, field)),
+            _ => None,
+        })
+        .collect::<HashMap<String, Field>>();
+
     let sql = Sql {
         select_clause,
         from_clause,
+        alias_map,
         left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
         where_clause: if let Some(cond) = vec_where_clause.first() {
             Some(cond.to_owned())
@@ -170,7 +182,7 @@ pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
             field,
             right: value.to_string(),
         },
-        "LIKE" => WhereCond::Eq {
+        "LIKE" => WhereCond::Like {
             field,
             right: value.to_string(),
         },
