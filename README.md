@@ -14,7 +14,7 @@ brew install fuyutarow/tap/partiql-cli
 
 #### `partiql-cli sql`
 ```
-$ cat << EOF | cargo run --bin partiql-cli sql -q "$(cat)" -f samples/q1.json -t json
+$ cat << EOF | partiql-cli sql -q "$(cat)" -f samples/q1.json -t json
 SELECT e.id,
        e.name AS employeeName,
        e.title AS title
