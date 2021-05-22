@@ -60,16 +60,31 @@ fn string<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     )(i)
 }
 
+fn bag<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    i: &'a str,
+) -> IResult<&'a str, Vec<JsonValue>, E> {
+    context(
+        "bag",
+        preceded(
+            tag("<<"),
+            cut(terminated(
+                separated_list0(preceded(whitespace, char(',')), json_value),
+                preceded(whitespace, tag(">>")),
+            )),
+        ),
+    )(i)
+}
+
 fn array<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, Vec<JsonValue>, E> {
     context(
         "array",
         preceded(
-            tag("<<"),
+            tag("["),
             cut(terminated(
                 separated_list0(preceded(whitespace, char(',')), json_value),
-                preceded(whitespace, tag(">>")),
+                preceded(whitespace, tag("]")),
             )),
         ),
     )(i)
@@ -117,6 +132,7 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
             map(null, |s| JsonValue::Null),
             map(hash, JsonValue::Object),
             map(array, JsonValue::Array),
+            map(bag, JsonValue::Array),
             map(string, |s| JsonValue::Str(String::from(s))),
             map(double, JsonValue::Num),
             map(boolean, JsonValue::Boolean),
@@ -127,19 +143,13 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 pub fn root<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, JsonValue, E> {
-    delimited(
-        whitespace,
-        alt((map(hash, JsonValue::Object), map(array, JsonValue::Array))),
-        opt(whitespace),
-    )(i)
+    delimited(whitespace, json_value, opt(whitespace))(i)
 }
 
 pub fn pql_model(input: &str) -> anyhow::Result<JsonValue> {
-    println!("{}", &input);
     // let re = regex::Regex::new(r"(^|\n)\s*--[\w\s\.{}]*?\n").unwrap();
     let re = regex::Regex::new(r"--[\w\s\.{}]*?\n").unwrap();
     let input = re.replace_all(input, "");
-    println!("{}", &input);
 
     match root::<VerboseError<&str>>(&input) {
         Ok((_, r)) => Ok(r),

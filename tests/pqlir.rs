@@ -1,6 +1,28 @@
 use partiql::pqlir_parser;
 
 #[test]
+fn bag() {
+    let input = r#"<<
+  {
+    'employeeName': 'Bob Smith',
+    'projectName': 'AWS Redshift security'
+  },
+  {
+    'employeeName': 'Bob Smith',
+    'projectName': 'AWS Aurora security'
+  },
+  {
+    'employeeName': 'Jane Smith',
+    'projectName': 'AWS Redshift security'
+  }
+>>"#;
+    match pqlir_parser::pql_model(&input) {
+        Ok(_) => assert_eq!(true, true),
+        Err(_) => assert_eq!(true, false),
+    }
+}
+
+#[test]
 fn t1() {
     let input = r#"
     {

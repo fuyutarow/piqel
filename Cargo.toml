@@ -1,6 +1,6 @@
 [package]
 name = "partiql-rs"
-version = "0.202105.5"
+version = "0.202105.6"
 edition = "2018"
 homepage = "https://github.com/fuyutarow/partiql-rs"
 repository = "https://github.com/fuyutarow/partiql-rs.git"

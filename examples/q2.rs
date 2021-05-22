@@ -49,8 +49,12 @@ fn parse() -> anyhow::Result<()> {
     let output = {
         let input = std::fs::read_to_string("samples/q2.output").unwrap();
         let v = input.split("---").collect::<Vec<_>>();
+        dbg!(&v);
         let input = v.first().unwrap();
+        dbg!(&input);
+        println!("{}", &input);
         let model = pqlir_parser::pql_model(&input)?;
+        dbg!(&model);
         model
     };
     dbg!(&output);
