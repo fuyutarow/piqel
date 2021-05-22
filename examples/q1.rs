@@ -11,7 +11,7 @@ fn parse() -> anyhow::Result<()> {
         let sql = sql_parser::sql(&input)?;
         sql
     };
-    // dbg!(&sql);
+    dbg!(&sql);
 
     let data = {
         let input = std::fs::read_to_string("samples/q1.env").unwrap();

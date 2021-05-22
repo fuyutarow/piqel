@@ -10,5 +10,11 @@ pub struct Sql {
     pub select_clause: Vec<Field>,
     pub from_clause: Vec<Field>,
     pub left_join_clause: Vec<Field>,
-    // pub where_clause: Vec<Field>,
+    pub where_clause: Option<WhereCond>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum WhereCond {
+    Eq { field: Field, right: String },
+    Like { field: Field, right: String },
 }

@@ -15,6 +15,7 @@ use nom::{
 
 use crate::sql::Field;
 use crate::sql::Sql;
+use crate::sql::WhereCond;
 
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";
@@ -32,18 +33,23 @@ pub fn sql(input: &str) -> anyhow::Result<Sql> {
 }
 
 pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
-    let (input, (select_clause, from_clause, vec_left_join_clause, _)) = tuple((
-        preceded(whitespace, parse_select),
-        preceded(whitespace, parse_from),
-        many_m_n(0, 1, preceded(whitespace, parse_left_join)),
-        many_m_n(0, 1, preceded(whitespace, parse_where)),
-    ))(input)?;
+    let (input, (select_clause, from_clause, vec_left_join_clause, vec_where_clause)) =
+        tuple((
+            preceded(whitespace, parse_select),
+            preceded(whitespace, parse_from),
+            many_m_n(0, 1, preceded(whitespace, parse_left_join)),
+            many_m_n(0, 1, preceded(whitespace, parse_where)),
+        ))(input)?;
 
     let sql = Sql {
         select_clause,
         from_clause,
         left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
-        // where_clause: vec_where_clause.first().unwrap_or(&vec![]).to_owned(),
+        where_clause: if let Some(cond) = vec_where_clause.first() {
+            Some(cond.to_owned())
+        } else {
+            None
+        },
     };
     Ok((input, sql))
 }
@@ -139,17 +145,15 @@ pub fn parse_left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     Ok((input, fields))
 }
 
-pub fn string<'a>(input: &'a str) -> IResult<&'a str, ()> {
-    let (input, res) = alt((
+pub fn string<'a>(input: &'a str) -> IResult<&'a str, &'a str> {
+    alt((
         preceded(char('"'), cut(terminated(parse_str, char('"')))),
         preceded(char('\''), cut(terminated(parse_str, char('\'')))),
-    ))(input)?;
-
-    Ok((input, ()))
+    ))(input)
 }
 
-pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, ()> {
-    let (input, (field, op, _)) = preceded(
+pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
+    let (input, (field, op, value)) = preceded(
         tag("WHERE"),
         preceded(
             whitespace,
@@ -161,7 +165,19 @@ pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, ()> {
         ),
     )(input)?;
 
-    Ok((input, ()))
+    let cond = match op {
+        "=" => WhereCond::Eq {
+            field,
+            right: value.to_string(),
+        },
+        "LIKE" => WhereCond::Eq {
+            field,
+            right: value.to_string(),
+        },
+        _ => unreachable!(),
+    };
+
+    Ok((input, cond))
 }
 
 pub fn array<'a>(input: &'a str) -> IResult<&'a str, Vec<u64>> {
