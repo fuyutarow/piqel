@@ -31,7 +31,12 @@ fn parse() -> anyhow::Result<()> {
 
     let field_list = sql.select_clause;
     dbg!(&field_list);
-    let data = rows.m_filter_map(&field_list);
+    let data = rows.select_map(&field_list).unwrap();
+    dbg!(&data);
+
+    let cond = sql.where_clause.unwrap();
+    dbg!(&cond);
+    let data = data.filter_map(cond).unwrap();
     dbg!(&data);
 
     let output = {
@@ -41,7 +46,11 @@ fn parse() -> anyhow::Result<()> {
         let model = parser::pql_model(&input)?;
         model
     };
-    // dbg!(&output);
+    dbg!(&output);
+
+    assert_eq!(output, data);
+
+    dbg!("--------");
 
     Ok(())
 }

@@ -4,6 +4,7 @@ use std::fmt;
 use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::Field;
+use crate::sql::WhereCond;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -46,7 +47,7 @@ impl JsonValue {
         }
     }
 
-    pub fn filter(self, path: &[&str]) -> Option<JsonValue> {
+    pub fn _filter(self, path: &[&str]) -> Option<JsonValue> {
         match self {
             JsonValue::Object(map) => {
                 let mut new_map = HashMap::<String, JsonValue>::new();
@@ -63,12 +64,12 @@ impl JsonValue {
         }
     }
 
-    pub fn filter_map(self, path: &[&str]) -> Option<JsonValue> {
+    pub fn _filter_map(self, path: &[&str]) -> Option<JsonValue> {
         match self {
             JsonValue::Array(array) => {
                 let new_array = array
                     .into_iter()
-                    .filter_map(|value| value.filter(path))
+                    .filter_map(|value| value._filter(path))
                     .collect::<Vec<_>>();
 
                 Some(JsonValue::Array(new_array))
@@ -77,7 +78,7 @@ impl JsonValue {
         }
     }
 
-    pub fn m_filter(self, field_list: &[Field]) -> Option<JsonValue> {
+    pub fn select(self, field_list: &[Field]) -> Option<JsonValue> {
         match self {
             JsonValue::Object(map) => {
                 let mut new_map = HashMap::<String, JsonValue>::new();
@@ -95,12 +96,42 @@ impl JsonValue {
         }
     }
 
-    pub fn m_filter_map(self, field_list: &[Field]) -> Option<JsonValue> {
+    pub fn select_map(self, field_list: &[Field]) -> Option<JsonValue> {
         match self {
             JsonValue::Array(array) => {
                 let new_array = array
                     .into_iter()
-                    .filter_map(|value| value.m_filter(field_list))
+                    .filter_map(|value| value.select(field_list))
+                    .collect::<Vec<_>>();
+
+                Some(JsonValue::Array(new_array))
+            }
+            _ => None,
+        }
+    }
+
+    pub fn filter_map(self, conditon: WhereCond) -> Option<JsonValue> {
+        match self {
+            JsonValue::Array(array) => {
+                let new_array = array
+                    .into_iter()
+                    .filter_map(|left| {
+                        dbg!(&left);
+                        match conditon.to_owned() {
+                            WhereCond::Eq { field, right } => {
+                                if let Some(value) = left.clone().get(&field.path) {
+                                    if value == JsonValue::Str(right) {
+                                        Some(left)
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    None
+                                }
+                            }
+                            _ => todo!(),
+                        }
+                    })
                     .collect::<Vec<_>>();
 
                 Some(JsonValue::Array(new_array))
