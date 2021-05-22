@@ -1,5 +1,5 @@
 use partiql::models::JsonValue;
-use partiql::pqlon_parser as parser;
+use partiql::pqlir_parser as parser;
 use partiql::sql_parser;
 fn main() {
     parse();

@@ -5,7 +5,7 @@ use regex::Regex;
 use structopt::StructOpt;
 
 use partiql::models::JsonValue;
-use partiql::pqlon_parser as parser;
+use partiql::pqlir_parser as parser;
 
 fn read_from_stdin() -> anyhow::Result<String> {
     let mut buf = String::new();
