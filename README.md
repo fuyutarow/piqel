@@ -12,7 +12,7 @@ brew install fuyutarow/tap/partiql-cli
 
 ### Usage
 ```
-$ cat 
+$ cat samples/q1.env
 { 
     'hr': { 
         'employees': <<
@@ -23,7 +23,7 @@ $ cat
         >>
     }
 } 
-$ cat samples/q1.env | cargo run --bin partiql-cli from --to json | jq
+$ cat samples/q1.env | partiql-cli from --to json | jq
 {
   "hr": {
     "employees": [
@@ -45,5 +45,5 @@ $ cat samples/q1.env | cargo run --bin partiql-cli from --to json | jq
     ]
   }
 }
-$ cat samples/q1.env | cargo run --bin partiql-cli from --to json | cargo run --bin partiql-cli from --to partiql
+$ cat samples/q1.env | partiql-cli from --to json | partiql-cli from --to partiql
 ``` 
