@@ -68,10 +68,7 @@ impl JsonValue {
 
                 Some(JsonValue::Array(new_array))
             }
-            _ => {
-                dbg!("#2");
-                Some(self.clone())
-            }
+            _ => Some(self.clone()),
         }
     }
 
@@ -129,9 +126,7 @@ impl JsonValue {
         let mut new_map = HashMap::<String, JsonValue>::new();
 
         for field in field_list {
-            dbg!("!!", field);
             let path = field.path.split(".").collect::<Vec<&str>>();
-            dbg!(&path, &self, self.by_path(&path));
             if let Some(value) = self.by_path(&path) {
                 let key = field.alias.clone().unwrap_or({
                     let last = path.last().unwrap().to_string();
@@ -147,12 +142,10 @@ impl JsonValue {
     pub fn select_map(self, field_list: &[Field]) -> Option<JsonValue> {
         match self {
             JsonValue::Array(array) => {
-                dbg!("array", &array);
                 let new_array = array
                     .into_iter()
                     .filter_map(|value| value.select(field_list))
                     .collect::<Vec<_>>();
-                dbg!("new_array", &new_array);
 
                 Some(JsonValue::Array(new_array))
             }
