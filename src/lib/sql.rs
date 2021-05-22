@@ -1,5 +1,6 @@
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
+    pub source: String,
     pub path: String,
     pub alias: Option<String>,
 }

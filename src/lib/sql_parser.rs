@@ -60,7 +60,8 @@ pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
     let (input, (p1, _, p2)) = tuple((alphanumeric1, char('.'), alphanumeric1))(input)?;
 
     let f = Field {
-        path: format!("{}.{}", p1, p2),
+        source: p1.to_string(),
+        path: p2.to_string(),
         alias: None,
     };
     Ok((input, f))
@@ -91,8 +92,9 @@ pub fn field_with<'a>(input: &'a str) -> IResult<&'a str, Field> {
     };
 
     let f = Field {
-        path: format!("{}.{}", p1, p2),
-        alias,
+        source: p1.to_string(),
+        path: p2.to_string(),
+        alias: None,
     };
     Ok((input, f))
 }
