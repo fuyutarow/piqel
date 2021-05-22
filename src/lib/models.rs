@@ -28,9 +28,8 @@ impl JsonValue {
         }
     }
 
-    pub fn get_path(self, path: &[String]) -> Option<JsonValue> {
+    pub fn get_path(self, path: &[&str]) -> Option<JsonValue> {
         if let Some((key, path)) = path.split_first() {
-            dbg!(&key);
             if let Some(obj) = self.get(key) {
                 if path.len() > 0 {
                     obj.get_path(path)
@@ -42,6 +41,37 @@ impl JsonValue {
             }
         } else {
             unreachable!();
+        }
+    }
+
+    pub fn filter(self, path: &[&str]) -> Option<JsonValue> {
+        match self {
+            JsonValue::Object(map) => {
+                let mut new_map = HashMap::<String, JsonValue>::new();
+
+                for key in path {
+                    if let Some(value) = map.get(key.to_string().as_str()) {
+                        new_map.insert(key.to_string(), value.to_owned());
+                    }
+                }
+
+                Some(JsonValue::Object(new_map))
+            }
+            _ => None,
+        }
+    }
+
+    pub fn filter_map(self, path: &[&str]) -> Option<JsonValue> {
+        match self {
+            JsonValue::Array(array) => {
+                let new_array = array
+                    .into_iter()
+                    .filter_map(|value| value.filter(path))
+                    .collect::<Vec<_>>();
+
+                Some(JsonValue::Array(new_array))
+            }
+            _ => None,
         }
     }
 }
