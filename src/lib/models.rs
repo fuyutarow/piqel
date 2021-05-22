@@ -115,22 +115,19 @@ impl JsonValue {
             JsonValue::Array(array) => {
                 let new_array = array
                     .into_iter()
-                    .filter_map(|left| {
-                        dbg!(&left);
-                        match conditon.to_owned() {
-                            WhereCond::Eq { field, right } => {
-                                if let Some(value) = left.clone().get(&field.path) {
-                                    if value == JsonValue::Str(right) {
-                                        Some(left)
-                                    } else {
-                                        None
-                                    }
+                    .filter_map(|left| match conditon.to_owned() {
+                        WhereCond::Eq { field, right } => {
+                            if let Some(value) = left.clone().get(&field.path) {
+                                if value == JsonValue::Str(right) {
+                                    Some(left)
                                 } else {
                                     None
                                 }
+                            } else {
+                                None
                             }
-                            _ => todo!(),
                         }
+                        _ => todo!(),
                     })
                     .collect::<Vec<_>>();
 

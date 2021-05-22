@@ -1,0 +1,21 @@
+{
+  "hr": {
+    "employees": [
+      {
+        "id": 3,
+        "title": null,
+        "name": "Bob Smith"
+      },
+      {
+        "title": "Dev Mgr",
+        "id": 4,
+        "name": "Susan Smith"
+      },
+      {
+        "id": 6,
+        "name": "Jane Smith",
+        "title": "Software Eng 2"
+      }
+    ]
+  }
+}

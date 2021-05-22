@@ -11,6 +11,20 @@ brew install fuyutarow/tap/partiql-cli
 ```
 
 ### Usage
+
+#### `partiql-cli sql`
+```
+$ cat << EOF | cargo run --bin partiql-cli sql -q "$(cat)" -f samples/q1.json -t json
+SELECT e.id,
+       e.name AS employeeName,
+       e.title AS title
+FROM hr.employees e
+WHERE e.title = 'Dev Mgr'
+EOF
+[{"employeeName":"Susan Smith","title":"Dev Mgr","id":4.0}]
+```
+
+#### `partiql-cli from`
 ```
 $ cat samples/q1.env
 { 
@@ -46,4 +60,4 @@ $ cat samples/q1.env | partiql-cli from --to json | jq
   }
 }
 $ cat samples/q1.env | partiql-cli from --to json | partiql-cli from --to partiql
-``` 
+```
