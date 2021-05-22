@@ -21,7 +21,17 @@ pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str
     take_while(move |c| chars.contains(c))(input)
 }
 
-pub fn sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
+pub fn sql(input: &str) -> anyhow::Result<Sql> {
+    match parse_sql(input) {
+        Ok((_, sql)) => Ok(sql),
+        Err(err) => {
+            dbg!(err);
+            anyhow::bail!("failed")
+        }
+    }
+}
+
+pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
     let (input, (select_clause, from_clause, vec_left_join_clause, _)) = tuple((
         preceded(whitespace, parse_select),
         preceded(whitespace, parse_from),
