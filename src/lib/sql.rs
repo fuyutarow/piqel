@@ -25,12 +25,18 @@ pub enum WhereCond {
 }
 
 impl Sql {
-    pub fn get_full_path(&self, field: Field, path: &mut Vec<String>) {
+    fn rec_get_full_path(&self, field: &Field, path: &mut Vec<String>) {
         if let Some(alias_field) = self.alias_map.get(&field.source) {
-            self.get_full_path(alias_field.clone(), path);
+            self.rec_get_full_path(alias_field, path);
         } else {
-            (*path).push(field.source);
+            (*path).push(field.source.clone());
         }
-        (*path).push(field.path);
+        (*path).push(field.path.clone());
+    }
+
+    pub fn get_full_path(&self, field: &Field) -> Vec<String> {
+        let mut path = Vec::<String>::new();
+        self.rec_get_full_path(field, &mut path);
+        path
     }
 }

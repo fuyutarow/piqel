@@ -44,22 +44,74 @@ fn parse() -> anyhow::Result<()> {
     };
     dbg!(&data);
 
-    let data = run(sql, data).unwrap();
+    // let p = partiql::sql::Field {
+    //     source: "e".to_owned(),
+    //     path: "projects".to_owned(),
+    //     alias: Some("p".to_owned()),
+    // };
 
-    let output = {
-        let input = std::fs::read_to_string("samples/q2.output").unwrap();
-        let v = input.split("---").collect::<Vec<_>>();
-        dbg!(&v);
-        let input = v.first().unwrap();
-        dbg!(&input);
-        println!("{}", &input);
-        let model = pqlir_parser::pql_model(&input)?;
-        dbg!(&model);
-        model
-    };
-    dbg!(&output);
+    // let path_s = sql.get_full_path(p);
+    // let path = &path_s.iter().map(AsRef::as_ref).collect::<Vec<&str>>();
 
-    assert_eq!(output, data);
+    // let full_path = data
+    let field_list = &sql.select_clause;
+
+    for field in field_list {
+        let path_s = sql.get_full_path(field);
+        let path = path_s.iter().map(AsRef::as_ref).collect::<Vec<&str>>();
+        dbg!(&path);
+        let d = data.by_path(&path);
+
+        dbg!(d);
+    }
+
+    // dbg!(data.by_path(&["hr",]));
+    // dbg!(data.by_path(&["hr", "employeesNest"]));
+    dbg!(data.by_path(&["hr", "employeesNest", "projects", "name"]));
+
+    let d = data.by_path(&["hr", "employeesNest"]).unwrap();
+
+    dbg!(&d.select_map(&[
+        partiql::sql::Field {
+            source: "".to_owned(),
+            path: "name".to_owned(),
+            alias: Some("employeeName".to_owned()),
+        },
+        partiql::sql::Field {
+            source: "".to_owned(),
+            path: "projects.name".to_owned(),
+            alias: Some("projectName".to_owned()),
+        }
+    ]));
+
+    dbg!(&data.select_map(&[
+        partiql::sql::Field {
+            source: "".to_owned(),
+            path: "hr.employeesNest.name".to_owned(),
+            alias: Some("employeeName".to_owned()),
+        },
+        partiql::sql::Field {
+            source: "".to_owned(),
+            path: "hr.employeesNest.projects.name".to_owned(),
+            alias: Some("projectName".to_owned()),
+        }
+    ]));
+
+    // let val = data.by_path(path);
+    // dbg!(val);
+    // let data = run(sql, data).unwrap();
+    // dbg!(&data);
+
+    // let output = {
+    //     let input = std::fs::read_to_string("samples/q2.output").unwrap();
+    //     let v = input.split("---").collect::<Vec<_>>();
+    //     let input = v.first().unwrap();
+    //     let model = pqlir_parser::pql_model(&input)?;
+    //     model
+    // };
+    // dbg!(&output);
+
+    // assert_eq!(output, data);
 
     dbg!("--------");
 

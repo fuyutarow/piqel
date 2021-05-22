@@ -56,6 +56,23 @@ fn parse() -> anyhow::Result<()> {
     let model = pqlir_parser::pql_model(&input)?;
     dbg!(model);
 
+    let right = "%hello";
+
+    let pattern = match (right.starts_with("%"), right.ends_with("%")) {
+        (true, true) => format!("{}", right.trim_start_matches("%").trim_end_matches("%")),
+        (true, false) => format!("{}$", right.trim_start_matches("%")),
+        (false, true) => format!("^{}", right.trim_end_matches("%")),
+        (false, false) => format!("^{}$", right),
+    };
+    let re = regex::Regex::new(&pattern).unwrap();
+
+    let input = "hello world";
+    let r = re.is_match(input);
+    dbg!(r);
+
+    let input = "ok, hello";
+    let r = re.is_match(input);
+    dbg!(r);
     // println!("{}", &v);
     Ok(())
 }

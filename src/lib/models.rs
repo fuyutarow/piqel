@@ -47,6 +47,34 @@ impl JsonValue {
         }
     }
 
+    pub fn by_path(&self, path: &[&str]) -> Option<JsonValue> {
+        match self {
+            Self::Object(map) => {
+                if let Some((key, tail_path)) = path.split_first() {
+                    if let Some(obj) = self.clone().get(key) {
+                        obj.by_path(tail_path)
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(self.to_owned())
+                }
+            }
+            Self::Array(array) => {
+                let new_array = array
+                    .into_iter()
+                    .filter_map(|value| value.by_path(path))
+                    .collect::<Vec<_>>();
+
+                Some(JsonValue::Array(new_array))
+            }
+            _ => {
+                dbg!("#2");
+                Some(self.clone())
+            }
+        }
+    }
+
     pub fn _filter(self, path: &[&str]) -> Option<JsonValue> {
         match self {
             JsonValue::Object(map) => {
@@ -78,31 +106,53 @@ impl JsonValue {
         }
     }
 
+    // pub fn select_by_path_list(self, path_list: &[&[&str]]]) -> Option<JsonValue> {
+    //     match self {
+    //         JsonValue::Object(map) => {
+    //             let mut new_map = HashMap::<String, JsonValue>::new();
+
+    //             for field in field_list {
+    //                 dbg!("!!", field);
+    //                 if let Some(value) = map.get(&field.path) {
+    //                     let key = field.alias.as_ref().unwrap_or(&field.path);
+    //                     new_map.insert(key.to_string(), value.to_owned());
+    //                 }
+    //             }
+
+    //             Some(JsonValue::Object(new_map))
+    //         }
+    //         _ => None,
+    //     }
+    // }
+
     pub fn select(self, field_list: &[Field]) -> Option<JsonValue> {
-        match self {
-            JsonValue::Object(map) => {
-                let mut new_map = HashMap::<String, JsonValue>::new();
+        let mut new_map = HashMap::<String, JsonValue>::new();
 
-                for field in field_list {
-                    if let Some(value) = map.get(&field.path) {
-                        let key = field.alias.as_ref().unwrap_or(&field.path);
-                        new_map.insert(key.to_string(), value.to_owned());
-                    }
-                }
-
-                Some(JsonValue::Object(new_map))
+        for field in field_list {
+            dbg!("!!", field);
+            let path = field.path.split(".").collect::<Vec<&str>>();
+            dbg!(&path, &self, self.by_path(&path));
+            if let Some(value) = self.by_path(&path) {
+                let key = field.alias.clone().unwrap_or({
+                    let last = path.last().unwrap().to_string();
+                    last
+                });
+                new_map.insert(key, value);
             }
-            _ => None,
         }
+
+        Some(JsonValue::Object(new_map))
     }
 
     pub fn select_map(self, field_list: &[Field]) -> Option<JsonValue> {
         match self {
             JsonValue::Array(array) => {
+                dbg!("array", &array);
                 let new_array = array
                     .into_iter()
                     .filter_map(|value| value.select(field_list))
                     .collect::<Vec<_>>();
+                dbg!("new_array", &new_array);
 
                 Some(JsonValue::Array(new_array))
             }
@@ -127,7 +177,23 @@ impl JsonValue {
                                 None
                             }
                         }
-                        _ => todo!(),
+                        WhereCond::Like { field, right } => {
+                            let pattern = match (right.starts_with("%"), right.ends_with("%")) {
+                                (true, true) => format!(
+                                    "{}",
+                                    right.trim_start_matches("%").trim_end_matches("%")
+                                ),
+                                (true, false) => format!("{}$", right.trim_start_matches("%")),
+                                (false, true) => format!("^{}", right.trim_end_matches("%")),
+                                (false, false) => format!("^{}$", right),
+                            };
+                            let re = regex::Regex::new(&pattern).unwrap();
+                            dbg!(">>", &left, &pattern);
+                            match left.clone().get(&field.path) {
+                                Some(JsonValue::Str(s)) if re.is_match(&s) => Some(left),
+                                _ => None,
+                            }
+                        }
                     })
                     .collect::<Vec<_>>();
 
