@@ -2,9 +2,9 @@
   "hr": {
     "employees": [
       {
+        "name": "Bob Smith",
         "id": 3,
-        "title": null,
-        "name": "Bob Smith"
+        "title": null
       },
       {
         "title": "Dev Mgr",
@@ -12,9 +12,9 @@
         "name": "Susan Smith"
       },
       {
-        "id": 6,
+        "title": "Software Eng 2",
         "name": "Jane Smith",
-        "title": "Software Eng 2"
+        "id": 6
       }
     ]
   }

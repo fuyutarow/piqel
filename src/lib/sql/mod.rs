@@ -3,8 +3,10 @@ use std::collections::HashMap;
 use crate::models::JsonValue;
 
 mod bingings;
+mod eval;
 mod utils;
 pub use bingings::Bingings;
+pub use eval::run;
 pub use utils::to_list;
 
 #[derive(Debug, Clone, PartialEq)]

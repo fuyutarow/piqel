@@ -4,10 +4,10 @@ use std::path::{Path, PathBuf};
 use regex::Regex;
 use structopt::StructOpt;
 
+use partiql::dsql_parser as sql_parser;
 use partiql::models::JsonValue;
 use partiql::pqlir_parser as parser;
-use partiql::sql::Sql;
-use partiql::sql_parser;
+use partiql::sql::run;
 
 fn read_from_stdin() -> anyhow::Result<String> {
     let mut buf = String::new();
@@ -80,38 +80,20 @@ fn main() -> anyhow::Result<()> {
 
             let sql = sql_parser::sql(&query)?;
 
-            if let Some(output) = run(sql, data) {
-                let s = match to.as_str() {
-                    "json" => {
-                        let s = serde_json::to_string(&output).unwrap();
-                        s
-                    }
-                    _ => {
-                        let s = serde_partiql::to_string(&output).unwrap();
-                        s
-                    }
-                };
-                println!("{}", s);
-            } else {
-                eprintln!("failed");
-            }
+            let output = run(sql, data);
+            let s = match to.as_str() {
+                "json" => {
+                    let s = serde_json::to_string(&output).unwrap();
+                    s
+                }
+                _ => {
+                    let s = serde_partiql::to_string(&output).unwrap();
+                    s
+                }
+            };
+            println!("{}", s);
         }
     };
 
     Ok(())
-}
-
-fn run(sql: Sql, data: JsonValue) -> Option<JsonValue> {
-    let from_clause = sql.from_clause.first().unwrap();
-    let full_path = format!("{}.{}", from_clause.source, from_clause.path);
-    let from_path = full_path.split(".").collect::<Vec<_>>();
-
-    let rows = data.get_path(&from_path).unwrap();
-
-    let field_list = sql.select_clause;
-    let data = rows.select_map(&field_list).unwrap();
-
-    let cond = sql.where_clause.unwrap();
-    let data = data.filter_map(cond).unwrap();
-    Some(data)
 }
