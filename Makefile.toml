@@ -1,3 +1,12 @@
+[tasks.build]
+command = "cargo"
+args = ["build", "--bin", "partiql-cli"]
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+dependencies = ["build"]
+
 [tasks.release-cli]
 script = '''
 cargo build --release --bin partiql-cli
@@ -17,3 +26,19 @@ git tag v$(version-make show Cargo.toml)
 script = '''
 cargo fix
 '''
+
+[tasks.run-q1]
+script = '''
+alias pq="./target/debug/partiql-cli"
+cat samples/q1.env | pq from --to json | jq > samples/q1.json
+pq sql -f samples/q1.json -q "$(cat samples/q1.sql)" | pq from -t json | jq
+'''
+dependencies = ["build"]
+
+[tasks.run-q2]
+script = '''
+alias pq="./target/debug/partiql-cli"
+cat samples/q2.env | pq from --to json | jq > samples/q2.json
+pq sql -f samples/q2.json -q "$(cat samples/q2.sql)" | pq from -t json | jq
+'''
+dependencies = ["build"]
