@@ -2,6 +2,9 @@ use std::collections::HashMap;
 
 use crate::models::JsonValue;
 
+mod utils;
+pub use utils::to_list;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
     pub source: String,
