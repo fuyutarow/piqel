@@ -35,6 +35,9 @@ fn run(sql: Sql, data: JsonValue) -> JsonValue {
 
     let value = data.select_by_fields(&select_fields).unwrap();
     let list = to_list(value);
+    dbg!(&list);
+    dbg!(&sql);
+
     let filtered_list = list
         .iter()
         .filter_map(|value| match &sql.where_clause {

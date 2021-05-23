@@ -116,12 +116,12 @@ impl DWhereCond {
     ) -> bool {
         match self {
             Self::Eq { field, right } => {
-                if let Some(value) = left.clone().select_by_path(&field.path) {
-                    if value == JsonValue::Str(right.to_owned()) {
-                        true
-                    } else {
-                        false
-                    }
+                let where_arg_path = field.path.full(&bindings);
+                let access_path = bindings_for_select
+                    .to_alias(&where_arg_path)
+                    .unwrap_or(where_arg_path.to_owned());
+                if let Some(value) = left.clone().select_by_path(&access_path) {
+                    value == JsonValue::Str(right.to_owned())
                 } else {
                     false
                 }
@@ -138,11 +138,9 @@ impl DWhereCond {
                 let re = regex::Regex::new(&pattern).unwrap();
 
                 let where_arg_path = field.path.full(&bindings);
-                dbg!(&field.path, &where_arg_path);
                 let access_path = bindings_for_select
                     .to_alias(&where_arg_path)
                     .unwrap_or(where_arg_path.to_owned());
-                dbg!(&access_path, &left, left.select_by_path(&access_path), &re);
                 match left.select_by_path(&access_path) {
                     Some(JsonValue::Str(s)) if re.is_match(&s) => true,
                     _ => false,
@@ -182,7 +180,6 @@ impl WhereCond {
                     (false, false) => format!("^{}$", right),
                 };
                 let re = regex::Regex::new(&pattern).unwrap();
-                // let r = match left.clone().get(&field.path) {
                 let path = field.path.split(".").collect::<Vec<_>>();
                 let val = left.by_path(&path);
                 dbg!(&re, &field, &path, &left, &val);
