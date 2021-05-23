@@ -287,8 +287,9 @@ dependencies = [
 
 [[package]]
 name = "serde_partiql"
-version = "1.0.64+202105"
-source = "git+https://github.com/fuyutarow/serde-partiql#664ff5645556f2d3c3db7526e191ca974422b547"
+version = "1.0.64+20210523"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7b04784fda39b00abff6b16d5f210c768760cc0f974318deaf9f334d60f0329"
 dependencies = [
  "itoa",
  "ryu",
