@@ -31,6 +31,17 @@ impl From<&[&str]> for Dpath {
     }
 }
 
+impl From<&str> for Dpath {
+    fn from(s: &str) -> Self {
+        let data = s
+            .to_string()
+            .split(".")
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
+        Self { data }
+    }
+}
+
 impl Dpath {
     pub fn to_string(&self) -> String {
         self.data.join(".")
