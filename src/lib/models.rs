@@ -147,6 +147,22 @@ impl JsonValue {
     //         _ => None,
     //     }
     // }
+    pub fn neo_select(&self, field_list: &[DField]) -> Option<JsonValue> {
+        let mut new_map = HashMap::<String, JsonValue>::new();
+
+        for field in field_list {
+            let path = field.path.to_vec();
+            if let Some(value) = self.by_path(&path) {
+                let key = field.alias.clone().unwrap_or({
+                    let last = path.last().unwrap().to_string();
+                    last
+                });
+                new_map.insert(key, value);
+            }
+        }
+
+        Some(JsonValue::Object(new_map))
+    }
 
     pub fn select_by_fields(&self, field_list: &[DField]) -> Option<JsonValue> {
         let mut new_map = HashMap::<String, JsonValue>::new();
