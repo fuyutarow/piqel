@@ -16,12 +16,11 @@ pub struct Field {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DField {
-    pub source: String,
     pub path: Dpath,
     pub alias: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Dpath {
     pub data: Vec<String>,
 }
@@ -78,6 +77,14 @@ impl Sql {
         self.rec_get_full_path(field, &mut path);
         path
     }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct DSql {
+    pub select_clause: Vec<DField>,
+    pub from_clause: Vec<DField>,
+    // pub left_join_clause: Vec<DField>,
+    // pub where_clause: Option<WhereCond>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
