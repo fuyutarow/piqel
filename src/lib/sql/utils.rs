@@ -4,6 +4,7 @@ use itertools::Itertools;
 
 use crate::models::JsonValue;
 use crate::pqlir_parser;
+use crate::sql::Bingings;
 use crate::sql::DField;
 use crate::sql::Dpath;
 use crate::sql::Sql;

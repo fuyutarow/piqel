@@ -8,6 +8,7 @@ use partiql::sql::to_list;
 use partiql::sql::Bingings;
 use partiql::sql::DField;
 use partiql::sql::DSql;
+use partiql::sql::DWhereCond;
 use partiql::sql::Dpath;
 use partiql::sql_parser;
 
@@ -44,26 +45,30 @@ fn parse() -> anyhow::Result<()> {
                 alias: Some("p".to_owned()),
             },
         ],
+        where_clause: Some(DWhereCond::Like {
+            field: DField {
+                path: Dpath::from("p.name"),
+                alias: None,
+            },
+            right: "%security%".to_owned(),
+        }),
     };
     dbg!(&sql);
 
-    let env = Bingings::from(sql.from_clause.as_slice());
-    dbg!(&env);
-
-    let env = Bingings::from(
-        sql.select_clause
-            .into_iter()
-            .chain(sql.from_clause.into_iter())
-            .collect::<Vec<_>>()
-            .as_slice(),
-    );
-    dbg!(&env);
+    let fields = sql
+        .select_clause
+        .iter()
+        .chain(sql.from_clause.iter())
+        .map(|e| e.to_owned())
+        .collect::<Vec<_>>();
+    let bindings = Bingings::from(fields.as_slice());
 
     let field = DField {
         path: Dpath::from("p.name"),
         alias: Some("projectName".to_owned()),
     };
-    let p = env.get_full_path(&field.path);
+
+    let p = field.path.full(&bindings);
     dbg!(&p);
 
     let field = DField {
@@ -71,7 +76,7 @@ fn parse() -> anyhow::Result<()> {
         alias: Some("employeeName".to_owned()),
     };
 
-    let p = env.get_full_path(&field.path);
+    let p = field.path.full(&bindings);
     dbg!(&p);
 
     let data = {
@@ -80,7 +85,14 @@ fn parse() -> anyhow::Result<()> {
         model
     };
 
-    let fields = vec![
+    let select_fields = sql
+        .select_clause
+        .iter()
+        .map(|field| field.to_owned().full(&bindings))
+        .collect::<Vec<_>>();
+    dbg!(&select_fields);
+
+    let select_fields = vec![
         DField {
             path: Dpath::from(vec!["hr", "employeesNest", "projects", "name"].as_slice()),
             alias: Some("projectName".to_owned()),
@@ -91,22 +103,19 @@ fn parse() -> anyhow::Result<()> {
         },
     ];
 
-    let value = data.select_by_fields(&fields).unwrap();
-
+    let value = data.select_by_fields(&select_fields).unwrap();
     let list = to_list(value);
+    dbg!(&list);
 
-    let bingins = Bingings::from(fields.as_slice());
+    let bindings_for_select = Bingings::from(select_fields.as_slice());
 
     let ss = list
-        .into_iter()
-        .filter_map(|value| {
-            let re = regex::Regex::new("security").unwrap();
-            let path = Dpath::from(vec!["hr", "employeesNest", "projects", "name"].as_slice());
-            let access_path = bingins.to_alias(&path).unwrap_or(path);
-            match value.select_by_path(access_path) {
-                Some(JsonValue::Str(s)) if re.is_match(&s) => Some(value),
-                _ => None,
+        .iter()
+        .filter_map(|value| match &sql.where_clause {
+            Some(cond) if cond.eval(&value.to_owned(), &bindings, &bindings_for_select) => {
+                Some(value.to_owned())
             }
+            _ => None,
         })
         .collect::<Vec<JsonValue>>();
     dbg!(ss);

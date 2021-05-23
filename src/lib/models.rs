@@ -49,7 +49,7 @@ impl JsonValue {
         }
     }
 
-    pub fn select_by_path(&self, path: Dpath) -> Option<JsonValue> {
+    pub fn select_by_path(&self, path: &Dpath) -> Option<JsonValue> {
         match self {
             Self::Object(map) => {
                 if let Some((key, tail_path)) = path.to_vec().split_first() {
