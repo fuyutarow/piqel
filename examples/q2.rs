@@ -7,27 +7,27 @@ fn main() {
     parse();
 }
 
-fn run(sql: Sql, data: JsonValue) -> Option<JsonValue> {
-    let from_clause = sql.from_clause.first().unwrap();
-    let full_path = format!("{}.{}", from_clause.source, from_clause.path);
-    let from_path = full_path.split(".").collect::<Vec<_>>();
+// fn run(sql: Sql, data: JsonValue) -> Option<JsonValue> {
+//     let from_clause = sql.from_clause.first().unwrap();
+//     let full_path = format!("{}.{}", from_clause.source, from_clause.path);
+//     let from_path = full_path.split(".").collect::<Vec<_>>();
 
-    dbg!(&from_path);
+//     dbg!(&from_path);
 
-    let rows = data.get_path(&from_path).unwrap();
-    dbg!(&rows);
+//     let rows = data.get_path(&from_path).unwrap();
+//     dbg!(&rows);
 
-    let field_list = sql.select_clause;
-    dbg!(&field_list);
-    let data = rows.select_map(&field_list).unwrap();
-    dbg!(&data);
+//     let field_list = sql.select_clause;
+//     dbg!(&field_list);
+//     let data = rows.select_map(&field_list).unwrap();
+//     dbg!(&data);
 
-    let cond = sql.where_clause.unwrap();
-    dbg!(&cond);
-    let data = data.filter_map(cond).unwrap();
-    dbg!(&data);
-    Some(data)
-}
+//     let cond = sql.where_clause.unwrap();
+//     dbg!(&cond);
+//     let data = data.filter_map(cond).unwrap();
+//     dbg!(&data);
+//     Some(data)
+// }
 
 fn parse() -> anyhow::Result<()> {
     let sql = {
@@ -81,11 +81,52 @@ fn parse() -> anyhow::Result<()> {
         })
         .collect::<Vec<_>>();
 
-    let d = data.by_path(&["hr", "employeesNest"]).unwrap();
+    let cond = &sql.where_clause.clone().unwrap();
+    dbg!(&cond);
 
-    // let r = d.select_map(target_fields.as_slice());
-    let r = d.select_map(&target_fields);
-    dbg!(r);
+    let cond = match cond {
+        partiql::sql::WhereCond::Eq { field, right } => {
+            let full_path = &sql.get_full_path(&field);
+            let (_, child) = full_path.split_at(parent_path.len());
+            let path = child.join(".");
+            // let path = full_path.join(".");
+            let field = partiql::sql::Field {
+                source: "".to_owned(),
+                path,
+                alias: None,
+            };
+            partiql::sql::WhereCond::Eq {
+                field,
+                right: right.to_owned(),
+            }
+        }
+        partiql::sql::WhereCond::Like { field, right } => {
+            let full_path = &sql.get_full_path(&field);
+            let (_, child) = full_path.split_at(parent_path.len());
+            let path = child.join(".");
+            // let path = full_path.join(".");
+            let field = partiql::sql::Field {
+                source: "".to_owned(),
+                path,
+                alias: None,
+            };
+            partiql::sql::WhereCond::Like {
+                field,
+                right: right.to_owned(),
+            }
+        }
+    };
+    dbg!("new", &cond);
+
+    // let r = data.filter_map(cond);
+    // dbg!(&r);
+    // let data = data.filter_map(cond).unwrap();
+    // dbg!(&data);
+
+    let parent_path_vec = parent_path.iter().map(|s| s.as_str()).collect::<Vec<_>>();
+    let d = data.by_path(&parent_path_vec).unwrap();
+    let data = d.select_map_cond(&target_fields, Some(cond)).unwrap();
+    dbg!(&data);
 
     let output = {
         let input = std::fs::read_to_string("samples/q2.output").unwrap();

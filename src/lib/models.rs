@@ -139,6 +139,36 @@ impl JsonValue {
         Some(JsonValue::Object(new_map))
     }
 
+    pub fn select_map_cond(
+        self,
+        field_list: &[Field],
+        conditon: Option<WhereCond>,
+    ) -> Option<JsonValue> {
+        match self {
+            JsonValue::Array(array) => {
+                let new_array = array
+                    .into_iter()
+                    .filter_map(|left| {
+                        if let Some(cond) = &conditon {
+                            if cond.eval(&left) {
+                                Some(left)
+                            } else {
+                                dbg!("nnn", &left);
+                                None
+                            }
+                        } else {
+                            Some(left)
+                        }
+                    })
+                    .filter_map(|value| value.select(field_list))
+                    .collect::<Vec<_>>();
+
+                Some(JsonValue::Array(new_array))
+            }
+            _ => None,
+        }
+    }
+
     pub fn select_map(self, field_list: &[Field]) -> Option<JsonValue> {
         match self {
             JsonValue::Array(array) => {
@@ -158,34 +188,11 @@ impl JsonValue {
             JsonValue::Array(array) => {
                 let new_array = array
                     .into_iter()
-                    .filter_map(|left| match conditon.to_owned() {
-                        WhereCond::Eq { field, right } => {
-                            if let Some(value) = left.clone().get(&field.path) {
-                                if value == JsonValue::Str(right) {
-                                    Some(left)
-                                } else {
-                                    None
-                                }
-                            } else {
-                                None
-                            }
-                        }
-                        WhereCond::Like { field, right } => {
-                            let pattern = match (right.starts_with("%"), right.ends_with("%")) {
-                                (true, true) => format!(
-                                    "{}",
-                                    right.trim_start_matches("%").trim_end_matches("%")
-                                ),
-                                (true, false) => format!("{}$", right.trim_start_matches("%")),
-                                (false, true) => format!("^{}", right.trim_end_matches("%")),
-                                (false, false) => format!("^{}$", right),
-                            };
-                            let re = regex::Regex::new(&pattern).unwrap();
-                            dbg!(">>", &left, &pattern);
-                            match left.clone().get(&field.path) {
-                                Some(JsonValue::Str(s)) if re.is_match(&s) => Some(left),
-                                _ => None,
-                            }
+                    .filter_map(|left| {
+                        if conditon.eval(&left) {
+                            Some(left)
+                        } else {
+                            None
                         }
                     })
                     .collect::<Vec<_>>();
