@@ -1,3 +1,4 @@
+pub mod dsql_parser;
 pub mod models;
 pub mod pqlir_parser;
 pub mod sql;
