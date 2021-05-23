@@ -8,7 +8,7 @@ use partiql::pqlir_parser;
 use partiql::sql::to_list;
 use partiql::sql::Bingings;
 use partiql::sql::DField;
-use partiql::sql::DSql;
+use partiql::sql::DSql as Sql;
 use partiql::sql::DWhereCond;
 use partiql::sql::Dpath;
 use partiql::sql_parser;
@@ -17,19 +17,7 @@ fn main() {
     parse();
 }
 
-fn parse() -> anyhow::Result<()> {
-    let sql = {
-        let input = std::fs::read_to_string("samples/q2.sql").unwrap();
-        let sql = dsql_parser::sql(&input)?;
-        sql
-    };
-
-    let data = {
-        let input = std::fs::read_to_string("samples/q2.env").unwrap();
-        let model = pqlir_parser::pql_model(&input)?;
-        model
-    };
-
+fn run(sql: Sql, data: JsonValue) -> JsonValue {
     let fields = sql
         .select_clause
         .iter()
@@ -57,6 +45,22 @@ fn parse() -> anyhow::Result<()> {
         })
         .collect::<Vec<JsonValue>>();
 
+    JsonValue::Array(filtered_list)
+}
+
+fn parse() -> anyhow::Result<()> {
+    let sql = {
+        let input = std::fs::read_to_string("samples/q2.sql").unwrap();
+        let sql = dsql_parser::sql(&input)?;
+        sql
+    };
+
+    let data = {
+        let input = std::fs::read_to_string("samples/q2.env").unwrap();
+        let model = pqlir_parser::pql_model(&input)?;
+        model
+    };
+
     let output = {
         let input = std::fs::read_to_string("samples/q2.output").unwrap();
         let v = input.split("---").collect::<Vec<_>>();
@@ -65,7 +69,8 @@ fn parse() -> anyhow::Result<()> {
         model
     };
 
-    assert_eq!(JsonValue::Array(filtered_list), output);
+    let res = run(sql, data);
+    assert_eq!(res, output);
 
     dbg!("END OF FILE");
     Ok(())

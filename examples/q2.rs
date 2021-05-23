@@ -1,132 +1,65 @@
+use std::collections::HashMap;
+
+use itertools::Itertools;
+
+use partiql::dsql_parser;
 use partiql::models::JsonValue;
 use partiql::pqlir_parser;
-use partiql::sql::Sql;
+use partiql::sql::to_list;
+use partiql::sql::Bingings;
+use partiql::sql::DField;
+use partiql::sql::DSql as Sql;
+use partiql::sql::DWhereCond;
+use partiql::sql::Dpath;
 use partiql::sql_parser;
 
 fn main() {
     parse();
 }
 
-// fn run(sql: Sql, data: JsonValue) -> Option<JsonValue> {
-//     let from_clause = sql.from_clause.first().unwrap();
-//     let full_path = format!("{}.{}", from_clause.source, from_clause.path);
-//     let from_path = full_path.split(".").collect::<Vec<_>>();
+fn run(sql: Sql, data: JsonValue) -> JsonValue {
+    let fields = sql
+        .select_clause
+        .iter()
+        .chain(sql.from_clause.iter())
+        .map(|e| e.to_owned())
+        .collect::<Vec<_>>();
+    let bindings = Bingings::from(fields.as_slice());
 
-//     dbg!(&from_path);
+    let select_fields = sql
+        .select_clause
+        .iter()
+        .map(|field| field.to_owned().full(&bindings))
+        .collect::<Vec<_>>();
+    let bindings_for_select = Bingings::from(select_fields.as_slice());
 
-//     let rows = data.get_path(&from_path).unwrap();
-//     dbg!(&rows);
+    let value = data.select_by_fields(&select_fields).unwrap();
+    let list = to_list(value);
+    let filtered_list = list
+        .iter()
+        .filter_map(|value| match &sql.where_clause {
+            Some(cond) if cond.eval(&value.to_owned(), &bindings, &bindings_for_select) => {
+                Some(value.to_owned())
+            }
+            _ => None,
+        })
+        .collect::<Vec<JsonValue>>();
 
-//     let field_list = sql.select_clause;
-//     dbg!(&field_list);
-//     let data = rows.select_map(&field_list).unwrap();
-//     dbg!(&data);
-
-//     let cond = sql.where_clause.unwrap();
-//     dbg!(&cond);
-//     let data = data.filter_map(cond).unwrap();
-//     dbg!(&data);
-//     Some(data)
-// }
+    JsonValue::Array(filtered_list)
+}
 
 fn parse() -> anyhow::Result<()> {
     let sql = {
         let input = std::fs::read_to_string("samples/q2.sql").unwrap();
-        let sql = sql_parser::sql(&input)?;
+        let sql = dsql_parser::sql(&input)?;
         sql
     };
-    dbg!(&sql);
 
     let data = {
         let input = std::fs::read_to_string("samples/q2.env").unwrap();
         let model = pqlir_parser::pql_model(&input)?;
         model
     };
-    dbg!(&data);
-
-    // let p = partiql::sql::Field {
-    //     source: "e".to_owned(),
-    //     path: "projects".to_owned(),
-    //     alias: Some("p".to_owned()),
-    // };
-
-    // let path_s = sql.get_full_path(p);
-    // let path = &path_s.iter().map(AsRef::as_ref).collect::<Vec<&str>>();
-
-    // let full_path = data
-    let field_list = &sql.select_clause;
-
-    let path_list = field_list
-        .into_iter()
-        .map(|field| sql.get_full_path(field))
-        .collect::<Vec<_>>();
-    dbg!(&path_list);
-
-    // dbg!(data.by_path(&["hr",]));
-    // dbg!(data.by_path(&["hr", "employeesNest"]));
-    dbg!(data.by_path(&["hr", "employeesNest", "projects", "name"]));
-
-    let (parent_path, child_path_list) = partiql::utils::split_parent_children(path_list);
-    dbg!(&parent_path);
-    dbg!(&child_path_list);
-
-    let target_fields = child_path_list
-        .into_iter()
-        .zip(field_list.into_iter())
-        .map(|(path, field)| partiql::sql::Field {
-            source: "".to_owned(),
-            // path: path.into_iter().collect::<String>(),
-            path: path.join("."),
-            alias: field.alias.to_owned(),
-        })
-        .collect::<Vec<_>>();
-
-    let cond = &sql.where_clause.clone().unwrap();
-    dbg!(&cond);
-
-    let cond = match cond {
-        partiql::sql::WhereCond::Eq { field, right } => {
-            let full_path = &sql.get_full_path(&field);
-            let (_, child) = full_path.split_at(parent_path.len());
-            let path = child.join(".");
-            // let path = full_path.join(".");
-            let field = partiql::sql::Field {
-                source: "".to_owned(),
-                path,
-                alias: None,
-            };
-            partiql::sql::WhereCond::Eq {
-                field,
-                right: right.to_owned(),
-            }
-        }
-        partiql::sql::WhereCond::Like { field, right } => {
-            let full_path = &sql.get_full_path(&field);
-            let (_, child) = full_path.split_at(parent_path.len());
-            let path = child.join(".");
-            // let path = full_path.join(".");
-            let field = partiql::sql::Field {
-                source: "".to_owned(),
-                path,
-                alias: None,
-            };
-            partiql::sql::WhereCond::Like {
-                field,
-                right: right.to_owned(),
-            }
-        }
-    };
-    dbg!("new", &cond);
-
-    // let r = data.filter_map(cond);
-    // dbg!(&r);
-    // let data = data.filter_map(cond).unwrap();
-    // dbg!(&data);
-
-    let parent_path_vec = parent_path.iter().map(|s| s.as_str()).collect::<Vec<_>>();
-    let d = data.by_path(&parent_path_vec).unwrap();
-    let data = d.select_map_cond(&target_fields, Some(cond)).unwrap();
-    dbg!(&data);
 
     let output = {
         let input = std::fs::read_to_string("samples/q2.output").unwrap();
@@ -135,11 +68,10 @@ fn parse() -> anyhow::Result<()> {
         let model = pqlir_parser::pql_model(&input)?;
         model
     };
-    dbg!(&output);
 
-    // assert_eq!(output, data);
+    let res = run(sql, data);
+    assert_eq!(res, output);
 
-    dbg!("--------");
-
+    dbg!("END OF FILE");
     Ok(())
 }
