@@ -10,6 +10,13 @@ pub struct Field {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct DField {
+    pub source: String,
+    pub path: Dpath,
+    pub alias: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct Dpath {
     pub data: Vec<String>,
 }

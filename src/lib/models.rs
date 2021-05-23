@@ -3,6 +3,8 @@ use std::fmt;
 
 use serde_derive::{Deserialize, Serialize};
 
+use crate::sql::DField;
+use crate::sql::Dpath;
 use crate::sql::Field;
 use crate::sql::WhereCond;
 
@@ -47,6 +49,30 @@ impl JsonValue {
         }
     }
 
+    pub fn select_by_path(&self, path: Dpath) -> Option<JsonValue> {
+        match self {
+            Self::Object(map) => {
+                if let Some((key, tail_path)) = path.to_vec().split_first() {
+                    if let Some(obj) = self.clone().get(key) {
+                        obj.by_path(tail_path)
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(self.to_owned())
+                }
+            }
+            Self::Array(array) => {
+                let new_array = array
+                    .into_iter()
+                    .filter_map(|value| value.by_path(&path.to_vec()))
+                    .collect::<Vec<_>>();
+
+                Some(JsonValue::Array(new_array))
+            }
+            _ => Some(self.clone()),
+        }
+    }
     pub fn by_path(&self, path: &[&str]) -> Option<JsonValue> {
         match self {
             Self::Object(map) => {
@@ -121,6 +147,37 @@ impl JsonValue {
     //         _ => None,
     //     }
     // }
+
+    pub fn select_by_fields(&self, field_list: &[DField]) -> Option<JsonValue> {
+        let mut new_map = HashMap::<String, JsonValue>::new();
+
+        for field in field_list {
+            let path = field.path.to_vec();
+            if let Some(value) = self.by_path(&path) {
+                let key = field.alias.clone().unwrap_or({
+                    let last = path.last().unwrap().to_string();
+                    last
+                });
+                new_map.insert(key, value);
+            }
+        }
+
+        Some(JsonValue::Object(new_map))
+    }
+
+    pub fn select_map_by_fields(&self, field_list: &[DField]) -> Option<JsonValue> {
+        match self {
+            JsonValue::Array(array) => {
+                let new_array = array
+                    .into_iter()
+                    .filter_map(|value| value.select_by_fields(field_list))
+                    .collect::<Vec<_>>();
+
+                Some(JsonValue::Array(new_array))
+            }
+            _ => None,
+        }
+    }
 
     pub fn select(self, field_list: &[Field]) -> Option<JsonValue> {
         let mut new_map = HashMap::<String, JsonValue>::new();
