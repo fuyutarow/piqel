@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use crate::models::JsonValue;
 
-mod bingings;
+mod bindings;
 mod eval;
 mod utils;
-pub use bingings::Bingings;
+pub use bindings::Bindings;
 pub use eval::run;
 pub use utils::to_list;
 
@@ -23,7 +23,7 @@ pub struct DField {
 }
 
 impl DField {
-    pub fn full(&self, bidings: &Bingings) -> Self {
+    pub fn full(&self, bidings: &Bindings) -> Self {
         let path = bidings.get_full_path(&self.path);
         Self {
             path,
@@ -64,7 +64,7 @@ impl Dpath {
         self.data.iter().map(|s| s.as_str()).collect::<Vec<_>>()
     }
 
-    pub fn full(&self, bidings: &Bingings) -> Self {
+    pub fn full(&self, bidings: &Bindings) -> Self {
         bidings.get_full_path(&self)
     }
 }
@@ -87,8 +87,8 @@ impl DWhereCond {
     pub fn eval(
         &self,
         left: &JsonValue,
-        bindings: &Bingings,
-        bindings_for_select: &Bingings,
+        bindings: &Bindings,
+        bindings_for_select: &Bindings,
     ) -> bool {
         match self {
             Self::Eq { field, right } => {

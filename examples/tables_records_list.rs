@@ -6,7 +6,6 @@ use partiql::models::JsonValue;
 use partiql::pqlir_parser;
 use partiql::sql::DField;
 use partiql::sql::Dpath;
-use partiql::sql::Sql;
 
 fn main() {
     parse();

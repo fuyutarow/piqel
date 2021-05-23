@@ -45,7 +45,7 @@ fn boolean<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, bool,
 fn null<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, &'a str, E> {
-    context("null", tag("null"))(i)
+    context("null", alt((tag("null"), tag("NULL"))))(i)
 }
 
 fn string<'a, E: ParseError<&'a str> + ContextError<&'a str>>(

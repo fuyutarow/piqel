@@ -7,7 +7,7 @@ use partiql::models::JsonValue;
 use partiql::pqlir_parser;
 use partiql::sql::run;
 use partiql::sql::to_list;
-use partiql::sql::Bingings;
+use partiql::sql::Bindings;
 use partiql::sql::DField;
 use partiql::sql::DSql as Sql;
 use partiql::sql::DWhereCond;
