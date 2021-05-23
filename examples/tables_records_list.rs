@@ -23,12 +23,10 @@ fn parse() -> anyhow::Result<()> {
     let value = data
         .select_by_fields(&[
             DField {
-                source: "".to_owned(),
                 path: Dpath::from(vec!["hr", "employeesNest", "projects", "name"].as_slice()),
                 alias: Some("projectName".to_owned()),
             },
             DField {
-                source: "".to_owned(),
                 path: Dpath::from(vec!["hr", "employeesNest", "name"].as_slice()),
                 alias: Some("employeeName".to_owned()),
             },

@@ -105,8 +105,8 @@ mod tests {
                     alias: Some("p".to_owned()),
                 },
             ],
+            where_clause: None,
         };
-        dbg!(&sql);
 
         let bingings = Bingings::from(
             sql.select_clause
