@@ -11,13 +11,14 @@ use partiql::sql::DField;
 use partiql::sql::DSql as Sql;
 use partiql::sql::DWhereCond;
 use partiql::sql::Dpath;
-use partiql::sql_parser;
 
 fn main() {
     parse();
 }
 
-fn run(sql: Sql, data: JsonValue) -> JsonValue {
+fn run(sql: &Sql, data: &JsonValue) -> JsonValue {
+    dbg!(sql);
+
     let fields = sql
         .select_clause
         .iter()
@@ -27,6 +28,7 @@ fn run(sql: Sql, data: JsonValue) -> JsonValue {
     let bindings = Bingings::from(fields.as_slice());
 
     let select_fields = sql
+        .clone()
         .select_clause
         .iter()
         .map(|field| field.to_owned().full(&bindings))
@@ -35,6 +37,9 @@ fn run(sql: Sql, data: JsonValue) -> JsonValue {
 
     let value = data.select_by_fields(&select_fields).unwrap();
     let list = to_list(value);
+
+    dbg!(&list);
+
     let filtered_list = list
         .iter()
         .filter_map(|value| match &sql.where_clause {
@@ -50,26 +55,26 @@ fn run(sql: Sql, data: JsonValue) -> JsonValue {
 
 fn parse() -> anyhow::Result<()> {
     let sql = {
-        let input = std::fs::read_to_string("samples/q2.sql").unwrap();
+        let input = std::fs::read_to_string("samples/q3.sql").unwrap();
         let sql = dsql_parser::sql(&input)?;
         sql
     };
 
     let data = {
-        let input = std::fs::read_to_string("samples/q2.env").unwrap();
+        let input = std::fs::read_to_string("samples/q3.env").unwrap();
         let model = pqlir_parser::pql_model(&input)?;
         model
     };
 
     let output = {
-        let input = std::fs::read_to_string("samples/q2.output").unwrap();
+        let input = std::fs::read_to_string("samples/q3.output").unwrap();
         let v = input.split("---").collect::<Vec<_>>();
         let input = v.first().unwrap();
         let model = pqlir_parser::pql_model(&input)?;
         model
     };
 
-    let res = run(sql, data);
+    let res = run(&sql, &data);
     assert_eq!(res, output);
 
     dbg!("END OF FILE");

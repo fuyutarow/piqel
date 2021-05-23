@@ -8,7 +8,6 @@ use crate::sql::Bingings;
 use crate::sql::DField;
 use crate::sql::Dpath;
 use crate::sql::Sql;
-use crate::sql_parser;
 
 pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
     let (tables, n, keys) = {

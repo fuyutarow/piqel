@@ -7,7 +7,6 @@ use partiql::pqlir_parser;
 use partiql::sql::DField;
 use partiql::sql::Dpath;
 use partiql::sql::Sql;
-use partiql::sql_parser;
 
 fn main() {
     parse();

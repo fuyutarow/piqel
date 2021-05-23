@@ -80,7 +80,7 @@ fn main() -> anyhow::Result<()> {
 
             let sql = sql_parser::sql(&query)?;
 
-            let output = run(sql, data);
+            let output = run(&sql, &data);
             let s = match to.as_str() {
                 "json" => {
                     let s = serde_json::to_string(&output).unwrap();

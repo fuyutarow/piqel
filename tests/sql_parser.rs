@@ -1,4 +1,4 @@
-use partiql::sql_parser as parser;
+use partiql::dsql_parser as parser;
 
 #[test]
 fn array123() {

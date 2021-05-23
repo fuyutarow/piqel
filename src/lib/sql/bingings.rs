@@ -6,7 +6,6 @@ use crate::sql::to_list;
 use crate::sql::DField;
 use crate::sql::Dpath;
 use crate::sql::Sql;
-use crate::sql_parser;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bingings {
