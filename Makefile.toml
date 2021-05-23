@@ -22,6 +22,11 @@ script = '''
 git tag v$(version-make show Cargo.toml)
 '''
 
+[tasks.version-untag]
+script = '''
+git tag v$(version-make show Cargo.toml) -d
+'''
+
 [tasks.fix]
 script = '''
 cargo fix
