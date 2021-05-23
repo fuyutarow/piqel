@@ -1,0 +1,30 @@
+{
+  "hr": {
+    "employeesNestScalars": [
+      {
+        "name": "Bob Smith",
+        "id": 3,
+        "projects": [
+          "AWS Redshift Spectrum querying",
+          "AWS Redshift security",
+          "AWS Aurora security"
+        ],
+        "title": null
+      },
+      {
+        "title": "Dev Mgr",
+        "name": "Susan Smith",
+        "projects": [],
+        "id": 4
+      },
+      {
+        "name": "Jane Smith",
+        "id": 6,
+        "projects": [
+          "AWS Redshift security"
+        ],
+        "title": "Software Eng 2"
+      }
+    ]
+  }
+}

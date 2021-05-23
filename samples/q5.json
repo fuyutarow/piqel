@@ -1,0 +1,24 @@
+{
+  "hr": {
+    "employeesWithTuples": [
+      {
+        "project": {
+          "name": "AWS Redshift Spectrum querying",
+          "org": "AWS"
+        },
+        "title": null,
+        "id": 3,
+        "name": "Bob Smith"
+      },
+      {
+        "id": 6,
+        "name": "Jane Smith",
+        "project": {
+          "org": "AWS",
+          "name": "AWS Redshift security"
+        },
+        "title": "Software Eng 2"
+      }
+    ]
+  }
+}

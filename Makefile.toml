@@ -47,3 +47,13 @@ cat samples/q2.env | pq from --to json | jq > samples/q2.json
 pq sql -f samples/q2.json -q "$(cat samples/q2.sql)" | pq from -t json | jq
 '''
 dependencies = ["build"]
+
+[tasks.generate-json]
+script = '''
+alias pq="./target/debug/partiql-cli"
+for i in $(seq 1 18)
+do
+    cat samples/q$i.env | pq from --to json | jq > samples/q$i.json
+done
+'''
+dependencies = ["build"]
