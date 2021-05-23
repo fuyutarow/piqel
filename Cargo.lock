@@ -173,7 +173,7 @@ dependencies = [
 
 [[package]]
 name = "partiql-rs"
-version = "0.202105.6"
+version = "0.202105.7"
 dependencies = [
  "anyhow",
  "itertools",
