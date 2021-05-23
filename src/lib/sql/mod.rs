@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use crate::models::JsonValue;
 
+mod bingings;
 mod utils;
+pub use bingings::Bingings;
 pub use utils::to_list;
 
 #[derive(Debug, Clone, PartialEq)]
