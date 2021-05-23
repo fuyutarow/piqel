@@ -59,23 +59,24 @@ fn parse() -> anyhow::Result<()> {
         let sql = dsql_parser::sql(&input)?;
         sql
     };
+    dbg!(&sql);
 
-    let data = {
-        let input = std::fs::read_to_string("samples/q3.env").unwrap();
-        let model = pqlir_parser::pql_model(&input)?;
-        model
-    };
+    // let data = {
+    //     let input = std::fs::read_to_string("samples/q3.env").unwrap();
+    //     let model = pqlir_parser::pql_model(&input)?;
+    //     model
+    // };
 
-    let output = {
-        let input = std::fs::read_to_string("samples/q3.output").unwrap();
-        let v = input.split("---").collect::<Vec<_>>();
-        let input = v.first().unwrap();
-        let model = pqlir_parser::pql_model(&input)?;
-        model
-    };
+    // let output = {
+    //     let input = std::fs::read_to_string("samples/q3.output").unwrap();
+    //     let v = input.split("---").collect::<Vec<_>>();
+    //     let input = v.first().unwrap();
+    //     let model = pqlir_parser::pql_model(&input)?;
+    //     model
+    // };
 
-    let res = run(&sql, &data);
-    assert_eq!(res, output);
+    // let res = run(&sql, &data);
+    // assert_eq!(res, output);
 
     dbg!("END OF FILE");
     Ok(())

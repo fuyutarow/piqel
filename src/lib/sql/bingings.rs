@@ -4,8 +4,8 @@ use crate::models::JsonValue;
 use crate::pqlir_parser;
 use crate::sql::to_list;
 use crate::sql::DField;
+use crate::sql::DSql;
 use crate::sql::Dpath;
-use crate::sql::Sql;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bingings {

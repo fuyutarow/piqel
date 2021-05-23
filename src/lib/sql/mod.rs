@@ -70,36 +70,10 @@ impl Dpath {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Sql {
-    pub select_clause: Vec<Field>,
-    pub from_clause: Vec<Field>,
-    pub alias_map: HashMap<String, Field>,
-    pub left_join_clause: Vec<Field>,
-    pub where_clause: Option<WhereCond>,
-}
-
-impl Sql {
-    fn rec_get_full_path(&self, field: &Field, path: &mut Vec<String>) {
-        if let Some(alias_field) = self.alias_map.get(&field.source) {
-            self.rec_get_full_path(alias_field, path);
-        } else {
-            (*path).push(field.source.clone());
-        }
-        (*path).push(field.path.clone());
-    }
-
-    pub fn get_full_path(&self, field: &Field) -> Vec<String> {
-        let mut path = Vec::<String>::new();
-        self.rec_get_full_path(field, &mut path);
-        path
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
 pub struct DSql {
     pub select_clause: Vec<DField>,
     pub from_clause: Vec<DField>,
-    // pub left_join_clause: Vec<DField>,
+    pub left_join_clause: Vec<DField>,
     pub where_clause: Option<DWhereCond>,
 }
 
@@ -144,48 +118,6 @@ impl DWhereCond {
                     .to_alias(&where_arg_path)
                     .unwrap_or(where_arg_path.to_owned());
                 match left.select_by_path(&access_path) {
-                    Some(JsonValue::Str(s)) if re.is_match(&s) => true,
-                    _ => false,
-                }
-            }
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum WhereCond {
-    Eq { field: Field, right: String },
-    Like { field: Field, right: String },
-}
-
-impl WhereCond {
-    pub fn eval(&self, left: &JsonValue) -> bool {
-        match self {
-            Self::Eq { field, right } => {
-                if let Some(value) = left.clone().get(&field.path) {
-                    if value == JsonValue::Str(right.to_owned()) {
-                        true
-                    } else {
-                        false
-                    }
-                } else {
-                    false
-                }
-            }
-            Self::Like { field, right } => {
-                let pattern = match (right.starts_with("%"), right.ends_with("%")) {
-                    (true, true) => {
-                        format!("{}", right.trim_start_matches("%").trim_end_matches("%"))
-                    }
-                    (true, false) => format!("{}$", right.trim_start_matches("%")),
-                    (false, true) => format!("^{}", right.trim_end_matches("%")),
-                    (false, false) => format!("^{}$", right),
-                };
-                let re = regex::Regex::new(&pattern).unwrap();
-                let path = field.path.split(".").collect::<Vec<_>>();
-                let val = left.by_path(&path);
-                dbg!(&re, &field, &path, &left, &val);
-                match val {
                     Some(JsonValue::Str(s)) if re.is_match(&s) => true,
                     _ => false,
                 }
