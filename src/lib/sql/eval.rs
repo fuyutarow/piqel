@@ -17,6 +17,7 @@ pub fn run(sql: &Sql, data: &JsonValue) -> JsonValue {
         .select_clause
         .iter()
         .chain(sql.from_clause.iter())
+        .chain(sql.left_join_clause.iter())
         .map(|e| e.to_owned())
         .collect::<Vec<_>>();
     let bindings = Bindings::from(fields.as_slice());
@@ -37,7 +38,8 @@ pub fn run(sql: &Sql, data: &JsonValue) -> JsonValue {
             Some(cond) if cond.eval(&value.to_owned(), &bindings, &bindings_for_select) => {
                 Some(value.to_owned())
             }
-            _ => None,
+            Some(_) => None,
+            _ => Some(value.to_owned()),
         })
         .collect::<Vec<JsonValue>>();
 

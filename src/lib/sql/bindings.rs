@@ -104,6 +104,7 @@ mod tests {
                     alias: Some("p".to_owned()),
                 },
             ],
+            left_join_clause: vec![],
             where_clause: None,
         };
 

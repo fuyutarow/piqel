@@ -21,6 +21,7 @@ path = "src/bin/main.rs"
 
 [dependencies]
 anyhow = "1.0.40"
+collect-mac = "0.1.0"
 itertools = "0.10.0"
 nom = "6.1.2"
 regex = "1.5.4"
