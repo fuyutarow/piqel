@@ -31,7 +31,7 @@ struct Opt {
     // #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="json")]
     // from: String,
     /// target config file
-    #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="partiql")]
+    #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="json")]
     to: String,
 }
 
@@ -53,8 +53,6 @@ fn main() -> anyhow::Result<()> {
             let sql = sql_parser::sql(&query)?;
 
             let output = run(&sql, &data);
-
-            dbg!(&sql, &data, &output);
 
             let s = match to.as_str() {
                 "json" => {

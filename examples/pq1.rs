@@ -41,7 +41,7 @@ FROM hr
         .select_clause
         .iter()
         .chain(sql.from_clause.iter())
-        // .chain(sql.left_join_clause.iter())
+        .chain(sql.left_join_clause.iter())
         .map(|e| e.to_owned())
         .collect::<Vec<_>>();
     let bindings = Bindings::from(fields.as_slice());
