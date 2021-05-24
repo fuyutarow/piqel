@@ -4,17 +4,16 @@ use crate::models::JsonValue;
 use crate::pqlir_parser;
 use crate::sql::to_list;
 use crate::sql::DField;
+use crate::sql::DSql;
 use crate::sql::Dpath;
-use crate::sql::Sql;
-use crate::sql_parser;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Bingings {
+pub struct Bindings {
     locals: HashMap<String, Dpath>,
     locals_rev: HashMap<String, String>,
 }
 
-impl From<&[DField]> for Bingings {
+impl From<&[DField]> for Bindings {
     fn from(fields: &[DField]) -> Self {
         let locals = fields
             .iter()
@@ -42,7 +41,7 @@ impl From<&[DField]> for Bingings {
     }
 }
 
-impl Bingings {
+impl Bindings {
     pub fn to_alias(&self, path: &Dpath) -> Option<Dpath> {
         if let Some(alias) = self.locals_rev.get(&path.to_string()) {
             Some(Dpath::from(alias.as_str()))
@@ -79,7 +78,7 @@ impl Bingings {
 
 #[cfg(test)]
 mod tests {
-    use super::Bingings;
+    use super::Bindings;
     use crate::sql::{DField, DSql, Dpath};
 
     #[test]
@@ -105,10 +104,11 @@ mod tests {
                     alias: Some("p".to_owned()),
                 },
             ],
+            left_join_clause: vec![],
             where_clause: None,
         };
 
-        let bingings = Bingings::from(
+        let bingings = Bindings::from(
             sql.select_clause
                 .into_iter()
                 .chain(sql.from_clause.into_iter())

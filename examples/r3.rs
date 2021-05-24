@@ -2,14 +2,54 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 
-use crate::models::JsonValue;
+use partiql::dsql_parser as sql_parser;
+use partiql::models::JsonValue;
+use partiql::pqlir_parser;
+use partiql::sql::Bindings;
+use partiql::sql::DField;
+use partiql::sql::Dpath;
 
-pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
+fn main() {
+    parse();
+}
+
+fn parse() -> anyhow::Result<()> {
+    let sql = {
+        let input = std::fs::read_to_string("samples/q3.sql").unwrap();
+        let sql = sql_parser::sql(&input)?;
+        sql
+    };
+
+    let data = {
+        let input = std::fs::read_to_string("samples/q3.env").unwrap();
+        let model = pqlir_parser::pql_model(&input)?;
+        model
+    };
+
+    let fields = sql
+        .select_clause
+        .iter()
+        .chain(sql.from_clause.iter())
+        .chain(sql.left_join_clause.iter())
+        .map(|e| e.to_owned())
+        .collect::<Vec<_>>();
+    let bindings = Bindings::from(fields.as_slice());
+
+    let select_fields = sql
+        .clone()
+        .select_clause
+        .iter()
+        .map(|field| field.to_owned().full(&bindings))
+        .collect::<Vec<_>>();
+    dbg!(&select_fields);
+    let value = data.select_by_fields(&select_fields).unwrap();
+    dbg!(&value);
+
     let (tables, n, keys) = {
         let mut tables = HashMap::<String, Vec<JsonValue>>::new();
         let mut n = 0;
         let mut keys = vec![];
-        if let JsonValue::Object(map) = value_selected_by_fields {
+        if let JsonValue::Object(map) = value {
             keys = map
                 .keys()
                 .into_iter()
@@ -26,6 +66,7 @@ pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
         }
         (tables, n, keys)
     };
+    dbg!(&tables);
 
     let records = {
         let mut records = Vec::<HashMap<String, Vec<JsonValue>>>::new();
@@ -47,6 +88,7 @@ pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
         }
         records
     };
+    dbg!(&records);
 
     let list = records
         .into_iter()
@@ -72,6 +114,8 @@ pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
         })
         .flatten()
         .collect::<Vec<JsonValue>>();
+    dbg!(list);
 
-    list
+    dbg!("END OF FILE");
+    Ok(())
 }

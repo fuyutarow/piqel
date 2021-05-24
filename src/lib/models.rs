@@ -6,7 +6,6 @@ use serde_derive::{Deserialize, Serialize};
 use crate::sql::DField;
 use crate::sql::Dpath;
 use crate::sql::Field;
-use crate::sql::WhereCond;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -212,62 +211,12 @@ impl JsonValue {
         Some(JsonValue::Object(new_map))
     }
 
-    pub fn select_map_cond(
-        self,
-        field_list: &[Field],
-        conditon: Option<WhereCond>,
-    ) -> Option<JsonValue> {
-        match self {
-            JsonValue::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|left| {
-                        if let Some(cond) = &conditon {
-                            if cond.eval(&left) {
-                                Some(left)
-                            } else {
-                                dbg!("nnn", &left);
-                                None
-                            }
-                        } else {
-                            Some(left)
-                        }
-                    })
-                    .filter_map(|value| value.select(field_list))
-                    .collect::<Vec<_>>();
-
-                Some(JsonValue::Array(new_array))
-            }
-            _ => None,
-        }
-    }
-
     pub fn select_map(self, field_list: &[Field]) -> Option<JsonValue> {
         match self {
             JsonValue::Array(array) => {
                 let new_array = array
                     .into_iter()
                     .filter_map(|value| value.select(field_list))
-                    .collect::<Vec<_>>();
-
-                Some(JsonValue::Array(new_array))
-            }
-            _ => None,
-        }
-    }
-
-    pub fn filter_map(self, conditon: WhereCond) -> Option<JsonValue> {
-        match self {
-            JsonValue::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|left| {
-                        if conditon.eval(&left) {
-                            Some(left)
-                        } else {
-                            None
-                        }
-                    })
                     .collect::<Vec<_>>();
 
                 Some(JsonValue::Array(new_array))

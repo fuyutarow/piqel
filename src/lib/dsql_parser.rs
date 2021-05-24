@@ -47,7 +47,7 @@ pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
     let sql = Sql {
         select_clause,
         from_clause,
-        // left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
+        left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
         where_clause: if let Some(cond) = vec_where_clause.first() {
             Some(cond.to_owned())
         } else {
@@ -134,7 +134,6 @@ pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
 
 pub fn parse_left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     let (input, vec_fields) = preceded(
-        // tuple((tag("LEFT"), preceded(whitespace, tag("JOIN")))),
         tag("LEFT JOIN"),
         preceded(
             whitespace,
