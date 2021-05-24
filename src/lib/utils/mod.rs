@@ -33,7 +33,6 @@ pub fn split_parent_children(sss_org: Vec<Vec<String>>) -> (Vec<String>, Vec<Vec
             right.to_owned()
         })
         .collect::<Vec<_>>();
-    dbg!(&common, &rest_sss);
     (common, rest_sss)
 }
 

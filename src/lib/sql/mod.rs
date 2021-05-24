@@ -25,7 +25,6 @@ pub struct DField {
 impl DField {
     pub fn full(&self, bidings: &Bindings) -> Self {
         let path = bidings.get_full_path(&self.path);
-        dbg!(&path);
         Self {
             path,
             alias: self.alias.to_owned(),

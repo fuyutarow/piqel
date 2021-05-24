@@ -58,13 +58,6 @@ FROM hr
     let select_fields = sql
         .select_clause
         .iter()
-        .inspect(|e| {
-            dbg!("$1", e);
-        })
-        .map(|field| field.to_owned().full(&bindings))
-        .inspect(|e| {
-            dbg!("$2", e);
-        })
         .map(|field| field.to_owned().full(&bindings))
         .collect::<Vec<_>>();
     let bindings_for_select = Bindings::from(select_fields.as_slice());

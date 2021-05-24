@@ -29,33 +29,11 @@ pub fn sql(input: &str) -> anyhow::Result<Sql> {
     match parse_sql(input) {
         Ok((_, sql)) => Ok(sql),
         Err(err) => {
-            dbg!(err);
             anyhow::bail!("failed")
         }
     }
 }
 
-pub fn _parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
-    let (input, (select_clause, from_clause, vec_left_join_clause, vec_where_clause)) =
-        tuple((
-            preceded(whitespace, parse_select),
-            preceded(whitespace, parse_from),
-            many_m_n(0, 1, preceded(whitespace, parse_left_join)),
-            many_m_n(0, 1, preceded(whitespace, parse_where)),
-        ))(input)?;
-
-    let sql = Sql {
-        select_clause,
-        from_clause,
-        left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
-        where_clause: if let Some(cond) = vec_where_clause.first() {
-            Some(cond.to_owned())
-        } else {
-            None
-        },
-    };
-    Ok((input, sql))
-}
 pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
     let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause)) =
         tuple((
@@ -64,8 +42,6 @@ pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
             many_m_n(0, 1, preceded(whitespace, parse_left_join)),
             many_m_n(0, 1, preceded(whitespace, parse_where)),
         ))(input)?;
-
-    dbg!(&vec_from_clause);
 
     let sql = Sql {
         select_clause,

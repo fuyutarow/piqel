@@ -166,18 +166,14 @@ impl JsonValue {
     pub fn select_by_fields(&self, field_list: &[DField]) -> Option<JsonValue> {
         let mut new_map = HashMap::<String, JsonValue>::new();
 
-        dbg!(&field_list);
         for field in field_list {
-            dbg!(&field);
             if let Some(value) = self.select_by_path(&field.path) {
                 let key = field.alias.clone().unwrap_or({
                     let last = field.path.to_vec().last().unwrap().to_string();
                     last
                 });
-                dbg!("#1", &key, &value,);
                 new_map.insert(key, value);
             } else {
-                dbg!("#2");
             }
         }
 
