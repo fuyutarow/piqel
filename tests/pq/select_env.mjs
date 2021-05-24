@@ -2,7 +2,7 @@
 import { strict as assert } from 'assert'
 
 assert.equal((await $`
-cat<<EOS | pq -q "SELECT NAME, LOGNAME" -t json | jq
+cat<<EOS | ./target/debug/pq -q "SELECT NAME, LOGNAME" -t json | jq
 {
   "SHELL": "/bin/bash",
   "NAME": "my machine name",
