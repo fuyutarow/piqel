@@ -63,7 +63,13 @@ impl Bindings {
             }
             if tail.len() > 0 {
                 let tail_path = Dpath::from(tail);
-                (*trace_path).data.push(tail_path.to_string());
+                // for p in tail_path.to_vec()
+                let mut vec_path = tail_path
+                    .to_vec()
+                    .into_iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<_>>();
+                (*trace_path).data.append(&mut vec_path);
             }
         }
     }

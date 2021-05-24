@@ -23,46 +23,6 @@ use partiql::{
 fn main() -> anyhow::Result<()> {
     let sql = dsql_parser::sql(
         "
-SELECT hr.employees.id,
-       hr.employees.name AS employeeName,
-       hr.employees.title AS title
-FROM hr
-",
-    )?;
-    dbg!(&sql);
-
-    assert_eq!(
-        sql,
-        DSql {
-            select_clause: vec![
-                DField {
-                    path: Dpath::from("hr.employees.id"),
-                    alias: None
-                },
-                DField {
-                    path: Dpath::from("hr.employees.name"),
-                    alias: Some("employeeName".to_owned()),
-                },
-                DField {
-                    path: Dpath::from("hr.employees.title"),
-                    alias: Some("title".to_owned()),
-                },
-            ],
-            from_clause: vec![DField {
-                path: Dpath::from("hr"),
-                alias: None,
-            }],
-            left_join_clause: vec![],
-            where_clause: None,
-        }
-    );
-
-    Ok(())
-}
-
-fn _main() -> anyhow::Result<()> {
-    let sql = dsql_parser::sql(
-        "
 SELECT hr.employees.id AS id,
        hr.employees.name AS employeeName,
        hr.employees.title AS title
@@ -85,13 +45,31 @@ FROM hr
         .map(|e| e.to_owned())
         .collect::<Vec<_>>();
     let bindings = Bindings::from(fields.as_slice());
+    dbg!(&bindings);
+    dbg!(&fields);
+
+    let field = DField {
+        path: Dpath::from("hr.employees.id"),
+        alias: None,
+    };
+    let r = field.full(&bindings);
+    dbg!(r);
 
     let select_fields = sql
         .select_clause
         .iter()
+        .inspect(|e| {
+            dbg!("$1", e);
+        })
+        .map(|field| field.to_owned().full(&bindings))
+        .inspect(|e| {
+            dbg!("$2", e);
+        })
         .map(|field| field.to_owned().full(&bindings))
         .collect::<Vec<_>>();
     let bindings_for_select = Bindings::from(select_fields.as_slice());
+    dbg!(&bindings_for_select);
+    dbg!(&select_fields);
 
     let values = data.select_by_fields(&select_fields);
     dbg!(&values);

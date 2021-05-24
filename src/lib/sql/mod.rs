@@ -25,6 +25,7 @@ pub struct DField {
 impl DField {
     pub fn full(&self, bidings: &Bindings) -> Self {
         let path = bidings.get_full_path(&self.path);
+        dbg!(&path);
         Self {
             path,
             alias: self.alias.to_owned(),
@@ -131,8 +132,18 @@ mod tests {
     use super::Dpath;
 
     #[test]
-    fn dpath() {
+    fn dpath_from_vec() {
         let path = Dpath::from(vec!["hr", "employeesNest", "projects", "name"].as_slice());
+        assert_eq!(path.to_string().as_str(), "hr.employeesNest.projects.name",);
+        assert_eq!(
+            path.to_vec(),
+            vec!["hr", "employeesNest", "projects", "name"]
+        );
+    }
+
+    #[test]
+    fn dpath_from_str() {
+        let path = Dpath::from("hr.employeesNest.projects.name");
         assert_eq!(path.to_string().as_str(), "hr.employeesNest.projects.name",);
         assert_eq!(
             path.to_vec(),
