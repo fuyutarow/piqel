@@ -131,8 +131,18 @@ mod tests {
     use super::Dpath;
 
     #[test]
-    fn dpath() {
+    fn dpath_from_vec() {
         let path = Dpath::from(vec!["hr", "employeesNest", "projects", "name"].as_slice());
+        assert_eq!(path.to_string().as_str(), "hr.employeesNest.projects.name",);
+        assert_eq!(
+            path.to_vec(),
+            vec!["hr", "employeesNest", "projects", "name"]
+        );
+    }
+
+    #[test]
+    fn dpath_from_str() {
+        let path = Dpath::from("hr.employeesNest.projects.name");
         assert_eq!(path.to_string().as_str(), "hr.employeesNest.projects.name",);
         assert_eq!(
             path.to_vec(),

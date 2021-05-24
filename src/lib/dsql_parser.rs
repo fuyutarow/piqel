@@ -29,24 +29,23 @@ pub fn sql(input: &str) -> anyhow::Result<Sql> {
     match parse_sql(input) {
         Ok((_, sql)) => Ok(sql),
         Err(err) => {
-            dbg!(err);
             anyhow::bail!("failed")
         }
     }
 }
 
 pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
-    let (input, (select_clause, from_clause, vec_left_join_clause, vec_where_clause)) =
+    let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause)) =
         tuple((
             preceded(whitespace, parse_select),
-            preceded(whitespace, parse_from),
+            many_m_n(0, 1, preceded(whitespace, parse_from)),
             many_m_n(0, 1, preceded(whitespace, parse_left_join)),
             many_m_n(0, 1, preceded(whitespace, parse_where)),
         ))(input)?;
 
     let sql = Sql {
         select_clause,
-        from_clause,
+        from_clause: vec_from_clause.first().unwrap_or(&vec![]).to_owned(),
         left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
         where_clause: if let Some(cond) = vec_where_clause.first() {
             Some(cond.to_owned())
@@ -66,20 +65,19 @@ fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
 }
 
 pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
-    let (input, (p1, _, p2)) = tuple((alphanumeric1, char('.'), alphanumeric1))(input)?;
+    let (input, vec_path) = separated_list1(char('.'), alphanumeric1)(input)?;
 
-    let f = Field {
-        path: Dpath::from(format!("{}.{}", p1, p2).as_str()),
+    let res = Field {
+        path: Dpath::from(vec_path.join(".").as_str()),
         alias: None,
     };
-    Ok((input, f))
+
+    Ok((input, res))
 }
 
-pub fn field_with<'a>(input: &'a str) -> IResult<&'a str, Field> {
-    let (input, (p1, _, p2, vec_as_alias)) = tuple((
-        alphanumeric1,
-        char('.'),
-        alphanumeric1,
+pub fn parse_field_with<'a>(input: &'a str) -> IResult<&'a str, Field> {
+    let (input, (vec_path, vec_as_alias)) = tuple((
+        separated_list1(char('.'), alphanumeric1),
         many_m_n(
             0,
             1,
@@ -100,7 +98,7 @@ pub fn field_with<'a>(input: &'a str) -> IResult<&'a str, Field> {
     };
 
     let f = Field {
-        path: Dpath::from(format!("{}.{}", p1, p2).as_str()),
+        path: Dpath::from(vec_path.join(".").as_str()),
         alias,
     };
     Ok((input, f))
@@ -111,7 +109,7 @@ pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
         tag("SELECT"),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(field_with))),
+            separated_list0(char(','), preceded(whitespace, many1(parse_field_with))),
         ),
     )(input)?;
 
@@ -124,7 +122,7 @@ pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
         tag("FROM"),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(field_with))),
+            separated_list0(char(','), preceded(whitespace, many1(parse_field_with))),
         ),
     )(input)?;
 
@@ -137,7 +135,7 @@ pub fn parse_left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
         tag("LEFT JOIN"),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(field_with))),
+            separated_list0(char(','), preceded(whitespace, many1(parse_field_with))),
         ),
     )(input)?;
 

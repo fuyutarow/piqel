@@ -16,11 +16,17 @@ pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
                 .map(|s| s.to_string())
                 .collect::<Vec<String>>();
             for (key, value) in map {
-                if let JsonValue::Array(array) = value {
-                    if n == 0 {
-                        n = array.len();
+                match value {
+                    JsonValue::Array(array) => {
+                        if n == 0 {
+                            n = array.len();
+                        }
+                        tables.insert(key, array);
                     }
-                    tables.insert(key, array);
+                    _ => {
+                        n = 1;
+                        tables.insert(key, vec![value]);
+                    }
                 }
             }
         }
@@ -33,7 +39,6 @@ pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
             let mut record = HashMap::<String, Vec<JsonValue>>::new();
             for key in &keys {
                 let v = tables.get(key.as_str()).unwrap().get(i).unwrap();
-                // record.insert(key.to_string(), v.to_owned());
                 match v {
                     JsonValue::Array(array) => {
                         record.insert(key.to_string(), array.to_owned());

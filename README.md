@@ -88,3 +88,25 @@ PartiQL-IR --> JSON --> PartiQL-IR
 ```sh
 cat samples/q1.env | partiql-cli from --to json | partiql-cli from --to partiql
 ```
+
+
+## For Development
+Requirements
+- [cargo-make](https://github.com/sagiegurari/cargo-make) for `makers`
+
+### Preparation
+```
+makers install-dev
+```
+
+### build
+```
+makers build
+makers build:pq ;: for pq commnad
+```
+
+### test
+```
+makers test:lib
+makers test:pq ;: for pq commnad
+```

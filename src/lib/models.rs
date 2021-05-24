@@ -167,13 +167,13 @@ impl JsonValue {
         let mut new_map = HashMap::<String, JsonValue>::new();
 
         for field in field_list {
-            let path = field.path.to_vec();
-            if let Some(value) = self.by_path(&path) {
+            if let Some(value) = self.select_by_path(&field.path) {
                 let key = field.alias.clone().unwrap_or({
-                    let last = path.last().unwrap().to_string();
+                    let last = field.path.to_vec().last().unwrap().to_string();
                     last
                 });
                 new_map.insert(key, value);
+            } else {
             }
         }
 
