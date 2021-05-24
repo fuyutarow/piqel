@@ -8,7 +8,7 @@ npm i -g zx
 command = "cargo"
 args = ["build", "--bin", "partiql-cli"]
 
-[tasks.build-pq]
+[tasks."build:pq"]
 command = "cargo"
 args = ["build", "--bin", "pq"]
 
@@ -25,7 +25,7 @@ dependencies = ["build"]
 script = '''
 zx ./tests/pq/*.mjs
 '''
-dependencies = ["build-pq"]
+dependencies = ["build:pq"]
 
 
 [tasks.release-cli]
