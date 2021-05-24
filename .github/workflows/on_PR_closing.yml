@@ -1,0 +1,31 @@
+name: make-version
+
+on:
+  pull_request:
+    branches:
+      - alpha
+    types: [closed]
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Update version
+        run: |
+
+          wget "https://github.com/fuyutarow/version-make/releases/download/v0.202005.1/version-make-v0.202005.1-x86_64-linux.zip" -O version-make.zip
+          unzip version-make.zip
+          ./version-make up -rz Cargo.toml
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git pull
+          git commit -am "Update version"
+          git push
+      - name: Tag and push
+        run: |
+          git tag v$(version-make show Cargo.toml)
+          git push --tags
