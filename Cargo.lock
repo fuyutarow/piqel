@@ -179,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "partiql-rs"
-version = "0.202105.9"
+version = "0.202105.10"
 dependencies = [
  "anyhow",
  "collect-mac",

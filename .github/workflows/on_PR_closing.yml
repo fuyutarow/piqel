@@ -14,7 +14,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Update version
         run: |
-
           wget "https://github.com/fuyutarow/version-make/releases/download/v0.202005.1/version-make-v0.202005.1-x86_64-linux.zip" -O version-make.zip
           unzip version-make.zip
           ./version-make up -rz Cargo.toml
@@ -27,5 +26,5 @@ jobs:
           git push
       - name: Tag and push
         run: |
-          git tag v$(version-make show Cargo.toml)
+          git tag v$(./version-make show Cargo.toml)
           git push --tags
