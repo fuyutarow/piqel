@@ -21,13 +21,15 @@ fn read_from_stdin() -> anyhow::Result<String> {
 #[derive(StructOpt, Debug)]
 struct Opt {
     /// target config file
-    #[structopt(short, long)]
-    file: PathBuf,
+    #[structopt()]
+    file_or_stdin: Option<PathBuf>,
 
     /// sql [possible_values: "*.json"]
     #[structopt(short, long)]
     query: String,
 
+    // #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="json")]
+    // from: String,
     /// target config file
     #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="partiql")]
     to: String,
@@ -35,23 +37,25 @@ struct Opt {
 
 fn main() -> anyhow::Result<()> {
     match Opt::from_args() {
-        Opt { file, query, to } => {
-            let ext = file
-                .extension()
-                .unwrap_or(std::ffi::OsStr::new(""))
-                .to_str();
-            let data = match ext.as_deref() {
-                Some("json") => {
-                    let input = std::fs::read_to_string(file)?;
-                    let data = serde_json::from_str::<JsonValue>(&input)?;
-                    data
-                }
-                _ => todo!(),
+        Opt {
+            file_or_stdin,
+            query,
+            to,
+        } => {
+            let input = if let Some(file) = file_or_stdin {
+                std::fs::read_to_string(file)?
+            } else {
+                read_from_stdin()?
             };
+
+            let data = serde_json::from_str::<JsonValue>(&input)?;
 
             let sql = sql_parser::sql(&query)?;
 
             let output = run(&sql, &data);
+
+            dbg!(&sql, &data, &output);
+
             let s = match to.as_str() {
                 "json" => {
                     let s = serde_json::to_string(&output).unwrap();

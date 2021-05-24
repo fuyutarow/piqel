@@ -1,11 +1,32 @@
+[tasks.install-dev]
+script = '''
+brew install jq jo yj
+npm i -g zx
+'''
+
 [tasks.build]
 command = "cargo"
 args = ["build", "--bin", "partiql-cli"]
 
-[tasks.test]
+[tasks.build-pq]
+command = "cargo"
+args = ["build", "--bin", "pq"]
+
+# not working
+[tasks."test:all"]
+run_task = [{ name = "test:lib" }, { name = "test:pq" }]
+
+[tasks."test:lib"]
 command = "cargo"
 args = ["test"]
 dependencies = ["build"]
+
+[tasks."test:pq"]
+script = '''
+zx ./tests/pq/*.mjs
+'''
+dependencies = ["build-pq"]
+
 
 [tasks.release-cli]
 script = '''
