@@ -179,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "partiql-rs"
-version = "0.202105.10"
+version = "0.202105.12"
 dependencies = [
  "anyhow",
  "collect-mac",
@@ -294,9 +294,9 @@ dependencies = [
 
 [[package]]
 name = "serde_partiql"
-version = "1.0.64+20210523"
+version = "1.1.64"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7b04784fda39b00abff6b16d5f210c768760cc0f974318deaf9f334d60f0329"
+checksum = "9c2ee6c1faff6d960db86d6babf179dd680ae80c8a806f98c0fcf578aa82838d"
 dependencies = [
  "itoa",
  "ryu",
