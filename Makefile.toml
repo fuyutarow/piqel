@@ -1,3 +1,17 @@
+[tasks.hot]
+dependencies = ["build:pq"]
+_script = '''
+echo hello
+'''
+script = '''
+echo $INPUT | ./target/debug/pq -q "$(cat<<EOS
+SELECT
+  info
+FROM addr_info info
+EOS
+)" | jq -S
+'''
+
 [tasks.install-dev]
 script = '''
 brew install jq jo yj

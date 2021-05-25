@@ -1,8 +1,7 @@
 #!/usr/bin/env zx
 import { strict as assert } from 'assert'
 
-assert.equal((await $`
-cat<<EOS | ./target/debug/pq -q "address" | jq -S
+const input = `
 [
   {
     "addr_info": [
@@ -65,45 +64,57 @@ cat<<EOS | ./target/debug/pq -q "address" | jq -S
     "txqlen": 1000
   }
 ]
-EOS
-`).stdout,
-`[
+`
+
+const expected = `[
   {
-    "family": "inet",
-    "label": "lo",
-    "local": "127.0.0.1",
-    "preferred_life_time": 4294967295,
-    "prefixlen": 8,
-    "scope": "host",
-    "valid_life_time": 4294967295
+    "address": "00:00:00:00:00:00",
+    "inet": "inet",
+    "local": "127.0.0.1"
   },
   {
-    "family": "inet6",
-    "local": "::1",
-    "preferred_life_time": 4294967295,
-    "prefixlen": 128,
-    "scope": "host",
-    "valid_life_time": 4294967295
-  }
-],
-[
-  {
-    "broadcast": "172.22.255.255",
-    "family": "inet",
-    "label": "eth0",
-    "local": "172.22.247.125",
-    "preferred_life_time": 4294967295,
-    "prefixlen": 20,
-    "scope": "global",
-    "valid_life_time": 4294967295
+    "address": "00:00:00:00:00:00",
+    "inet": "inet6",
+    "local": "127.0.0.1"
   },
   {
-    "family": "inet6",
-    "local": "fe80::215:5dff:fed8:2bc4",
-    "preferred_life_time": 4294967295,
-    "prefixlen": 64,
-    "scope": "link",
-    "valid_life_time": 4294967295
+    "address": "00:00:00:00:00:00",
+    "inet": "inet",
+    "local": "::1"
+  },
+  {
+    "address": "00:00:00:00:00:00",
+    "inet": "inet6",
+    "local": "::1"
+  },
+  {
+    "address": "0.0.0.0"
+  },
+  {
+    "address": "00:15:5d:d8:2b:c4",
+    "inet": "inet",
+    "local": "172.22.247.125"
+  },
+  {
+    "address": "00:15:5d:d8:2b:c4",
+    "inet": "inet6",
+    "local": "172.22.247.125"
+  },
+  {
+    "address": "00:15:5d:d8:2b:c4",
+    "inet": "inet",
+    "local": "fe80::215:5dff:fed8:2bc4"
+  },
+  {
+    "address": "00:15:5d:d8:2b:c4",
+    "inet": "inet6",
+    "local": "fe80::215:5dff:fed8:2bc4"
   }
 ]
-`)
+`
+
+assert.equal((await $`
+INPUT=$(cat<<EOS
+${input}
+)" | jq -S
+`).stdout, expected)
