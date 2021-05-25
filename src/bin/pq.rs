@@ -6,7 +6,7 @@ use regex::Regex;
 use structopt::StructOpt;
 
 use partiql::dsql_parser as sql_parser;
-use partiql::lang::Lang;
+use partiql::lang::{Lang, LangType};
 use partiql::models::JsonValue;
 use partiql::pqlir_parser as parser;
 use partiql::sql::run;
@@ -27,14 +27,12 @@ struct Opt {
     file_or_stdin: Option<PathBuf>,
 
     /// sql [possible_values: "*.json"]
-    #[structopt(short, long)]
+    #[structopt()]
     query: Option<String>,
 
-    // #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="json")]
-    // from: String,
     /// target config file
-    #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="json")]
-    to: String,
+    #[structopt(short, long, possible_values(&["json", "toml", "yaml", "xml"]))]
+    to: Option<String>,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -51,6 +49,12 @@ fn main() -> anyhow::Result<()> {
             };
 
             let mut lang = Lang::from_str(&input)?;
+            if let Some(t) = to {
+                match LangType::from_str(&t) {
+                    Ok(lang_type) => lang.to = lang_type,
+                    Err(err) => eprintln!("not support"),
+                }
+            }
 
             if let Some(q) = query {
                 let sql = sql_parser::sql(&q)?;

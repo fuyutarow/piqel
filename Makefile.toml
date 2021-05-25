@@ -36,13 +36,13 @@ brew install jq jo yj
 npm i -g zx
 '''
 
-[tasks.build]
-command = "cargo"
-args = ["build", "--bin", "partiql-cli"]
-
 [tasks."build:pq"]
 command = "cargo"
 args = ["build", "--bin", "pq"]
+
+[tasks."release:pq"]
+command = "cargo"
+args = ["build", "--bin", "pq", "--release"]
 
 # not working
 [tasks."test:all"]

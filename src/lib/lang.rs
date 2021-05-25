@@ -9,15 +9,16 @@ use crate::models::JsonValue;
 pub enum LangType {
     Json,
     Toml,
-    Xml,
     Yaml,
+    Xml,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Lang {
     pub data: JsonValue,
-    pub lang_type: LangType,
-    pub origin: String,
+    pub text: String,
+    pub from: LangType,
+    pub to: LangType,
 }
 
 impl FromStr for Lang {
@@ -27,26 +28,30 @@ impl FromStr for Lang {
         if let Ok(data) = serde_json::from_str::<JsonValue>(&input) {
             Ok(Self {
                 data,
-                lang_type: LangType::Json,
-                origin: input.to_string(),
+                text: input.to_string(),
+                from: LangType::Json,
+                to: LangType::Json,
             })
         } else if let Ok(data) = toml::from_str::<JsonValue>(&input) {
             Ok(Self {
                 data,
-                lang_type: LangType::Toml,
-                origin: input.to_string(),
+                text: input.to_string(),
+                from: LangType::Toml,
+                to: LangType::Toml,
             })
         } else if let Ok(data) = quick_xml::de::from_str::<JsonValue>(&input) {
             Ok(Self {
                 data,
-                lang_type: LangType::Xml,
-                origin: input.to_string(),
+                text: input.to_string(),
+                from: LangType::Xml,
+                to: LangType::Xml,
             })
         } else if let Ok(data) = serde_yaml::from_str::<JsonValue>(&input) {
             Ok(Self {
                 data,
-                lang_type: LangType::Yaml,
-                origin: input.to_string(),
+                text: input.to_string(),
+                from: LangType::Yaml,
+                to: LangType::Yaml,
             })
         } else {
             anyhow::bail!("not supported")
@@ -56,13 +61,15 @@ impl FromStr for Lang {
 
 impl Lang {
     pub fn print(&self) {
-        let s = match self.lang_type {
+        let s = match self.to {
             LangType::Json => serde_json::to_string_pretty(&self.data).unwrap(),
-            _ => self.origin.to_owned(),
+            LangType::Toml => toml::to_string_pretty(&self.data).unwrap(),
+            LangType::Yaml => serde_yaml::to_string(&self.data).unwrap(),
+            LangType::Xml => quick_xml::se::to_string(&self.data).unwrap(),
         };
 
         let bytes = s.as_bytes().to_vec();
-        let lang_type = self.lang_type.to_string();
+        let lang_type = self.to.to_string();
 
         bat::PrettyPrinter::new()
             .language(&lang_type)
