@@ -5,6 +5,34 @@ WIP
 What's [PartiQL](https://partiql.org/)?
 
 
+## `pq`
+### Installation
+```
+brew install fuyutarow/tap/partiql-cli
+```
+
+### Sample Usage
+
+```
+env | jo | pq -q "SELECT NAME AS name, USER AS user"
+```
+FYI
+- [jo](https://github.com/jpmens/jo): `brew install jo`
+
+
+```
+ip -j -p | pq -q "$(cat<<EOS
+SELECT
+  address,
+  info.family AS inet,
+  info.local
+FROM addr_info AS info
+WHERE inet LIKE 'inet%'
+EOS
+)"
+```
+
+
 ## `partiql-cli`
 
 ### Installation
