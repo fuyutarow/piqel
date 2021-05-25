@@ -1,11 +1,24 @@
-use indexmap::IndexMap;
+use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
+use indexmap::IndexMap;
 use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::DField;
 use crate::sql::Dpath;
 use crate::sql::Field;
+
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum BJsonValue {
+    Null,
+    Str(String),
+    Boolean(bool),
+    Num(i64),
+    Array(BTreeSet<BJsonValue>),
+    Object(BTreeMap<String, BJsonValue>),
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -13,7 +26,7 @@ pub enum JsonValue {
     Null,
     Str(String),
     Boolean(bool),
-    Num(f64),
+    Num(i64),
     Array(Vec<JsonValue>),
     Object(IndexMap<String, JsonValue>),
 }

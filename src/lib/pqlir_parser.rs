@@ -134,7 +134,7 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
             map(array, JsonValue::Array),
             map(bag, JsonValue::Array),
             map(string, |s| JsonValue::Str(String::from(s))),
-            map(double, JsonValue::Num),
+            map(double, |f| JsonValue::Num(f.floor() as i64)),
             map(boolean, JsonValue::Boolean),
         )),
     )(i)
