@@ -26,7 +26,8 @@ struct Opt {
     #[structopt()]
     file_or_stdin: Option<PathBuf>,
 
-    /// sql [possible_values: "*.json"]
+    /// sql
+    // #[structopt(short, long)]
     #[structopt()]
     query: Option<String>,
 

@@ -20,62 +20,66 @@ const exptected = `[
 ]
 `
 
-assert.equal((await $`
-cat samples/q1.json | ./target/debug/pq -q "$(cat<<EOS
-SELECT e.id,
-       e.name AS employeeName,
-       e.title AS title
-FROM hr.employees e
-EOS
-)" -t json | jq -S
-`).stdout, exptected)
+// assert.equal((await $`
+// cat samples/q1.json | ./target/debug/pq "$(cat<<EOS
+// SELECT e.id,
+//        e.name AS employeeName,
+//        e.title AS title
+// FROM hr.employees e
+// EOS
+// )" -t json | jq -S
+// `).stdout, exptected)
 
-assert.equal((await $`
-cat samples/q1.json | ./target/debug/pq -q "$(cat<<EOS
-SELECT e.id,
-       e.name AS employeeName,
-       e.title AS title
-FROM hr.employees AS e
-EOS
-)" -t json | jq -S
-`).stdout, exptected)
+// assert.equal((await $`
+// cat samples/q1.json | ./target/debug/pq "$(cat<<EOS
+// SELECT e.id,
+//        e.name AS employeeName,
+//        e.title AS title
+// FROM hr.employees AS e
+// EOS
+// )" -t json | jq -S
+// `).stdout, exptected)
 
-assert.equal((await $`
-cat samples/q1.json | ./target/debug/pq -q "$(cat<<EOS
-SELECT e.id,
-       e.name AS employeeName,
-       e.title AS title
-FROM hr.employees AS e
-EOS
-)" -t json | jq -S
-`).stdout, exptected)
+// assert.equal((await $`
+// cat samples/q1.json | ./target/debug/pq "$(cat<<EOS
+// SELECT e.id,
+//        e.name AS employeeName,
+//        e.title AS title
+// FROM hr.employees AS e
+// EOS
+// )" -t json | jq -S
+// `).stdout, exptected)
 
-assert.equal((await $`
-cat samples/q1.json | ./target/debug/pq -q "$(cat<<EOS
-SELECT hr.employees.id AS id,
-       hr.employees.name AS employeeName,
-       hr.employees.title AS title
-FROM hr
-EOS
-)" -t json | jq -S
-`).stdout, exptected)
+// assert.equal((await $`
+// cat samples/q1.json | ./target/debug/pq "$(cat<<EOS
+// SELECT hr.employees.id AS id,
+//        hr.employees.name AS employeeName,
+//        hr.employees.title AS title
+// FROM hr
+// EOS
+// )" -t json | jq -S
+// `).stdout, exptected)
 
-assert.equal((await $`
-cat samples/q1.json | ./target/debug/pq -q "$(cat<<EOS
-SELECT hr.employees.id AS id,
-       hr.employees.name AS employeeName,
-       hr.employees.title AS title
-FROM hr
-EOS
-)" -t json | jq -S
-`).stdout, exptected)
+// assert.equal((await $`
+// cat samples/q1.json | ./target/debug/pq "$(cat<<EOS
+// SELECT hr.employees.id AS id,
+//        hr.employees.name AS employeeName,
+//        hr.employees.title AS title
+// FROM hr
+// EOS
+// )" -t json | jq -S
+// `).stdout, exptected)
 
-assert.equal((await $`
-cat samples/q1.json | ./target/debug/pq -q "$(cat<<EOS
-SELECT hr.employees.id,
-       hr.employees.name AS employeeName,
-       hr.employees.title
-FROM hr
-EOS
-)" -t json | jq -S
-`).stdout, exptected)
+// assert.equal((await $`
+// cat samples/q1.json | ./target/debug/pq "$(cat<<EOS
+// SELECT hr.employees.id AS k,
+//        hr.employees.name AS employeeName,
+//        hr.employees.title
+// FROM hr
+// EOS
+// )" -t json | jq -S
+// `).stdout, exptected)
+
+$`
+env | jo | ./target/debug/pq -t json
+`
