@@ -154,7 +154,6 @@ pub fn pql_model(input: &str) -> anyhow::Result<JsonValue> {
     match root::<VerboseError<&str>>(&input) {
         Ok((_, r)) => Ok(r),
         Err(err) => {
-            dbg!(err);
             anyhow::bail!("failed")
         }
     }
