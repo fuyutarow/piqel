@@ -1,11 +1,24 @@
 use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
+use indexmap::IndexMap;
 use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::DField;
 use crate::sql::Dpath;
 use crate::sql::Field;
+
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum BJsonValue {
+    Null,
+    Str(String),
+    Boolean(bool),
+    Num(i64),
+    Array(BTreeSet<BJsonValue>),
+    Object(BTreeMap<String, BJsonValue>),
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -13,9 +26,9 @@ pub enum JsonValue {
     Null,
     Str(String),
     Boolean(bool),
-    Num(f64),
+    Num(i64),
     Array(Vec<JsonValue>),
-    Object(HashMap<String, JsonValue>),
+    Object(IndexMap<String, JsonValue>),
 }
 
 impl JsonValue {
@@ -100,7 +113,7 @@ impl JsonValue {
     pub fn _filter(self, path: &[&str]) -> Option<JsonValue> {
         match self {
             JsonValue::Object(map) => {
-                let mut new_map = HashMap::<String, JsonValue>::new();
+                let mut new_map = IndexMap::<String, JsonValue>::new();
 
                 for key in path {
                     if let Some(value) = map.get(key.to_string().as_str()) {
@@ -131,7 +144,7 @@ impl JsonValue {
     // pub fn select_by_path_list(self, path_list: &[&[&str]]]) -> Option<JsonValue> {
     //     match self {
     //         JsonValue::Object(map) => {
-    //             let mut new_map = HashMap::<String, JsonValue>::new();
+    //             let mut new_map = IndexMap::<String, JsonValue>::new();
 
     //             for field in field_list {
     //                 dbg!("!!", field);
@@ -147,7 +160,7 @@ impl JsonValue {
     //     }
     // }
     pub fn neo_select(&self, field_list: &[DField]) -> Option<JsonValue> {
-        let mut new_map = HashMap::<String, JsonValue>::new();
+        let mut new_map = IndexMap::<String, JsonValue>::new();
 
         for field in field_list {
             let path = field.path.to_vec();
@@ -164,7 +177,7 @@ impl JsonValue {
     }
 
     pub fn select_by_fields(&self, field_list: &[DField]) -> Option<JsonValue> {
-        let mut new_map = HashMap::<String, JsonValue>::new();
+        let mut new_map = IndexMap::<String, JsonValue>::new();
 
         for field in field_list {
             if let Some(value) = self.select_by_path(&field.path) {
@@ -195,7 +208,7 @@ impl JsonValue {
     }
 
     pub fn select(self, field_list: &[Field]) -> Option<JsonValue> {
-        let mut new_map = HashMap::<String, JsonValue>::new();
+        let mut new_map = IndexMap::<String, JsonValue>::new();
 
         for field in field_list {
             let path = field.path.split(".").collect::<Vec<&str>>();

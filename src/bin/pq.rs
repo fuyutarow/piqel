@@ -1,12 +1,11 @@
 use std::io::{self, Read};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+use std::str::FromStr;
 
-use regex::Regex;
 use structopt::StructOpt;
 
 use partiql::dsql_parser as sql_parser;
-use partiql::models::JsonValue;
-use partiql::pqlir_parser as parser;
+use partiql::lang::{Lang, LangType};
 use partiql::sql::run;
 
 fn read_from_stdin() -> anyhow::Result<String> {
@@ -20,19 +19,21 @@ fn read_from_stdin() -> anyhow::Result<String> {
 
 #[derive(StructOpt, Debug)]
 struct Opt {
-    /// target config file
+    /// source text: file or standard input
     #[structopt()]
     file_or_stdin: Option<PathBuf>,
 
-    /// sql [possible_values: "*.json"]
+    /// sql
     #[structopt(short, long)]
-    query: String,
+    query: Option<String>,
 
-    // #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="json")]
-    // from: String,
     /// target config file
-    #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="json")]
-    to: String,
+    #[structopt(short, long, possible_values(&["json", "toml", "yaml", "xml"]))]
+    to: Option<String>,
+
+    /// sort keys of objects on output. it on works when --to option is json, currently
+    #[structopt(short = "S", long)]
+    sort_keys: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -41,6 +42,7 @@ fn main() -> anyhow::Result<()> {
             file_or_stdin,
             query,
             to,
+            sort_keys,
         } => {
             let input = if let Some(file) = file_or_stdin {
                 std::fs::read_to_string(file)?
@@ -48,23 +50,25 @@ fn main() -> anyhow::Result<()> {
                 read_from_stdin()?
             };
 
-            let data = serde_json::from_str::<JsonValue>(&input)?;
-
-            let sql = sql_parser::sql(&query)?;
-
-            let output = run(&sql, &data);
-
-            let s = match to.as_str() {
-                "json" => {
-                    let s = serde_json::to_string(&output).unwrap();
-                    s
+            let mut lang = Lang::from_str(&input)?;
+            if let Some(t) = to {
+                match LangType::from_str(&t) {
+                    Ok(lang_type) => lang.to = lang_type,
+                    Err(err) => eprintln!("not support"),
                 }
-                _ => {
-                    let s = serde_partiql::to_string(&output).unwrap();
-                    s
-                }
-            };
-            println!("{}", s);
+            }
+
+            if let Some(q) = query {
+                let sql = sql_parser::sql(&q)?;
+                let result = run(&sql, &lang.data);
+                lang.data = result;
+            }
+
+            if sort_keys {
+                lang.sort_keys();
+            }
+
+            lang.print();
         }
     };
 

@@ -7,14 +7,14 @@
         "title": null
       },
       {
-        "title": "Dev Mgr",
+        "id": 4,
         "name": "Susan Smith",
-        "id": 4
+        "title": "Dev Mgr"
       },
       {
+        "id": 6,
         "name": "Jane Smith",
-        "title": "Software Eng 2",
-        "id": 6
+        "title": "Software Eng 2"
       }
     ]
   }

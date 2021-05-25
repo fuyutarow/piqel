@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 pub use nom::error::convert_error;
 pub use nom::error::VerboseError;
@@ -102,7 +102,7 @@ fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, HashMap<String, JsonValue>, E> {
+) -> IResult<&'a str, IndexMap<String, JsonValue>, E> {
     context(
         "map",
         preceded(
@@ -134,7 +134,7 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
             map(array, JsonValue::Array),
             map(bag, JsonValue::Array),
             map(string, |s| JsonValue::Str(String::from(s))),
-            map(double, JsonValue::Num),
+            map(double, |f| JsonValue::Num(f.floor() as i64)),
             map(boolean, JsonValue::Boolean),
         )),
     )(i)
@@ -154,7 +154,6 @@ pub fn pql_model(input: &str) -> anyhow::Result<JsonValue> {
     match root::<VerboseError<&str>>(&input) {
         Ok((_, r)) => Ok(r),
         Err(err) => {
-            dbg!(err);
             anyhow::bail!("failed")
         }
     }

@@ -2,36 +2,36 @@
   "hr": {
     "employeesNest": [
       {
-        "title": null,
-        "name": "Bob Smith",
         "id": 3,
+        "name": "Bob Smith",
         "projects": [
+          {
+            "name": "AWS Aurora security"
+          },
           {
             "name": "AWS Redshift Spectrum querying"
           },
           {
             "name": "AWS Redshift security"
-          },
-          {
-            "name": "AWS Aurora security"
           }
-        ]
+        ],
+        "title": null
       },
       {
-        "name": "Susan Smith",
         "id": 4,
+        "name": "Susan Smith",
         "projects": [],
         "title": "Dev Mgr"
       },
       {
         "id": 6,
         "name": "Jane Smith",
-        "title": "Software Eng 2",
         "projects": [
           {
             "name": "AWS Redshift security"
           }
-        ]
+        ],
+        "title": "Software Eng 2"
       }
     ]
   }

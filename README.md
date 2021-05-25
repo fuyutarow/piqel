@@ -8,20 +8,20 @@ What's [PartiQL](https://partiql.org/)?
 ## `pq`
 ### Installation
 ```
-brew install fuyutarow/tap/partiql-cli
+brew install fuyutarow/tap/pq
 ```
 
 ### Sample Usage
 
 ```
-env | jo | pq -q "SELECT NAME AS name, USER AS user"
+env | jo | pq "SELECT NAME AS name, USER AS user"
 ```
 FYI
 - [jo](https://github.com/jpmens/jo): `brew install jo`
 
 
 ```
-ip -j -p | pq -q "$(cat<<EOS
+ip -j -p | pq "$(cat<<EOS
 SELECT
   address,
   info.family AS inet,

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 use collect_mac::collect;
 use itertools::Itertools;
@@ -6,10 +6,10 @@ use itertools::Itertools;
 use partiql::models::JsonValue;
 
 fn main() {
-    let mut records = Vec::<HashMap<String, Vec<JsonValue>>>::new();
+    let mut records = Vec::<IndexMap<String, Vec<JsonValue>>>::new();
 
     let record = collect! {
-        as HashMap<String, Vec<JsonValue>>:
+        as IndexMap<String, Vec<JsonValue>>:
         "id".to_owned() => vec![
             JsonValue::Num(
                 3.0,
@@ -40,7 +40,7 @@ fn main() {
     let record = record
         .into_iter()
         .filter_map(|(k, v)| if v.len() > 0 { Some((k, v)) } else { None })
-        .collect::<HashMap<String, Vec<JsonValue>>>();
+        .collect::<IndexMap<String, Vec<JsonValue>>>();
 
     let it = record.values().into_iter().multi_cartesian_product();
 
