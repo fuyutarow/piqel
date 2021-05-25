@@ -40,6 +40,11 @@ npm i -g zx
 command = "cargo"
 args = ["build", "--bin", "pq"]
 
+[tasks.release]
+command = "cargo"
+args = ["build", "--release"]
+
+
 [tasks."release:pq"]
 command = "cargo"
 args = ["build", "--bin", "pq", "--release"]

@@ -1,6 +1,6 @@
 [package]
 name = "partiql-rs"
-version = "0.202105.10"
+version = "0.202105.12"
 edition = "2018"
 description = "A implementation of PartiQL"
 homepage = "https://github.com/fuyutarow/partiql-rs"
@@ -36,7 +36,7 @@ regex = "1.5.4"
 serde = "1.0.126"
 serde_derive = "1.0.126"
 serde_json = { version = "1.0.64", features = ["preserve_order"] }
-serde_partiql = "1.0.64+20210523"
 serde_yaml = "0.8.17"
+serde_partiql = "1.1.64"
 structopt = "0.3.21"
 toml = "0.5.8"
