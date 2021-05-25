@@ -58,14 +58,14 @@ fn main() -> anyhow::Result<()> {
                 }
             }
 
-            if sort_keys {
-                lang.sort_keys();
-            }
-
             if let Some(q) = query {
                 let sql = sql_parser::sql(&q)?;
                 let result = run(&sql, &lang.data);
                 lang.data = result;
+            }
+
+            if sort_keys {
+                lang.sort_keys();
             }
 
             lang.print();
