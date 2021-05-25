@@ -34,6 +34,9 @@ struct Opt {
     /// target config file
     #[structopt(short, long, possible_values(&["json", "toml", "yaml", "xml"]))]
     to: Option<String>,
+
+    #[structopt(short = "S", long)]
+    sort_keys: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -42,6 +45,7 @@ fn main() -> anyhow::Result<()> {
             file_or_stdin,
             query,
             to,
+            sort_keys,
         } => {
             let input = if let Some(file) = file_or_stdin {
                 std::fs::read_to_string(file)?
@@ -55,6 +59,10 @@ fn main() -> anyhow::Result<()> {
                     Ok(lang_type) => lang.to = lang_type,
                     Err(err) => eprintln!("not support"),
                 }
+            }
+
+            if sort_keys {
+                lang.sort_keys();
             }
 
             if let Some(q) = query {

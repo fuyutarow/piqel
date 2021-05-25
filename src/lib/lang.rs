@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use parse_display::{Display, FromStr};
 
+use crate::models::BJsonValue;
 use crate::models::JsonValue;
 
 #[derive(Display, FromStr, PartialEq, Clone, Debug)]
@@ -60,6 +61,14 @@ impl FromStr for Lang {
 }
 
 impl Lang {
+    pub fn sort_keys(&mut self) {
+        let json = serde_json::to_string(&self.data).unwrap();
+        let bdata = serde_json::from_str::<BJsonValue>(&json).unwrap();
+        let bjson = serde_json::to_string(&bdata).unwrap();
+        let data = serde_json::from_str::<JsonValue>(&bjson).unwrap();
+        self.data = data;
+    }
+
     pub fn print(&self) {
         let s = match self.to {
             LangType::Json => serde_json::to_string_pretty(&self.data).unwrap(),
