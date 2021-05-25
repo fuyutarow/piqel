@@ -502,6 +502,7 @@ checksum = "824845a0bf897a9042383849b02c1bc219c2383772efcd5c6f9766fa4b81aef3"
 dependencies = [
  "autocfg",
  "hashbrown",
+ "serde",
 ]
 
 [[package]]
@@ -717,11 +718,12 @@ dependencies = [
 
 [[package]]
 name = "partiql-rs"
-version = "0.202105.9"
+version = "0.202105.10"
 dependencies = [
  "anyhow",
  "bat",
  "collect-mac",
+ "indexmap",
  "itertools",
  "nom",
  "parse-display",

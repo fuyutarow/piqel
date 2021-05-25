@@ -1,6 +1,6 @@
 [package]
 name = "partiql-rs"
-version = "0.202105.9"
+version = "0.202105.10"
 edition = "2018"
 description = "A implementation of PartiQL"
 homepage = "https://github.com/fuyutarow/partiql-rs"
@@ -27,6 +27,7 @@ path = "src/bin/pq.rs"
 anyhow = "1.0.40"
 bat = "0.18.1"
 collect-mac = "0.1.0"
+indexmap = { version = "1.6.2", features = ["serde"] }
 itertools = "0.10.0"
 nom = "6.1.2"
 parse-display = "0.5.0"

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 use itertools::Itertools;
 
@@ -6,7 +6,7 @@ use crate::models::JsonValue;
 
 pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
     let (tables, n, keys) = {
-        let mut tables = HashMap::<String, Vec<JsonValue>>::new();
+        let mut tables = IndexMap::<String, Vec<JsonValue>>::new();
         let mut n = 0;
         let mut keys = vec![];
         if let JsonValue::Object(map) = value_selected_by_fields {
@@ -34,9 +34,9 @@ pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
     };
 
     let records = {
-        let mut records = Vec::<HashMap<String, Vec<JsonValue>>>::new();
+        let mut records = Vec::<IndexMap<String, Vec<JsonValue>>>::new();
         for i in 0..n {
-            let mut record = HashMap::<String, Vec<JsonValue>>::new();
+            let mut record = IndexMap::<String, Vec<JsonValue>>::new();
             for key in &keys {
                 let v = tables.get(key.as_str()).unwrap().get(i).unwrap();
                 match v {
@@ -59,7 +59,7 @@ pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
             let record = record
                 .into_iter()
                 .filter_map(|(k, v)| if v.len() > 0 { Some((k, v)) } else { None })
-                .collect::<HashMap<String, Vec<JsonValue>>>();
+                .collect::<IndexMap<String, Vec<JsonValue>>>();
 
             let keys = record.keys();
             let it = record.values().into_iter().multi_cartesian_product();
@@ -69,7 +69,7 @@ pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
                     .into_iter()
                     .zip(prod.into_iter())
                     .map(|(key, p)| (key.to_owned(), p.to_owned()))
-                    .collect::<HashMap<String, _>>();
+                    .collect::<IndexMap<String, _>>();
                 let v = JsonValue::Object(map);
                 v
             })

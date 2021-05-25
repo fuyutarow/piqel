@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 pub use nom::error::convert_error;
 pub use nom::error::VerboseError;
@@ -102,7 +102,7 @@ fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, HashMap<String, JsonValue>, E> {
+) -> IResult<&'a str, IndexMap<String, JsonValue>, E> {
     context(
         "map",
         preceded(

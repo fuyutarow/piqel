@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 use itertools::Itertools;
 
@@ -46,7 +46,7 @@ fn parse() -> anyhow::Result<()> {
     dbg!(&value);
 
     let (tables, n, keys) = {
-        let mut tables = HashMap::<String, Vec<JsonValue>>::new();
+        let mut tables = IndexMap::<String, Vec<JsonValue>>::new();
         let mut n = 0;
         let mut keys = vec![];
         if let JsonValue::Object(map) = value {
@@ -69,9 +69,9 @@ fn parse() -> anyhow::Result<()> {
     dbg!(&tables);
 
     let records = {
-        let mut records = Vec::<HashMap<String, Vec<JsonValue>>>::new();
+        let mut records = Vec::<IndexMap<String, Vec<JsonValue>>>::new();
         for i in 0..n {
-            let mut record = HashMap::<String, Vec<JsonValue>>::new();
+            let mut record = IndexMap::<String, Vec<JsonValue>>::new();
             for key in &keys {
                 let v = tables.get(key.as_str()).unwrap().get(i).unwrap();
                 // record.insert(key.to_string(), v.to_owned());
@@ -96,7 +96,7 @@ fn parse() -> anyhow::Result<()> {
             let record = record
                 .into_iter()
                 .filter_map(|(k, v)| if v.len() > 0 { Some((k, v)) } else { None })
-                .collect::<HashMap<String, Vec<JsonValue>>>();
+                .collect::<IndexMap<String, Vec<JsonValue>>>();
 
             let keys = record.keys();
             let it = record.values().into_iter().multi_cartesian_product();
@@ -106,7 +106,7 @@ fn parse() -> anyhow::Result<()> {
                     .into_iter()
                     .zip(prod.into_iter())
                     .map(|(key, p)| (key.to_owned(), p.to_owned()))
-                    .collect::<HashMap<String, _>>();
+                    .collect::<IndexMap<String, _>>();
                 let v = JsonValue::Object(map);
                 v
             })

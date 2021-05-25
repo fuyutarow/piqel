@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 use crate::models::JsonValue;
 use crate::pqlir_parser;
@@ -9,8 +9,8 @@ use crate::sql::Dpath;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bindings {
-    locals: HashMap<String, Dpath>,
-    locals_rev: HashMap<String, String>,
+    locals: IndexMap<String, Dpath>,
+    locals_rev: IndexMap<String, String>,
 }
 
 impl From<&[DField]> for Bindings {
@@ -24,7 +24,7 @@ impl From<&[DField]> for Bindings {
                     None
                 }
             })
-            .collect::<HashMap<String, Dpath>>();
+            .collect::<IndexMap<String, Dpath>>();
 
         let locals_rev = fields
             .iter()
@@ -35,7 +35,7 @@ impl From<&[DField]> for Bindings {
                     None
                 }
             })
-            .collect::<HashMap<String, String>>();
+            .collect::<IndexMap<String, String>>();
 
         Self { locals, locals_rev }
     }
