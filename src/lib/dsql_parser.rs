@@ -64,8 +64,14 @@ fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
     )(i)
 }
 
+pub fn string_allowed_in_field<'a>(input: &'a str) -> IResult<&'a str, String> {
+    let (input, ss) = many1(alt((alphanumeric1, tag("_"))))(input)?;
+
+    Ok((input, ss.into_iter().collect::<String>()))
+}
+
 pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
-    let (input, vec_path) = separated_list1(char('.'), alphanumeric1)(input)?;
+    let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
 
     let res = Field {
         path: Dpath::from(vec_path.join(".").as_str()),
@@ -77,13 +83,13 @@ pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
 
 pub fn parse_field_with<'a>(input: &'a str) -> IResult<&'a str, Field> {
     let (input, (vec_path, vec_as_alias)) = tuple((
-        separated_list1(char('.'), alphanumeric1),
+        separated_list1(char('.'), string_allowed_in_field),
         many_m_n(
             0,
             1,
             tuple((
                 preceded(whitespace, many_m_n(0, 1, tag("AS"))),
-                preceded(whitespace, alphanumeric1),
+                preceded(whitespace, string_allowed_in_field),
             )),
         ),
     ))(input)?;
@@ -97,11 +103,11 @@ pub fn parse_field_with<'a>(input: &'a str) -> IResult<&'a str, Field> {
         }
     };
 
-    let f = Field {
+    let res = Field {
         path: Dpath::from(vec_path.join(".").as_str()),
         alias,
     };
-    Ok((input, f))
+    Ok((input, res))
 }
 
 pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
