@@ -716,7 +716,7 @@ dependencies = [
 
 [[package]]
 name = "partiql-rs"
-version = "0.202105.12"
+version = "0.202105.13"
 dependencies = [
  "anyhow",
  "atty",
