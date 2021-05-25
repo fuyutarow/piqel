@@ -34,7 +34,7 @@ pub fn sql(input: &str) -> anyhow::Result<Sql> {
     }
 }
 
-pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
+pub fn _parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
     let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause)) =
         tuple((
             preceded(whitespace, parse_select),
@@ -46,6 +46,28 @@ pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
     let sql = Sql {
         select_clause,
         from_clause: vec_from_clause.first().unwrap_or(&vec![]).to_owned(),
+        left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
+        where_clause: if let Some(cond) = vec_where_clause.first() {
+            Some(cond.to_owned())
+        } else {
+            None
+        },
+    };
+    Ok((input, sql))
+}
+
+pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
+    let (input, (select_clause, from_clause, vec_left_join_clause, vec_where_clause)) =
+        tuple((
+            preceded(whitespace, parse_select),
+            preceded(whitespace, parse_from),
+            many_m_n(0, 1, preceded(whitespace, parse_left_join)),
+            many_m_n(0, 1, preceded(whitespace, parse_where)),
+        ))(input)?;
+
+    let sql = Sql {
+        select_clause,
+        from_clause,
         left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
         where_clause: if let Some(cond) = vec_where_clause.first() {
             Some(cond.to_owned())
@@ -81,7 +103,36 @@ pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
     Ok((input, res))
 }
 
-pub fn parse_field_with<'a>(input: &'a str) -> IResult<&'a str, Field> {
+pub fn field_in_select_clause<'a>(input: &'a str) -> IResult<&'a str, Field> {
+    let (input, (vec_path, vec_as_alias)) = tuple((
+        separated_list1(char('.'), string_allowed_in_field),
+        many_m_n(
+            0,
+            1,
+            tuple((
+                preceded(whitespace, tag("AS")),
+                preceded(whitespace, string_allowed_in_field),
+            )),
+        ),
+    ))(input)?;
+
+    let alias = {
+        if let Some(as_alias) = vec_as_alias.first() {
+            let (_, alias) = as_alias;
+            Some(alias.to_string())
+        } else {
+            None
+        }
+    };
+
+    let res = Field {
+        path: Dpath::from(vec_path.join(".").as_str()),
+        alias,
+    };
+    Ok((input, res))
+}
+
+pub fn field_in_from_clause<'a>(input: &'a str) -> IResult<&'a str, Field> {
     let (input, (vec_path, vec_as_alias)) = tuple((
         separated_list1(char('.'), string_allowed_in_field),
         many_m_n(
@@ -115,7 +166,10 @@ pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
         tag("SELECT"),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(parse_field_with))),
+            separated_list0(
+                char(','),
+                preceded(whitespace, many1(field_in_select_clause)),
+            ),
         ),
     )(input)?;
 
@@ -128,11 +182,12 @@ pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
         tag("FROM"),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(parse_field_with))),
+            separated_list0(char(','), preceded(whitespace, many1(field_in_from_clause))),
         ),
     )(input)?;
 
     let fields = vec_fields.into_iter().flatten().collect::<Vec<_>>();
+
     Ok((input, fields))
 }
 
@@ -141,7 +196,10 @@ pub fn parse_left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
         tag("LEFT JOIN"),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(parse_field_with))),
+            separated_list0(
+                char(','),
+                preceded(whitespace, many1(field_in_select_clause)),
+            ),
         ),
     )(input)?;
 
@@ -162,7 +220,7 @@ pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
         preceded(
             whitespace,
             tuple((
-                parse_field,
+                field_in_select_clause,
                 preceded(whitespace, alt((tag("="), tag("LIKE")))),
                 preceded(whitespace, string),
             )),

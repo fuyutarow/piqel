@@ -85,7 +85,8 @@ fn main() -> anyhow::Result<()> {
     let sql = dsql_parser::sql(
         // SELECT address
         "
-SELECT address, addr_info
+SELECT address, info
+FROM addr_info info
 ",
     )?;
     dbg!(&sql);
