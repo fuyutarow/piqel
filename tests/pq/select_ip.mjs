@@ -88,9 +88,6 @@ const expected = `[
     "local": "::1"
   },
   {
-    "address": "0.0.0.0"
-  },
-  {
     "address": "00:15:5d:d8:2b:c4",
     "inet": "inet",
     "local": "172.22.247.125"
@@ -124,6 +121,7 @@ SELECT
   info.family AS inet,
   info.local
 FROM addr_info AS info
+WHERE inet LIKE 'inet%'
 EOS
 )" | jq -S
 `).stdout, expected)
@@ -138,6 +136,7 @@ SELECT
   address,
   addr_info.family AS inet,
   addr_info.local
+WHERE inet LIKE 'inet%'
 EOS
 )" | jq -S
 `).stdout, expected)

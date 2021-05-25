@@ -85,9 +85,13 @@ fn main() -> anyhow::Result<()> {
     let sql = dsql_parser::sql(
         // SELECT address
         "
-SELECT address, info
-FROM addr_info info
+SELECT
+  address,
+  addr_info.family AS inet,
+  addr_info.local
+WHERE inet LIKE 'inet%'
 ",
+        // FROM addr_info AS info
     )?;
     dbg!(&sql);
 
