@@ -1,10 +1,12 @@
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 use regex::Regex;
 use structopt::StructOpt;
 
 use partiql::dsql_parser as sql_parser;
+use partiql::lang::Lang;
 use partiql::models::JsonValue;
 use partiql::pqlir_parser as parser;
 use partiql::sql::run;
@@ -26,7 +28,7 @@ struct Opt {
 
     /// sql [possible_values: "*.json"]
     #[structopt(short, long)]
-    query: String,
+    query: Option<String>,
 
     // #[structopt(short, long, possible_values(&["json", "partiql"]), default_value="json")]
     // from: String,
@@ -48,23 +50,15 @@ fn main() -> anyhow::Result<()> {
                 read_from_stdin()?
             };
 
-            let data = serde_json::from_str::<JsonValue>(&input)?;
+            let mut lang = Lang::from_str(&input)?;
 
-            let sql = sql_parser::sql(&query)?;
+            if let Some(q) = query {
+                let sql = sql_parser::sql(&q)?;
+                let result = run(&sql, &lang.data);
+                lang.data = result;
+            }
 
-            let output = run(&sql, &data);
-
-            let s = match to.as_str() {
-                "json" => {
-                    let s = serde_json::to_string(&output).unwrap();
-                    s
-                }
-                _ => {
-                    let s = serde_partiql::to_string(&output).unwrap();
-                    s
-                }
-            };
-            println!("{}", s);
+            lang.print();
         }
     };
 
