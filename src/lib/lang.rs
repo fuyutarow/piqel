@@ -72,16 +72,12 @@ impl Lang {
     pub fn print(&self) {
         let output = match self.to {
             LangType::Json => serde_json::to_string_pretty(&self.data).unwrap(),
-            LangType::Toml => {
-                // toml::to_string(&self.data).unwrap()
-                self.text.to_owned()
-            }
-            LangType::Yaml => serde_yaml::to_string(&self.data).unwrap(),
-            LangType::Xml => quick_xml::se::to_string(&self.data).unwrap(),
+            LangType::Toml => self.text.to_owned(),
+            LangType::Yaml => self.text.to_owned(),
+            LangType::Xml => self.text.to_owned(),
         };
 
         if atty::is(atty::Stream::Stdout) {
-            dbg!("#3");
             let bytes = output.as_bytes().to_vec();
             let lang_type = self.to.to_string();
 
@@ -91,7 +87,6 @@ impl Lang {
                 .print()
                 .unwrap();
         } else {
-            dbg!("#4");
             println!("{}", &output);
         }
     }

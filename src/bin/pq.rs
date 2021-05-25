@@ -1,14 +1,11 @@
 use std::io::{self, Read};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::str::FromStr;
 
-use regex::Regex;
 use structopt::StructOpt;
 
 use partiql::dsql_parser as sql_parser;
 use partiql::lang::{Lang, LangType};
-use partiql::models::JsonValue;
-use partiql::pqlir_parser as parser;
 use partiql::sql::run;
 
 fn read_from_stdin() -> anyhow::Result<String> {
@@ -34,7 +31,7 @@ struct Opt {
     #[structopt(short, long, possible_values(&["json", "toml", "yaml", "xml"]))]
     to: Option<String>,
 
-    /// sort keys of objects on output;
+    /// sort keys of objects on output. it on works when --to option is json, currently
     #[structopt(short = "S", long)]
     sort_keys: bool,
 }
