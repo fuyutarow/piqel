@@ -22,19 +22,19 @@ fn read_from_stdin() -> anyhow::Result<String> {
 
 #[derive(StructOpt, Debug)]
 struct Opt {
-    /// target config file
+    /// source text: file or standard input
     #[structopt()]
     file_or_stdin: Option<PathBuf>,
 
     /// sql
-    // #[structopt(short, long)]
-    #[structopt()]
+    #[structopt(short, long)]
     query: Option<String>,
 
     /// target config file
     #[structopt(short, long, possible_values(&["json", "toml", "yaml", "xml"]))]
     to: Option<String>,
 
+    /// sort keys of objects on output;
     #[structopt(short = "S", long)]
     sort_keys: bool,
 }

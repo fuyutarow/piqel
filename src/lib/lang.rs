@@ -70,23 +70,29 @@ impl Lang {
     }
 
     pub fn print(&self) {
-        let s = match self.to {
+        let output = match self.to {
             LangType::Json => serde_json::to_string_pretty(&self.data).unwrap(),
-            LangType::Toml => toml::to_string_pretty(&self.data).unwrap(),
+            LangType::Toml => {
+                // toml::to_string(&self.data).unwrap()
+                self.text.to_owned()
+            }
             LangType::Yaml => serde_yaml::to_string(&self.data).unwrap(),
             LangType::Xml => quick_xml::se::to_string(&self.data).unwrap(),
         };
 
-        let bytes = s.as_bytes().to_vec();
-        let lang_type = self.to.to_string();
+        if atty::is(atty::Stream::Stdout) {
+            dbg!("#3");
+            let bytes = output.as_bytes().to_vec();
+            let lang_type = self.to.to_string();
 
-        bat::PrettyPrinter::new()
-            .language(&lang_type)
-            .line_numbers(true)
-            .grid(true)
-            .header(true)
-            .input(bat::Input::from_bytes(&bytes).name(&lang_type))
-            .print()
-            .unwrap();
+            bat::PrettyPrinter::new()
+                .language(&lang_type)
+                .input(bat::Input::from_bytes(&bytes))
+                .print()
+                .unwrap();
+        } else {
+            dbg!("#4");
+            println!("{}", &output);
+        }
     }
 }

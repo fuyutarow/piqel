@@ -719,6 +719,7 @@ name = "partiql-rs"
 version = "0.202105.12"
 dependencies = [
  "anyhow",
+ "atty",
  "bat",
  "collect-mac",
  "indexmap",
