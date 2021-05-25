@@ -2,23 +2,23 @@
   "hr": {
     "employeesMixed2": [
       {
-        "name": "Bob Smith",
-        "title": null,
         "id": 3,
+        "name": "Bob Smith",
         "projects": [
-          {
-            "name": "AWS Redshift Spectrum querying"
-          },
           "AWS Redshift security",
           {
             "name": "AWS Aurora security"
+          },
+          {
+            "name": "AWS Redshift Spectrum querying"
           }
-        ]
+        ],
+        "title": null
       },
       {
-        "projects": [],
-        "name": "Susan Smith",
         "id": 4,
+        "name": "Susan Smith",
+        "projects": [],
         "title": "Dev Mgr"
       },
       {

@@ -2,20 +2,20 @@
   "hr": {
     "employeesWithTuples": [
       {
+        "id": 3,
+        "name": "Bob Smith",
         "project": {
           "name": "AWS Redshift Spectrum querying",
           "org": "AWS"
         },
-        "title": null,
-        "id": 3,
-        "name": "Bob Smith"
+        "title": null
       },
       {
         "id": 6,
         "name": "Jane Smith",
         "project": {
-          "org": "AWS",
-          "name": "AWS Redshift security"
+          "name": "AWS Redshift security",
+          "org": "AWS"
         },
         "title": "Software Eng 2"
       }

@@ -2,18 +2,18 @@
   "hr": {
     "employeesWithMissing": [
       {
-        "name": "Bob Smith",
-        "id": 3
+        "id": 3,
+        "name": "Bob Smith"
       },
       {
-        "title": "Dev Mgr",
+        "id": 4,
         "name": "Susan Smith",
-        "id": 4
+        "title": "Dev Mgr"
       },
       {
         "id": 6,
-        "title": "Software Eng 2",
-        "name": "Jane Smith"
+        "name": "Jane Smith",
+        "title": "Software Eng 2"
       }
     ]
   }

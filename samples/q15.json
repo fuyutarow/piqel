@@ -1,16 +1,16 @@
 {
   "todaysStockPrices": [
     {
+      "price": 180,
+      "symbol": "fb"
+    },
+    {
+      "price": 1120,
+      "symbol": "goog"
+    },
+    {
       "price": 1900,
       "symbol": "amzn"
-    },
-    {
-      "symbol": "goog",
-      "price": 1120
-    },
-    {
-      "symbol": "fb",
-      "price": 180
     }
   ]
 }

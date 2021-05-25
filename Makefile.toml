@@ -90,40 +90,14 @@ script = '''
 cargo fix
 '''
 
-[tasks.run-q1]
-script = '''
-alias pq="./target/debug/partiql-cli"
-pq sql -f samples/q1.json -q "$(cat samples/q1.sql)" | pq from -t json | jq
-'''
-dependencies = ["build"]
-
-[tasks.run-q2]
-script = '''
-alias pq="./target/debug/partiql-cli"
-pq sql -f samples/q2.json -q "$(cat samples/q2.sql)" | pq from -t json | jq
-'''
-dependencies = ["build"]
-
-[tasks.run-q3]
-script = '''
-alias pq="./target/debug/partiql-cli"
-pq sql -f samples/q3.json -q "$(cat samples/q3.sql)" | pq from -t json | jq
-'''
-dependencies = ["build"]
-
-[tasks.run-q5]
-script = '''
-alias pq="./target/debug/partiql-cli"
-pq sql -f samples/q5.json -q "$(cat samples/q5.sql)" | pq from -t json | jq
-'''
-dependencies = ["build"]
 
 [tasks.generate-json]
+dependencies = ["build"]
 script = '''
-alias pq="./target/debug/partiql-cli"
+alias pc="./target/debug/partiql-cli"
+alias pq="./target/debug/pq"
 for i in $(seq 1 18)
 do
-    cat samples/q$i.env | pq from --to json | jq > samples/q$i.json
+    cat samples/q$i.env | pc from --to json | pq -S > samples/q$i.json
 done
 '''
-dependencies = ["build"]
