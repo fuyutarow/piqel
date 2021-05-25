@@ -34,7 +34,7 @@ pub fn sql(input: &str) -> anyhow::Result<Sql> {
     }
 }
 
-pub fn _parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
+pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
     let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause)) =
         tuple((
             preceded(whitespace, parse_select),
@@ -56,7 +56,7 @@ pub fn _parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
     Ok((input, sql))
 }
 
-pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
+pub fn _parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
     let (input, (select_clause, from_clause, vec_left_join_clause, vec_where_clause)) =
         tuple((
             preceded(whitespace, parse_select),

@@ -116,5 +116,28 @@ const expected = `[
 assert.equal((await $`
 INPUT=$(cat<<EOS
 ${input}
+EOS
+)
+echo $INPUT | ./target/debug/pq -q "$(cat<<EOS
+SELECT
+  address,
+  info.family AS inet,
+  info.local
+FROM addr_info AS info
+EOS
+)" | jq -S
+`).stdout, expected)
+
+assert.equal((await $`
+INPUT=$(cat<<EOS
+${input}
+EOS
+)
+echo $INPUT | ./target/debug/pq -q "$(cat<<EOS
+SELECT
+  address,
+  addr_info.family AS inet,
+  addr_info.local
+EOS
 )" | jq -S
 `).stdout, expected)
