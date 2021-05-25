@@ -727,6 +727,7 @@ dependencies = [
  "itertools",
  "nom",
  "parse-display",
+ "quick-xml",
  "regex",
  "serde",
  "serde_derive",
@@ -818,6 +819,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0d8caf72986c1a598726adc988bb5984792ef84f5ee5aa50209145ee8077038"
 dependencies = [
  "unicode-xid",
+]
+
+[[package]]
+name = "quick-xml"
+version = "0.22.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8533f14c8382aaad0d592c812ac3b826162128b65662331e1127b45c3d18536b"
+dependencies = [
+ "memchr",
+ "serde",
 ]
 
 [[package]]

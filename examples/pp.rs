@@ -4,7 +4,6 @@ use parse_display::{Display, FromStr};
 use serde_derive::Serialize;
 
 use partiql::models::JsonValue;
-use partiql::pqlir_parser;
 
 #[derive(Serialize)]
 struct Person {
@@ -17,11 +16,11 @@ struct Person {
 #[derive(Display, FromStr, PartialEq, Debug)]
 #[display(style = "snake_case")]
 enum LangType {
-    PartiqlIr,
+    // PartiqlIr,
     Json,
     Toml,
+    Xml,
     Yaml,
-    Other,
 }
 
 struct Lang {
@@ -33,17 +32,18 @@ impl FromStr for Lang {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> anyhow::Result<Self> {
-        let lang_type: anyhow::Result<LangType> = if let Ok(s) = pqlir_parser::pql_model(&input) {
-            Ok(LangType::PartiqlIr)
-        } else if let Ok(s) = serde_json::from_str::<JsonValue>(&input) {
-            Ok(LangType::Json)
-        } else if let Ok(s) = toml::from_str::<JsonValue>(&input) {
-            Ok(LangType::Toml)
-        } else if let Ok(s) = serde_yaml::from_str::<JsonValue>(&input) {
-            Ok(LangType::Yaml)
-        } else {
-            anyhow::bail!("not supported")
-        };
+        let lang_type: anyhow::Result<LangType> =
+            if let Ok(s) = serde_json::from_str::<JsonValue>(&input) {
+                Ok(LangType::Json)
+            } else if let Ok(s) = toml::from_str::<JsonValue>(&input) {
+                Ok(LangType::Toml)
+            } else if let Ok(s) = quick_xml::de::from_str::<JsonValue>(&input) {
+                Ok(LangType::Xml)
+            } else if let Ok(s) = serde_yaml::from_str::<JsonValue>(&input) {
+                Ok(LangType::Yaml)
+            } else {
+                anyhow::bail!("not supported")
+            };
 
         Ok(Self {
             data: input.to_string(),
@@ -54,14 +54,23 @@ impl FromStr for Lang {
 
 impl Lang {
     fn print(&self) {
-        let bytes = self.data.as_bytes().to_vec();
+        let s = match self.lang_type {
+            LangType::Json => serde_json::to_string_pretty(
+                &serde_json::from_str::<JsonValue>(&self.data).unwrap(),
+            )
+            .unwrap(),
+            _ => self.data.to_owned(),
+        };
+
+        let bytes = s.as_bytes().to_vec();
         let lang_type = self.lang_type.to_string();
+
         bat::PrettyPrinter::new()
             .language(&lang_type)
             .line_numbers(true)
             .grid(true)
             .header(true)
-            .input(bat::Input::from_bytes(&bytes))
+            .input(bat::Input::from_bytes(&bytes).name(&lang_type))
             .print()
             .unwrap();
     }
@@ -80,7 +89,9 @@ fn main() {
         }],
     };
 
-    let input = serde_yaml::to_string(&person).unwrap();
+    // let input = quick_xml::se::to_string(&person).unwrap();
+    let input = serde_json::to_string(&person).unwrap();
+    // let input = serde_yaml::to_string(&person).unwrap();
 
     match Lang::from_str(&input) {
         Ok(lang) => {
