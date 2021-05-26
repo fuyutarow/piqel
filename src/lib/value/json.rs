@@ -1,15 +1,9 @@
-use std::collections::HashMap;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;
 use serde_derive::{Deserialize, Serialize};
-use toml::value::Value as TomlValue;
-
-use crate::sql::DField;
-use crate::sql::Dpath;
-use crate::sql::Field;
 
 use super::partiql::PqlValue;
 

@@ -1,8 +1,7 @@
 #!/usr/bin/env zx
 import { strict as assert } from 'assert'
 
-const input = `
-{
+const input = `{
   "hr": {
     "employees": [
       {
@@ -24,6 +23,10 @@ const input = `
   }
 }
 `
+
+assert.equal((await $`
+echo ${input} | ./target/debug/pq -t json
+`).stdout, input)
 
 assert.equal((await $`
 echo ${input} | ./target/debug/pq -t yaml

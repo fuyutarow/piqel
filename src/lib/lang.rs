@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use parse_display::{Display, FromStr};
 
-use crate::value::{BJsonValue, BPqlValue, JsonValue, JsonValueForToml, PqlValue};
+use crate::value::{BPqlValue, PqlValue, TomlValue};
 
 #[derive(Display, FromStr, PartialEq, Clone, Debug)]
 #[display(style = "snake_case")]
@@ -27,6 +27,7 @@ impl FromStr for Lang {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> anyhow::Result<Self> {
+        // Json does not distinguish between Float and Int. For this reason, it it parsed once with serde_json::value::Value, not crate::value::PqlValue.
         if let Ok(data) = serde_json::from_str::<serde_json::value::Value>(&input) {
             Ok(Self {
                 data: crate::value::json::to_pqlvalue(data),
@@ -75,9 +76,8 @@ impl Lang {
             (LangType::Json, _) => serde_json::to_string_pretty(&self.data).unwrap(),
             (_, true) => self.text.to_owned(),
             (LangType::Toml, _) => {
-                // let v = JsonValueForToml::from(self.data.to_owned());
-                // toml::to_string_pretty(&v).unwrap()
-                toml::to_string_pretty(&self.data.to_owned()).unwrap()
+                let v = TomlValue::from(self.data.to_owned());
+                toml::to_string_pretty(&v).unwrap()
             }
             (LangType::Yaml, _) => serde_yaml::to_string(&self.data).unwrap(),
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),

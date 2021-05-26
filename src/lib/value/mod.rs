@@ -5,7 +5,6 @@ use std::fmt;
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 use serde_derive::{Deserialize, Serialize};
-use toml::value::Value as TomlValue;
 
 use crate::sql::DField;
 use crate::sql::Dpath;
@@ -13,8 +12,10 @@ use crate::sql::Field;
 
 pub mod json;
 mod partiql;
+mod toml_value;
 pub use json::{BJsonValue, JsonValue};
 pub use partiql::{BPqlValue, PqlValue};
+pub use toml_value::TomlValue;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
