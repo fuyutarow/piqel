@@ -64,7 +64,7 @@ fn main() -> anyhow::Result<()> {
                 lang.data = result;
             }
 
-            if sort_keys {
+            if lang.to == LangType::Json && sort_keys {
                 lang.sort_keys();
             }
 
