@@ -11,72 +11,22 @@ use crate::sql::DField;
 use crate::sql::Dpath;
 use crate::sql::Field;
 
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum BJsonValue {
-    Null,
-    Str(String),
-    Boolean(bool),
-    Num(OrderedFloat<f64>),
-    Array(BTreeSet<BJsonValue>),
-    Object(BTreeMap<String, BJsonValue>),
-}
-
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum JsonValue {
+pub enum PqlValue {
     Null,
     Str(String),
     Boolean(bool),
-    Num(OrderedFloat<f64>),
-    Array(Vec<JsonValue>),
-    Object(IndexMap<String, JsonValue>),
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum JsonValueForToml {
-    #[serde(skip_serializing)]
-    Null,
-    Str(String),
-    Boolean(bool),
-    Num(OrderedFloat<f64>),
+    Float(OrderedFloat<f64>),
+    Int(i64),
     Array(Vec<Self>),
     Object(IndexMap<String, Self>),
 }
 
-impl From<JsonValue> for JsonValueForToml {
-    fn from(json: JsonValue) -> Self {
-        match json {
-            JsonValue::Null => Self::Null,
-            JsonValue::Str(string) => Self::Str(string),
-            JsonValue::Boolean(boolean) => Self::Boolean(boolean),
-            JsonValue::Num(number) => Self::Num(number),
-            JsonValue::Array(array) => Self::Array(
-                array
-                    .into_iter()
-                    .filter_map(|v| match v {
-                        JsonValue::Null => None,
-                        _ => Some(Self::from(v)),
-                    })
-                    .collect::<Vec<_>>(),
-            ),
-            JsonValue::Object(map) => Self::Object(
-                map.into_iter()
-                    .filter_map(|(k, v)| match v {
-                        JsonValue::Null => None,
-                        _ => Some((k, Self::from(v))),
-                    })
-                    .collect::<IndexMap<_, _>>(),
-            ),
-        }
-    }
-}
-
-impl JsonValue {
-    pub fn get(self, key: &str) -> Option<JsonValue> {
+impl PqlValue {
+    pub fn get(self, key: &str) -> Option<Self> {
         match self {
-            JsonValue::Object(map) => {
+            Self::Object(map) => {
                 if let Some(value) = map.get(key) {
                     Some(value.to_owned())
                 } else {
@@ -87,7 +37,7 @@ impl JsonValue {
         }
     }
 
-    pub fn get_path(self, path: &[&str]) -> Option<JsonValue> {
+    pub fn get_path(self, path: &[&str]) -> Option<Self> {
         if let Some((key, path)) = path.split_first() {
             if let Some(obj) = self.get(key) {
                 if path.len() > 0 {
@@ -103,7 +53,7 @@ impl JsonValue {
         }
     }
 
-    pub fn select_by_path(&self, path: &Dpath) -> Option<JsonValue> {
+    pub fn select_by_path(&self, path: &Dpath) -> Option<Self> {
         match self {
             Self::Object(map) => {
                 if let Some((key, tail_path)) = path.to_vec().split_first() {
@@ -122,14 +72,14 @@ impl JsonValue {
                     .filter_map(|value| value.select_by_path(&path))
                     .collect::<Vec<_>>();
 
-                Some(JsonValue::Array(new_array))
+                Some(Self::Array(new_array))
             }
             _ => Some(self.clone()),
         }
     }
 
-    pub fn select_by_fields(&self, field_list: &[DField]) -> Option<JsonValue> {
-        let mut new_map = IndexMap::<String, JsonValue>::new();
+    pub fn select_by_fields(&self, field_list: &[DField]) -> Option<Self> {
+        let mut new_map = IndexMap::<String, Self>::new();
 
         for field in field_list {
             if let Some(value) = self.select_by_path(&field.path) {
@@ -142,20 +92,32 @@ impl JsonValue {
             }
         }
 
-        Some(JsonValue::Object(new_map))
+        Some(Self::Object(new_map))
     }
 
-    pub fn select_map_by_fields(&self, field_list: &[DField]) -> Option<JsonValue> {
+    pub fn select_map_by_fields(&self, field_list: &[DField]) -> Option<Self> {
         match self {
-            JsonValue::Array(array) => {
+            Self::Array(array) => {
                 let new_array = array
                     .into_iter()
                     .filter_map(|value| value.select_by_fields(field_list))
                     .collect::<Vec<_>>();
 
-                Some(JsonValue::Array(new_array))
+                Some(Self::Array(new_array))
             }
             _ => None,
         }
     }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum BPqlValue {
+    Null,
+    Str(String),
+    Boolean(bool),
+    Float(OrderedFloat<f64>),
+    Int(i64),
+    Array(BTreeSet<Self>),
+    Object(BTreeMap<String, Self>),
 }

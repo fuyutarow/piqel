@@ -1,13 +1,12 @@
 use indexmap::IndexMap;
 
-use crate::value::JsonValue;
+use crate::value::PqlValue;
 
 mod bindings;
 mod eval;
 mod utils;
 pub use bindings::Bindings;
-pub use eval::run;
-pub use utils::to_list;
+pub use eval::{run, to_list};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Field {
@@ -86,7 +85,7 @@ pub enum DWhereCond {
 impl DWhereCond {
     pub fn eval(
         &self,
-        left: &JsonValue,
+        left: &PqlValue,
         bindings: &Bindings,
         bindings_for_select: &Bindings,
     ) -> bool {
@@ -97,7 +96,7 @@ impl DWhereCond {
                     .to_alias(&where_arg_path)
                     .unwrap_or(where_arg_path.to_owned());
                 if let Some(value) = left.clone().select_by_path(&access_path) {
-                    value == JsonValue::Str(right.to_owned())
+                    value == PqlValue::Str(right.to_owned())
                 } else {
                     false
                 }
@@ -118,7 +117,7 @@ impl DWhereCond {
                     .to_alias(&where_arg_path)
                     .unwrap_or(where_arg_path.to_owned());
                 match left.select_by_path(&access_path) {
-                    Some(JsonValue::Str(s)) if re.is_match(&s) => true,
+                    Some(PqlValue::Str(s)) if re.is_match(&s) => true,
                     _ => false,
                 }
             }
