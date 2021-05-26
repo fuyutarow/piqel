@@ -1,9 +1,12 @@
+use std::fmt::Write as FmtWrite;
+use std::io::Write as IoWrite;
 use std::str::FromStr;
 
 use parse_display::{Display, FromStr};
 
 use crate::models::BJsonValue;
 use crate::models::JsonValue;
+use crate::models::JsonValueForToml;
 
 #[derive(Display, FromStr, PartialEq, Clone, Debug)]
 #[display(style = "snake_case")]
@@ -70,11 +73,15 @@ impl Lang {
     }
 
     pub fn print(&self) {
-        let output = match self.to {
-            LangType::Json => serde_json::to_string_pretty(&self.data).unwrap(),
-            LangType::Toml => self.text.to_owned(),
-            LangType::Yaml => self.text.to_owned(),
-            LangType::Xml => self.text.to_owned(),
+        let output = match (&self.to, &self.from == &self.to) {
+            (LangType::Json, _) => serde_json::to_string_pretty(&self.data).unwrap(),
+            (_, true) => self.text.to_owned(),
+            (LangType::Toml, _) => {
+                let v = JsonValueForToml::from(self.data.to_owned());
+                toml::to_string_pretty(&v).unwrap()
+            }
+            (LangType::Yaml, _) => serde_yaml::to_string(&self.data).unwrap(),
+            (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
         };
 
         if atty::is(atty::Stream::Stdout) {
