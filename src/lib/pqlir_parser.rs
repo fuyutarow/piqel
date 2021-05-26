@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use ordered_float::OrderedFloat;
 
 pub use nom::error::convert_error;
 pub use nom::error::VerboseError;
@@ -134,7 +135,9 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
             map(array, JsonValue::Array),
             map(bag, JsonValue::Array),
             map(string, |s| JsonValue::Str(String::from(s))),
-            map(double, |f| JsonValue::Num(f.floor() as i64)),
+            // map(double, |f| JsonValue::Num(f.floor() as i64)),
+            // map(double, |f| JsonValue::Num(OrderedFloat<f64>(f)),
+            map(double, |f| JsonValue::Num(OrderedFloat(f as f64))),
             map(boolean, JsonValue::Boolean),
         )),
     )(i)

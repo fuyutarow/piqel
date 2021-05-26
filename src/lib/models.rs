@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 use indexmap::IndexMap;
+use ordered_float::OrderedFloat;
 use serde_derive::{Deserialize, Serialize};
 use toml::value::Value as TomlValue;
 
@@ -16,7 +17,7 @@ pub enum BJsonValue {
     Null,
     Str(String),
     Boolean(bool),
-    Num(i64),
+    Num(OrderedFloat<f64>),
     Array(BTreeSet<BJsonValue>),
     Object(BTreeMap<String, BJsonValue>),
 }
@@ -27,7 +28,7 @@ pub enum JsonValue {
     Null,
     Str(String),
     Boolean(bool),
-    Num(i64),
+    Num(OrderedFloat<f64>),
     Array(Vec<JsonValue>),
     Object(IndexMap<String, JsonValue>),
 }
@@ -39,7 +40,7 @@ pub enum JsonValueForToml {
     Null,
     Str(String),
     Boolean(bool),
-    Num(i64),
+    Num(OrderedFloat<f64>),
     Array(Vec<Self>),
     Object(IndexMap<String, Self>),
 }

@@ -41,3 +41,4 @@ serde_partiql = "1.1.64"
 structopt = "0.3.21"
 toml = "0.5.8"
 atty = "0.2.14"
+ordered-float = { version = "2.0", features = ["serde"] }
