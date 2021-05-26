@@ -1,5 +1,4 @@
 use indexmap::IndexMap as Map;
-use ordered_float::OrderedFloat;
 use serde_derive::{Deserialize, Serialize};
 
 use crate::value::PqlValue;
@@ -11,7 +10,7 @@ pub enum TomlValue {
     Null,
     Str(String),
     Boolean(bool),
-    Float(OrderedFloat<f64>),
+    Float(f64),
     Int(i64),
     Array(Vec<Self>),
     Object(Map<String, Self>),
@@ -23,7 +22,7 @@ impl From<PqlValue> for TomlValue {
             PqlValue::Null => Self::Null,
             PqlValue::Str(string) => Self::Str(string),
             PqlValue::Boolean(boolean) => Self::Boolean(boolean),
-            PqlValue::Float(float) => Self::Float(float),
+            PqlValue::Float(float) => Self::Float(float.into_inner()),
             PqlValue::Int(int) => Self::Int(int),
             PqlValue::Array(array) => Self::Array(
                 array
