@@ -5,7 +5,7 @@ use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;
 use serde_derive::{Deserialize, Serialize};
 
-use super::partiql::PqlValue;
+use crate::value::PqlValue;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]

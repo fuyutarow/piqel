@@ -30,7 +30,7 @@ impl FromStr for Lang {
         // Json does not distinguish between Float and Int. For this reason, it it parsed once with serde_json::value::Value, not crate::value::PqlValue.
         if let Ok(data) = serde_json::from_str::<serde_json::value::Value>(&input) {
             Ok(Self {
-                data: crate::value::json::to_pqlvalue(data),
+                data: crate::value::json_value::to_pqlvalue(data),
                 text: input.to_string(),
                 from: LangType::Json,
                 to: LangType::Json,

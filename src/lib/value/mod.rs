@@ -1,20 +1,12 @@
-use std::collections::HashMap;
-use std::collections::{BTreeMap, BTreeSet};
-use std::fmt;
-
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::sql::DField;
-use crate::sql::Dpath;
-use crate::sql::Field;
-
-pub mod json;
-mod partiql;
+pub mod json_value;
+mod pql_value;
 mod toml_value;
-pub use json::{BJsonValue, JsonValue};
-pub use partiql::{BPqlValue, PqlValue};
+pub use json_value::{BJsonValue, JsonValue};
+pub use pql_value::{BPqlValue, PqlValue};
 pub use toml_value::TomlValue;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
