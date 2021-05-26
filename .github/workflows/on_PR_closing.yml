@@ -12,11 +12,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Setup Rust
+        uses: hecrj/setup-rust-action@v1
       - name: Update version
         run: |
           wget "https://github.com/fuyutarow/version-make/releases/download/v0.202005.1/version-make-v0.202005.1-x86_64-linux.zip" -O version-make.zip
           unzip version-make.zip
           ./version-make up -rz Cargo.toml
+          cargo build
       - name: Commit and push
         run: |
           git config --local user.email "action@github.com"
