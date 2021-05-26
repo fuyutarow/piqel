@@ -16,10 +16,6 @@ name = "partiql"
 path = "src/lib/mod.rs"
 
 [[bin]]
-name = "partiql-cli"
-path = "src/bin/partiql-cli.rs"
-
-[[bin]]
 name = "pq"
 path = "src/bin/pq.rs"
 
