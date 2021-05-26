@@ -33,14 +33,23 @@ impl From<PqlValue> for TomlValue {
                     })
                     .collect::<Vec<_>>(),
             ),
-            PqlValue::Object(map) => Self::Object(
-                map.into_iter()
-                    .filter_map(|(k, v)| match v {
-                        PqlValue::Null => None,
-                        _ => Some((k, Self::from(v))),
-                    })
-                    .collect::<Map<_, _>>(),
-            ),
+            PqlValue::Object(map) => Self::Object({
+                let mut paris = vec![];
+                let mut paris_for_map = vec![];
+                for (k, v) in map.into_iter() {
+                    match v {
+                        PqlValue::Null => {}
+                        PqlValue::Object(_) => {
+                            paris_for_map.push((k, Self::from(v)));
+                        }
+                        _ => {
+                            paris.push((k, Self::from(v)));
+                        }
+                    }
+                }
+                paris.append(&mut paris_for_map);
+                paris.into_iter().collect::<Map<_, _>>()
+            }),
         }
     }
 }

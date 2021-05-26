@@ -14,58 +14,38 @@ use collect_mac::collect;
 use std::collections::HashMap as Map;
 
 fn main() -> anyhow::Result<()> {
-  let input = include_str!("samples/pokemons.json");
-  let _input = r#"
-[
-  {
-    "id": "001",
-    "name": "Bulbasaur",
-    "classification": "Seed Pokémon",
-    "types": [
-      "Grass",
-      "Poison"
-    ],
-    "weight": {
-      "minimum": "6.04kg",
-      "maximum": "7.76kg"
-    },
-    "fleeRate": 0.1
+  let input = r#"
+{
+  "name": "partiql-pokemon",
+  "version": "0.202105.0",
+  "array": [
+    1,
+    3,
+    "ko"
+  ],
+  "private": true,
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start",
+    "prod": "next build && next start",
+    "lint": "eslint . --fix -c .eslintrc.js --ext js,jsx,ts,tsx --ignore-pattern='!.*'",
+    "type-check": "tsc"
   },
-  {
-    "id": "002",
-    "name": "Ivysaur",
-    "classification": "Seed Pokémon",
-    "types": [
-      "Grass",
-      "Poison"
-    ],
-    "weight": {
-      "minimum": "11.38kg",
-      "maximum": "14.63kg"
-    },
-    "fleeRate": 0.07
-  }
-]
-  "#;
+  "license": "MIT"
+}
+"#;
 
   let r = serde_json::from_str::<JsonValue>(&input);
   dbg!(&r);
 
   let mut lang = Lang::from_str(&input)?;
-  // lang.to = LangType::Toml;
-  lang.to = LangType::Yaml;
+  lang.to = LangType::Toml;
+  // lang.to = LangType::Yaml;
 
   dbg!(&lang);
 
   lang.print();
-
-  // let q = r#"
-  // SELECT
-  // "#;
-
-  // let sql = sql_parser::sql(&q)?;
-  // let result = run(&sql, &lang.data);
-  // lang.data = result;
 
   Ok(())
 }
