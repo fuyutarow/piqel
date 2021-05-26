@@ -108,7 +108,7 @@ impl JsonValue {
             Self::Object(map) => {
                 if let Some((key, tail_path)) = path.to_vec().split_first() {
                     if let Some(obj) = self.clone().get(key) {
-                        obj.by_path(tail_path)
+                        obj.select_by_path(&Dpath::from(tail_path))
                     } else {
                         None
                     }
@@ -119,103 +119,13 @@ impl JsonValue {
             Self::Array(array) => {
                 let new_array = array
                     .into_iter()
-                    .filter_map(|value| value.by_path(&path.to_vec()))
+                    .filter_map(|value| value.select_by_path(&path))
                     .collect::<Vec<_>>();
 
                 Some(JsonValue::Array(new_array))
             }
             _ => Some(self.clone()),
         }
-    }
-    pub fn by_path(&self, path: &[&str]) -> Option<JsonValue> {
-        match self {
-            Self::Object(map) => {
-                if let Some((key, tail_path)) = path.split_first() {
-                    if let Some(obj) = self.clone().get(key) {
-                        obj.by_path(tail_path)
-                    } else {
-                        None
-                    }
-                } else {
-                    Some(self.to_owned())
-                }
-            }
-            Self::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|value| value.by_path(path))
-                    .collect::<Vec<_>>();
-
-                Some(JsonValue::Array(new_array))
-            }
-            _ => Some(self.clone()),
-        }
-    }
-
-    pub fn _filter(self, path: &[&str]) -> Option<JsonValue> {
-        match self {
-            JsonValue::Object(map) => {
-                let mut new_map = IndexMap::<String, JsonValue>::new();
-
-                for key in path {
-                    if let Some(value) = map.get(key.to_string().as_str()) {
-                        new_map.insert(key.to_string(), value.to_owned());
-                    }
-                }
-
-                Some(JsonValue::Object(new_map))
-            }
-            _ => None,
-        }
-    }
-
-    pub fn _filter_map(self, path: &[&str]) -> Option<JsonValue> {
-        match self {
-            JsonValue::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|value| value._filter(path))
-                    .collect::<Vec<_>>();
-
-                Some(JsonValue::Array(new_array))
-            }
-            _ => None,
-        }
-    }
-
-    // pub fn select_by_path_list(self, path_list: &[&[&str]]]) -> Option<JsonValue> {
-    //     match self {
-    //         JsonValue::Object(map) => {
-    //             let mut new_map = IndexMap::<String, JsonValue>::new();
-
-    //             for field in field_list {
-    //                 dbg!("!!", field);
-    //                 if let Some(value) = map.get(&field.path) {
-    //                     let key = field.alias.as_ref().unwrap_or(&field.path);
-    //                     new_map.insert(key.to_string(), value.to_owned());
-    //                 }
-    //             }
-
-    //             Some(JsonValue::Object(new_map))
-    //         }
-    //         _ => None,
-    //     }
-    // }
-    pub fn neo_select(&self, field_list: &[DField]) -> Option<JsonValue> {
-        let mut new_map = IndexMap::<String, JsonValue>::new();
-
-        for field in field_list {
-            let path = field.path.to_vec();
-            if let Some(value) = self.by_path(&path) {
-                let key = field.alias.clone().unwrap_or({
-                    let last = path.last().unwrap().to_string();
-                    last
-                });
-                new_map.insert(key, value);
-            }
-        }
-
-        Some(JsonValue::Object(new_map))
     }
 
     pub fn select_by_fields(&self, field_list: &[DField]) -> Option<JsonValue> {
@@ -241,37 +151,6 @@ impl JsonValue {
                 let new_array = array
                     .into_iter()
                     .filter_map(|value| value.select_by_fields(field_list))
-                    .collect::<Vec<_>>();
-
-                Some(JsonValue::Array(new_array))
-            }
-            _ => None,
-        }
-    }
-
-    pub fn select(self, field_list: &[Field]) -> Option<JsonValue> {
-        let mut new_map = IndexMap::<String, JsonValue>::new();
-
-        for field in field_list {
-            let path = field.path.split(".").collect::<Vec<&str>>();
-            if let Some(value) = self.by_path(&path) {
-                let key = field.alias.clone().unwrap_or({
-                    let last = path.last().unwrap().to_string();
-                    last
-                });
-                new_map.insert(key, value);
-            }
-        }
-
-        Some(JsonValue::Object(new_map))
-    }
-
-    pub fn select_map(self, field_list: &[Field]) -> Option<JsonValue> {
-        match self {
-            JsonValue::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|value| value.select(field_list))
                     .collect::<Vec<_>>();
 
                 Some(JsonValue::Array(new_array))
