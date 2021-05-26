@@ -1,4 +1,5 @@
 use indexmap::IndexMap;
+use ordered_float::OrderedFloat;
 
 pub use nom::error::convert_error;
 pub use nom::error::VerboseError;
@@ -17,7 +18,7 @@ use nom::{
     IResult, Parser,
 };
 
-use crate::models::JsonValue;
+use crate::value::PqlValue;
 
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";
@@ -62,7 +63,7 @@ fn string<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn bag<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, Vec<JsonValue>, E> {
+) -> IResult<&'a str, Vec<PqlValue>, E> {
     context(
         "bag",
         preceded(
@@ -77,7 +78,7 @@ fn bag<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn array<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, Vec<JsonValue>, E> {
+) -> IResult<&'a str, Vec<PqlValue>, E> {
     context(
         "array",
         preceded(
@@ -92,7 +93,7 @@ fn array<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, (&'a str, JsonValue), E> {
+) -> IResult<&'a str, (&'a str, PqlValue), E> {
     separated_pair(
         preceded(whitespace, string),
         cut(preceded(whitespace, char(':'))),
@@ -102,7 +103,7 @@ fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, IndexMap<String, JsonValue>, E> {
+) -> IResult<&'a str, IndexMap<String, PqlValue>, E> {
     context(
         "map",
         preceded(
@@ -125,28 +126,28 @@ fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 
 fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, JsonValue, E> {
+) -> IResult<&'a str, PqlValue, E> {
     preceded(
         whitespace,
         alt((
-            map(null, |s| JsonValue::Null),
-            map(hash, JsonValue::Object),
-            map(array, JsonValue::Array),
-            map(bag, JsonValue::Array),
-            map(string, |s| JsonValue::Str(String::from(s))),
-            map(double, |f| JsonValue::Num(f.floor() as i64)),
-            map(boolean, JsonValue::Boolean),
+            map(null, |s| PqlValue::Null),
+            map(hash, PqlValue::Object),
+            map(array, PqlValue::Array),
+            map(bag, PqlValue::Array),
+            map(string, |s| PqlValue::Str(String::from(s))),
+            map(double, |f| PqlValue::Float(OrderedFloat(f as f64))),
+            map(boolean, PqlValue::Boolean),
         )),
     )(i)
 }
 
 pub fn root<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
-) -> IResult<&'a str, JsonValue, E> {
+) -> IResult<&'a str, PqlValue, E> {
     delimited(whitespace, json_value, opt(whitespace))(i)
 }
 
-pub fn pql_model(input: &str) -> anyhow::Result<JsonValue> {
+pub fn pql_model(input: &str) -> anyhow::Result<PqlValue> {
     // let re = regex::Regex::new(r"(^|\n)\s*--[\w\s\.{}]*?\n").unwrap();
     let re = regex::Regex::new(r"--[\w\s\.{}]*?\n").unwrap();
     let input = re.replace_all(input, "");

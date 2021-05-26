@@ -7,59 +7,45 @@ use structopt::StructOpt;
 use partiql::dsql_parser as sql_parser;
 use partiql::lang::{Lang, LangType};
 use partiql::sql::run;
+use partiql::value::JsonValue;
 
 use collect_mac::collect;
 
 use std::collections::HashMap as Map;
 
 fn main() -> anyhow::Result<()> {
-    let input = r#"
+  let input = r#"
 {
-    "employees": [
-      {
-        "id": 3,
-        "name": "Bob Smith",
-        "title": null
-      },
-      {
-        "id": 4,
-        "name": "Susan Smith",
-        "title": "Dev Mgr"
-      },
-      {
-        "id": 6,
-        "name": "Jane Smith",
-        "title": "Software Eng 2"
-      }
-    ]
+  "name": "partiql-pokemon",
+  "version": "0.202105.0",
+  "array": [
+    1,
+    3,
+    "ko"
+  ],
+  "private": true,
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start",
+    "prod": "next build && next start",
+    "lint": "eslint . --fix -c .eslintrc.js --ext js,jsx,ts,tsx --ignore-pattern='!.*'",
+    "type-check": "tsc"
+  },
+  "license": "MIT"
 }
 "#;
-    let input = r#"
-    [
-      {
-        "id": 3,
-        "name": "Bob Smith",
-        "title": null
-      },
-      {
-        "id": 4,
-        "name": "Susan Smith",
-        "title": "Dev Mgr"
-      },
-      {
-        "id": 6,
-        "name": "Jane Smith",
-        "title": "Software Eng 2"
-      }
-    ]
-"#;
 
-    let mut lang = Lang::from_str(&input)?;
-    lang.to = LangType::Toml;
+  let r = serde_json::from_str::<JsonValue>(&input);
+  dbg!(&r);
 
-    dbg!(&lang);
+  let mut lang = Lang::from_str(&input)?;
+  lang.to = LangType::Toml;
+  // lang.to = LangType::Yaml;
 
-    lang.print();
+  dbg!(&lang);
 
-    Ok(())
+  lang.print();
+
+  Ok(())
 }

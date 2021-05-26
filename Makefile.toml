@@ -1,33 +1,7 @@
 [tasks.hot]
 dependencies = ["build:pq"]
-_script = '''
-echo hello
-'''
 script = '''
-echo $INPUT | ./target/debug/pq -q "$(cat<<EOS
-SELECT info
-FROM addr_info info
-EOS
-)" | jq -S
-'''
-
-[tasks._hot]
-dependencies = ["build:pq"]
-_script = '''
-echo hello
-'''
-script = '''
-SELECT
-  address,
-  addr_info.family AS inet,
-  addr_info.local
-WHERE inet LIKE 'inet%'"
-echo $INPUT | ./target/debug/pq -q "$(cat<<EOS
-SELECT
-  info
-FROM addr_info info
-EOS
-)" | jq -S
+zx tests/pq/poke.mjs
 '''
 
 [tasks.install-dev]
@@ -43,7 +17,6 @@ args = ["build", "--bin", "pq"]
 [tasks.release]
 command = "cargo"
 args = ["build", "--release"]
-
 
 [tasks."release:pq"]
 command = "cargo"
@@ -64,10 +37,11 @@ zx ./tests/pq/*.mjs
 '''
 dependencies = ["build:pq"]
 
-
-[tasks.release-cli]
+[tasks.up]
 script = '''
-cargo build --release --bin partiql-cli
+git remote add upstream https://github.com/fuyutarow/partiql-rs
+git fetch upstream
+git merge upstream/alpha
 '''
 
 [tasks.version-up]
