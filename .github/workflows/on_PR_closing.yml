@@ -24,7 +24,7 @@ jobs:
           git pull
           git commit -am "Update version"
           git push
-      - name: Tag and push
-        run: |
-          git tag v$(./version-make show Cargo.toml)
-          git push --tags
+      # - name: Tag and push
+      #   run: |
+      #     git tag v$(./version-make show Cargo.toml)
+      #     git push --tags
