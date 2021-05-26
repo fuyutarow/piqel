@@ -3,15 +3,8 @@ use indexmap::IndexMap;
 use itertools::Itertools;
 
 use partiql::dsql_parser;
-use partiql::models::JsonValue;
 use partiql::pqlir_parser;
 use partiql::sql::run;
-use partiql::sql::to_list;
-use partiql::sql::Bindings;
-use partiql::sql::DField;
-use partiql::sql::DSql as Sql;
-use partiql::sql::DWhereCond;
-use partiql::sql::Dpath;
 
 #[test]
 fn q1() -> anyhow::Result<()> {

@@ -1,6 +1,6 @@
 use indexmap::IndexMap;
 
-use crate::models::JsonValue;
+use crate::value::JsonValue;
 
 mod bindings;
 mod eval;

@@ -2,10 +2,10 @@ use indexmap::IndexMap;
 
 use itertools::Itertools;
 
-use partiql::models::JsonValue;
 use partiql::pqlir_parser;
 use partiql::sql::DField;
 use partiql::sql::Dpath;
+use partiql::value::JsonValue;
 
 fn main() {
     parse();

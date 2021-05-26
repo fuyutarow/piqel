@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use collect_mac::collect;
 use itertools::Itertools;
 
-use partiql::models::JsonValue;
+use partiql::value::JsonValue;
 
 fn main() {
     let mut records = Vec::<IndexMap<String, Vec<JsonValue>>>::new();

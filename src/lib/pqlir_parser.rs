@@ -18,7 +18,7 @@ use nom::{
     IResult, Parser,
 };
 
-use crate::models::JsonValue;
+use crate::value::JsonValue;
 
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";

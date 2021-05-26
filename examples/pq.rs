@@ -7,59 +7,65 @@ use structopt::StructOpt;
 use partiql::dsql_parser as sql_parser;
 use partiql::lang::{Lang, LangType};
 use partiql::sql::run;
+use partiql::value::JsonValue;
 
 use collect_mac::collect;
 
 use std::collections::HashMap as Map;
 
 fn main() -> anyhow::Result<()> {
-    let input = r#"
-{
-    "employees": [
-      {
-        "id": 3,
-        "name": "Bob Smith",
-        "title": null
-      },
-      {
-        "id": 4,
-        "name": "Susan Smith",
-        "title": "Dev Mgr"
-      },
-      {
-        "id": 6,
-        "name": "Jane Smith",
-        "title": "Software Eng 2"
-      }
-    ]
-}
-"#;
-    let input = r#"
-    [
-      {
-        "id": 3,
-        "name": "Bob Smith",
-        "title": null
-      },
-      {
-        "id": 4,
-        "name": "Susan Smith",
-        "title": "Dev Mgr"
-      },
-      {
-        "id": 6,
-        "name": "Jane Smith",
-        "title": "Software Eng 2"
-      }
-    ]
-"#;
+  let input = include_str!("samples/pokemons.json");
+  let _input = r#"
+[
+  {
+    "id": "001",
+    "name": "Bulbasaur",
+    "classification": "Seed Pokémon",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "weight": {
+      "minimum": "6.04kg",
+      "maximum": "7.76kg"
+    },
+    "fleeRate": 0.1
+  },
+  {
+    "id": "002",
+    "name": "Ivysaur",
+    "classification": "Seed Pokémon",
+    "types": [
+      "Grass",
+      "Poison"
+    ],
+    "weight": {
+      "minimum": "11.38kg",
+      "maximum": "14.63kg"
+    },
+    "fleeRate": 0.07
+  }
+]
+  "#;
 
-    let mut lang = Lang::from_str(&input)?;
-    lang.to = LangType::Toml;
+  let r = serde_json::from_str::<JsonValue>(&input);
+  dbg!(&r);
 
-    dbg!(&lang);
+  let mut lang = Lang::from_str(&input)?;
+  // lang.to = LangType::Toml;
+  lang.to = LangType::Yaml;
 
-    lang.print();
+  dbg!(&lang);
 
-    Ok(())
+  lang.print();
+
+  // let q = r#"
+  // SELECT
+  // "#;
+
+  // let sql = sql_parser::sql(&q)?;
+  // let result = run(&sql, &lang.data);
+  // lang.data = result;
+
+  Ok(())
 }

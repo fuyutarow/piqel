@@ -2,15 +2,10 @@ use indexmap::IndexMap;
 
 use itertools::Itertools;
 
-use crate::dsql_parser;
-use crate::models::JsonValue;
-use crate::pqlir_parser;
 use crate::sql::to_list;
 use crate::sql::Bindings;
-use crate::sql::DField;
 use crate::sql::DSql as Sql;
-use crate::sql::DWhereCond;
-use crate::sql::Dpath;
+use crate::value::JsonValue;
 
 pub fn run(sql: &Sql, data: &JsonValue) -> JsonValue {
     let fields = sql

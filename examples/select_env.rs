@@ -1,15 +1,10 @@
 use std::io::{self, Read};
-use std::path::{Path, PathBuf};
-
-use regex::Regex;
-use structopt::StructOpt;
 
 use partiql::{
-    dsql_parser,
-    models::JsonValue,
-    pqlir_parser,
+    dsql_parser, pqlir_parser,
     sql::{run, to_list},
     sql::{Bindings, DField, DSql, Dpath},
+    value::JsonValue,
 };
 
 fn main() -> anyhow::Result<()> {

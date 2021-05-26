@@ -2,7 +2,7 @@ use indexmap::IndexMap;
 
 use itertools::Itertools;
 
-use crate::models::JsonValue;
+use crate::value::JsonValue;
 
 pub fn to_list(value_selected_by_fields: JsonValue) -> Vec<JsonValue> {
     let (tables, n, keys) = {
