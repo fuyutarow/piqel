@@ -4,8 +4,8 @@ use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::sql::DField;
-use crate::sql::Dpath;
+use crate::sql::DPath;
+use crate::sql::Field;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -49,12 +49,12 @@ impl PqlValue {
         }
     }
 
-    pub fn select_by_path(&self, path: &Dpath) -> Option<Self> {
+    pub fn select_by_path(&self, path: &DPath) -> Option<Self> {
         match self {
             Self::Object(map) => {
                 if let Some((key, tail_path)) = path.to_vec().split_first() {
                     if let Some(obj) = self.clone().get(key) {
-                        obj.select_by_path(&Dpath::from(tail_path))
+                        obj.select_by_path(&DPath::from(tail_path))
                     } else {
                         None
                     }
@@ -74,7 +74,7 @@ impl PqlValue {
         }
     }
 
-    pub fn select_by_fields(&self, field_list: &[DField]) -> Option<Self> {
+    pub fn select_by_fields(&self, field_list: &[Field]) -> Option<Self> {
         let mut new_map = IndexMap::<String, Self>::new();
 
         for field in field_list {
@@ -91,7 +91,7 @@ impl PqlValue {
         Some(Self::Object(new_map))
     }
 
-    pub fn select_map_by_fields(&self, field_list: &[DField]) -> Option<Self> {
+    pub fn select_map_by_fields(&self, field_list: &[Field]) -> Option<Self> {
         match self {
             Self::Array(array) => {
                 let new_array = array

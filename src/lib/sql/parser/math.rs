@@ -5,9 +5,6 @@ use nom::multi::many0;
 use nom::sequence::{delimited, preceded, tuple};
 use nom::IResult;
 
-use crate::sql::DSql as Sql;
-use crate::sql::DWhereCond as WhereCond;
-use crate::sql::Dpath;
 use crate::sql::Expr;
 use crate::sql::Field;
 

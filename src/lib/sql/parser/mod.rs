@@ -15,18 +15,18 @@ use nom::{
     IResult, Parser,
 };
 
-use crate::sql::DField;
-use crate::sql::DSql;
-use crate::sql::DWhereCond;
-use crate::sql::Dpath;
+use crate::sql::DPath;
+// use crate::sql::DWhereCond;
 use crate::sql::Expr;
+use crate::sql::Field;
+use crate::sql::Proj;
+use crate::sql::Sql;
 
 pub mod math;
 
-pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, Dpath> {
+pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
     let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
-
-    let res = Dpath::from(vec_path.join(".").as_str());
+    let res = DPath::from(vec_path.join(".").as_str());
 
     Ok((input, res))
 }
@@ -44,7 +44,7 @@ pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str
     take_while(move |c| chars.contains(c))(input)
 }
 
-pub fn sql(input: &str) -> anyhow::Result<DSql> {
+pub fn sql(input: &str) -> anyhow::Result<Sql> {
     match parse_sql(input) {
         Ok((_, sql)) => Ok(sql),
         Err(err) => {
@@ -53,24 +53,25 @@ pub fn sql(input: &str) -> anyhow::Result<DSql> {
     }
 }
 
-pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, DSql> {
-    let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause)) =
-        tuple((
-            preceded(whitespace, parse_select),
-            many_m_n(0, 1, preceded(whitespace, parse_from)),
-            many_m_n(0, 1, preceded(whitespace, parse_left_join)),
-            many_m_n(0, 1, preceded(whitespace, parse_where)),
-        ))(input)?;
+pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
+    // let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause)) =
+    let (input, (select_clause, vec_from_clause, vec_left_join_clause)) = tuple((
+        preceded(whitespace, parse_select_clause),
+        many_m_n(0, 1, preceded(whitespace, parse_from_clause)),
+        many_m_n(0, 1, preceded(whitespace, parse_left_join)),
+        // many_m_n(0, 1, preceded(whitespace, parse_where)),
+    ))(input)?;
 
-    let sql = DSql {
+    let sql = Sql {
         select_clause,
         from_clause: vec_from_clause.first().unwrap_or(&vec![]).to_owned(),
         left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
-        where_clause: if let Some(cond) = vec_where_clause.first() {
-            Some(cond.to_owned())
-        } else {
-            None
-        },
+        // where_clause: None,
+        // where_clause: if let Some(cond) = vec_where_clause.first() {
+        //     Some(cond.to_owned())
+        // } else {
+        //     None
+        // },
     };
     Ok((input, sql))
 }
@@ -89,14 +90,9 @@ pub fn string_allowed_in_field<'a>(input: &'a str) -> IResult<&'a str, String> {
     Ok((input, ss.into_iter().collect::<String>()))
 }
 
-pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, DField> {
-    let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
-
-    let res = DField {
-        path: Dpath::from(vec_path.join(".").as_str()),
-        alias: None,
-    };
-
+pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
+    let (input, (path, alias)) = tuple((parse_path, parse_alias_in_from_clause))(input)?;
+    let res = Field { path, alias };
     Ok((input, res))
 }
 
@@ -141,57 +137,44 @@ pub fn parse_alias_in_from_clause(input: &str) -> IResult<&str, Option<String>> 
     Ok((input, alias))
 }
 
-pub fn field_in_select_clause<'a>(input: &'a str) -> IResult<&'a str, DField> {
-    let (input, (path, alias)) = tuple((parse_path, parse_alias_in_select_clause))(input)?;
-    let res = DField { path, alias };
+pub fn parse_proj<'a>(input: &'a str) -> IResult<&'a str, Proj> {
+    let (input, (expr, alias)) = tuple((parse_path_as_expr, parse_alias_in_select_clause))(input)?;
+    let res = Proj { expr, alias };
     Ok((input, res))
 }
 
-pub fn field_in_from_clause<'a>(input: &'a str) -> IResult<&'a str, DField> {
-    let (input, (path, alias)) = tuple((parse_path, parse_alias_in_from_clause))(input)?;
-    let res = DField { path, alias };
-    Ok((input, res))
-}
-
-pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, Vec<DField>> {
-    let (input, vec_fields) = preceded(
+pub fn parse_select_clause<'a>(input: &'a str) -> IResult<&'a str, Vec<Proj>> {
+    let (input, vec_proj) = preceded(
         alt((tag("SELECT"), tag("select"))),
         preceded(
             whitespace,
-            separated_list0(
-                char(','),
-                preceded(whitespace, many1(field_in_select_clause)),
-            ),
+            separated_list0(char(','), preceded(whitespace, many1(parse_proj))),
         ),
     )(input)?;
 
-    let fields = vec_fields.into_iter().flatten().collect::<Vec<_>>();
-    Ok((input, fields))
+    let res = vec_proj.into_iter().flatten().collect::<Vec<_>>();
+    Ok((input, res))
 }
 
-pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, Vec<DField>> {
+pub fn parse_from_clause<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     let (input, vec_fields) = preceded(
         alt((tag("FROM"), tag("from"))),
         preceded(
             whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(field_in_from_clause))),
+            separated_list0(char(','), preceded(whitespace, many1(parse_field))),
         ),
     )(input)?;
 
-    let fields = vec_fields.into_iter().flatten().collect::<Vec<_>>();
-
-    Ok((input, fields))
+    let res = vec_fields.into_iter().flatten().collect::<Vec<_>>();
+    Ok((input, res))
 }
 
-pub fn parse_left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<DField>> {
+pub fn parse_left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     let (input, vec_fields) = preceded(
         tag("LEFT JOIN"),
         preceded(
             whitespace,
-            separated_list0(
-                char(','),
-                preceded(whitespace, many1(field_in_select_clause)),
-            ),
+            separated_list0(char(','), preceded(whitespace, many1(parse_field))),
         ),
     )(input)?;
 
@@ -206,33 +189,33 @@ pub fn string<'a>(input: &'a str) -> IResult<&'a str, &'a str> {
     ))(input)
 }
 
-pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, DWhereCond> {
-    let (input, (field, op, value)) = preceded(
-        alt((tag("WHERE"), tag("where"))),
-        preceded(
-            whitespace,
-            tuple((
-                field_in_select_clause,
-                preceded(whitespace, alt((tag("="), alt((tag("LIKE"), tag("like")))))),
-                preceded(whitespace, string),
-            )),
-        ),
-    )(input)?;
+// pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, DWhereCond> {
+//     let (input, (field, op, value)) = preceded(
+//         alt((tag("WHERE"), tag("where"))),
+//         preceded(
+//             whitespace,
+//             tuple((
+//                 field_in_select_clause,
+//                 preceded(whitespace, alt((tag("="), alt((tag("LIKE"), tag("like")))))),
+//                 preceded(whitespace, string),
+//             )),
+//         ),
+//     )(input)?;
 
-    let cond = match op {
-        "=" => DWhereCond::Eq {
-            field,
-            right: value.to_string(),
-        },
-        "LIKE" | "like" => DWhereCond::Like {
-            field,
-            right: value.to_string(),
-        },
-        _ => unreachable!(),
-    };
+//     let cond = match op {
+//         "=" => DWhereCond::Eq {
+//             field,
+//             right: value.to_string(),
+//         },
+//         "LIKE" | "like" => DWhereCond::Like {
+//             field,
+//             right: value.to_string(),
+//         },
+//         _ => unreachable!(),
+//     };
 
-    Ok((input, cond))
-}
+//     Ok((input, cond))
+// }
 
 pub fn array<'a>(input: &'a str) -> IResult<&'a str, Vec<u64>> {
     let (input, res) = context(
