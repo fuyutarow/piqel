@@ -1,5 +1,3 @@
-use indexmap::IndexMap;
-
 use crate::value::PqlValue;
 
 mod bindings;
@@ -8,13 +6,6 @@ pub mod parser;
 mod utils;
 pub use bindings::Bindings;
 pub use eval::{run, to_list};
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Field {
-    pub source: String,
-    pub path: String,
-    pub alias: Option<String>,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DField {

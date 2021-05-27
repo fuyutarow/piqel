@@ -88,7 +88,7 @@ pub fn field_in_select_clause<'a>(input: &'a str) -> IResult<&'a str, Field> {
             0,
             1,
             tuple((
-                preceded(whitespace, tag("AS")),
+                preceded(whitespace, alt((tag("AS"), tag("as")))),
                 preceded(whitespace, string_allowed_in_field),
             )),
         ),
@@ -117,7 +117,7 @@ pub fn field_in_from_clause<'a>(input: &'a str) -> IResult<&'a str, Field> {
             0,
             1,
             tuple((
-                preceded(whitespace, many_m_n(0, 1, tag("AS"))),
+                preceded(whitespace, many_m_n(0, 1, alt((tag("AS"), tag("as"))))),
                 preceded(whitespace, string_allowed_in_field),
             )),
         ),
@@ -141,7 +141,7 @@ pub fn field_in_from_clause<'a>(input: &'a str) -> IResult<&'a str, Field> {
 
 pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     let (input, vec_fields) = preceded(
-        tag("SELECT"),
+        alt((tag("SELECT"), tag("select"))),
         preceded(
             whitespace,
             separated_list0(
@@ -157,7 +157,7 @@ pub fn parse_select<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
 
 pub fn parse_from<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     let (input, vec_fields) = preceded(
-        tag("FROM"),
+        alt((tag("FROM"), tag("from"))),
         preceded(
             whitespace,
             separated_list0(char(','), preceded(whitespace, many1(field_in_from_clause))),
@@ -194,12 +194,12 @@ pub fn string<'a>(input: &'a str) -> IResult<&'a str, &'a str> {
 
 pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
     let (input, (field, op, value)) = preceded(
-        tag("WHERE"),
+        alt((tag("WHERE"), tag("where"))),
         preceded(
             whitespace,
             tuple((
                 field_in_select_clause,
-                preceded(whitespace, alt((tag("="), tag("LIKE")))),
+                preceded(whitespace, alt((tag("="), alt((tag("LIKE"), tag("like")))))),
                 preceded(whitespace, string),
             )),
         ),
@@ -210,7 +210,7 @@ pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
             field,
             right: value.to_string(),
         },
-        "LIKE" => WhereCond::Like {
+        "LIKE" | "like" => WhereCond::Like {
             field,
             right: value.to_string(),
         },
@@ -228,11 +228,7 @@ pub fn array<'a>(input: &'a str) -> IResult<&'a str, Vec<u64>> {
             preceded(
                 whitespace,
                 cut(terminated(
-                    separated_list0(
-                        // preceded(whitespace, char(',')),
-                        char(','),
-                        preceded(whitespace, digit1),
-                    ),
+                    separated_list0(char(','), preceded(whitespace, digit1)),
                     preceded(whitespace, char(']')),
                 )),
             ),
