@@ -4,6 +4,7 @@ use crate::value::PqlValue;
 
 mod bindings;
 mod eval;
+pub mod parser;
 mod utils;
 pub use bindings::Bindings;
 pub use eval::{run, to_list};

@@ -1,5 +1,5 @@
 use partiql::{
-    dsql_parser,
+    sql::parser,
     sql::{DField, DSql, Dpath},
 };
 
@@ -7,13 +7,13 @@ use partiql::{
 fn array123() {
     let input = "[1,2,3]";
 
-    let (input, res) = dsql_parser::array(input).unwrap();
+    let (input, res) = parser::array(input).unwrap();
     assert_eq!(vec![1, 2, 3], res);
 }
 
 #[test]
 fn field() -> anyhow::Result<()> {
-    let (_, field) = dsql_parser::parse_field("a.b.c")?;
+    let (_, field) = parser::parse_field("a.b.c")?;
 
     assert_eq!(
         field,
@@ -28,7 +28,7 @@ fn field() -> anyhow::Result<()> {
 
 #[test]
 fn select_deeppath() -> anyhow::Result<()> {
-    let sql = dsql_parser::sql(
+    let sql = parser::sql(
         "
 SELECT hr.employees.id,
        hr.employees.name AS employeeName,

@@ -4,9 +4,7 @@ use std::str::FromStr;
 
 use structopt::StructOpt;
 
-use partiql::dsql_parser as sql_parser;
 use partiql::lang::{Lang, LangType};
-use partiql::sql::run;
 use partiql::value::JsonValue;
 
 use collect_mac::collect;
