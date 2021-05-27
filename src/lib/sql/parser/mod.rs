@@ -32,9 +32,7 @@ pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, Dpath> {
 }
 
 pub fn parse_path_as_expr<'a>(input: &'a str) -> IResult<&'a str, Expr> {
-    let (input, path) = parse_path(input)?;
-
-    Ok((input, Expr::Path(path)))
+    map(parse_path, |path| Expr::Path(path))(input)
 }
 
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {

@@ -1,17 +1,17 @@
 use nom::branch::alt;
-use nom::character::complete::{char, digit1, space0};
+use nom::character::complete::{alpha1, alphanumeric1, char, digit1, space0};
 use nom::combinator::map;
 use nom::multi::many0;
-use nom::sequence::{delimited, tuple};
+use nom::sequence::{delimited, preceded, tuple};
 use nom::IResult;
 
-use crate::sql::DField as Field;
 use crate::sql::DSql as Sql;
 use crate::sql::DWhereCond as WhereCond;
 use crate::sql::Dpath;
 use crate::sql::Expr;
+use crate::sql::Field;
 
-use crate::sql::parser::parse_path;
+use crate::sql::parser;
 
 pub fn parse(input: &str) -> IResult<&str, Expr> {
     parse_basic_expr(input)
@@ -30,7 +30,7 @@ fn parse_parens(input: &str) -> IResult<&str, Expr> {
 }
 
 fn parse_operation(input: &str) -> IResult<&str, Expr> {
-    alt((parse_parens, parse_number))(input)
+    alt((parse_parens, parse_path_or_num))(input)
 }
 
 fn parse_factor(input: &str) -> IResult<&str, Expr> {
@@ -67,25 +67,40 @@ fn parse_op(tup: (char, Expr), expr1: Expr) -> Expr {
     }
 }
 
-fn _parse_number(input: &str) -> IResult<&str, Expr> {
-    let (input, path) = parse_path(input)?;
-
-    Ok((input, Expr::Path(path)))
-}
-
-fn parse_enum(parsed_num: &str) -> Expr {
-    let num = parsed_num.parse::<f64>().unwrap();
-    Expr::Num(num)
+fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
+    delimited(
+        space0,
+        alt((parse_number, parser::parse_path_as_expr)),
+        space0,
+    )(input)
 }
 
 fn parse_number(input: &str) -> IResult<&str, Expr> {
-    map(delimited(space0, digit1, space0), parse_enum)(input)
+    map(digit1, |s: &str| Expr::Num(s.parse::<f64>().unwrap()))(input)
 }
 
 #[cfg(test)]
 mod tests {
     use super::parse;
-    use super::Expr;
+    use crate::sql::{Dpath, Expr};
+
+    #[test]
+    fn parse_sub_sub_path() {
+        let parsed = parse("a- b -c");
+        assert_eq!(
+            parsed,
+            Ok((
+                "",
+                Expr::Sub(
+                    Box::new(Expr::Sub(
+                        Box::new(Expr::Path(Dpath::from("a"))),
+                        Box::new(Expr::Path(Dpath::from("b"))),
+                    )),
+                    Box::new(Expr::Path(Dpath::from("c"))),
+                )
+            ))
+        );
+    }
 
     #[test]
     fn parse_sub_sub() {
