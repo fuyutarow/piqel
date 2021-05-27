@@ -20,6 +20,8 @@ use crate::sql::DSql as Sql;
 use crate::sql::DWhereCond as WhereCond;
 use crate::sql::Dpath;
 
+pub mod math;
+
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";
     take_while(move |c| chars.contains(c))(input)
