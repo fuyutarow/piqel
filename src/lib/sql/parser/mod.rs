@@ -19,8 +19,27 @@ use crate::sql::DField as Field;
 use crate::sql::DSql as Sql;
 use crate::sql::DWhereCond as WhereCond;
 use crate::sql::Dpath;
+use crate::sql::Expr;
 
 pub mod math;
+
+pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, Dpath> {
+    let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
+
+    let res = Dpath::from(vec_path.join(".").as_str());
+
+    Ok((input, res))
+}
+
+pub fn parse_path_as_expr<'a>(input: &'a str) -> IResult<&'a str, Expr> {
+    let (input, path) = parse_path(input)?;
+
+    Ok((input, Expr::Path(path)))
+}
+
+pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
+    alt((parse_path_as_expr, math::parse))(input)
+}
 
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";

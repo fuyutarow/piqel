@@ -1,29 +1,30 @@
-use partiql::sql::parser::math;
-use partiql::sql::parser::math::Expr;
+use std::str::FromStr;
 
-pub fn eval(expr: Expr) -> f64 {
-    match expr {
-        Expr::Num(num) => num,
-        Expr::Add(expr1, expr2) => eval(*expr1) + eval(*expr2),
-        Expr::Sub(expr1, expr2) => eval(*expr1) - eval(*expr2),
-        Expr::Mul(expr1, expr2) => eval(*expr1) * eval(*expr2),
-        Expr::Div(expr1, expr2) => eval(*expr1) / eval(*expr2),
-        Expr::Exp(expr1, expr2) => eval(*expr1).powf(eval(*expr2)),
-    }
-}
+use partiql::lang::Lang;
+use partiql::sql;
+use partiql::sql::parser::math;
+use partiql::sql::Expr;
 
 fn main() -> anyhow::Result<()> {
-    let input = "3+5";
-    let r = math::parse(input)?;
-    dbg!(input, r);
+    // let input = "a - b - c";
+    // let r = sql::parser::parse_expr(&input);
+    // dbg!(&r);
 
-    // let input = "3+5/3";
-    // let r = math::expr(input)?;
-    // dbg!(input, r);
+    let input = "1 - 2 - 3";
+    let r = sql::parser::math::parse(&input);
+    dbg!(&r);
 
-    let input = "1-2-3";
-    let (_, expr) = math::parse(input)?;
-    dbg!(eval(expr));
+    let input = r#"
+{
+    "a": 1,
+    "b": 2,
+    "c": 3
+}
+"#;
+
+    let r = Lang::from_str(&input)?;
+    dbg!(&r);
+    // dbg!(eval(expr));
     // dbg!(eval(r));
 
     // let input = "3+5*(3+3)";

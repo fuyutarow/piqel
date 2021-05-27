@@ -4,17 +4,14 @@ use nom::combinator::map;
 use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
 use nom::IResult;
-use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
-pub enum Expr {
-    Num(f64),
-    Add(Box<Expr>, Box<Expr>),
-    Sub(Box<Expr>, Box<Expr>),
-    Mul(Box<Expr>, Box<Expr>),
-    Div(Box<Expr>, Box<Expr>),
-    Exp(Box<Expr>, Box<Expr>),
-}
+use crate::sql::DField as Field;
+use crate::sql::DSql as Sql;
+use crate::sql::DWhereCond as WhereCond;
+use crate::sql::Dpath;
+use crate::sql::Expr;
+
+use crate::sql::parser::parse_path;
 
 pub fn parse(input: &str) -> IResult<&str, Expr> {
     parse_basic_expr(input)
@@ -70,8 +67,14 @@ fn parse_op(tup: (char, Expr), expr1: Expr) -> Expr {
     }
 }
 
+fn _parse_number(input: &str) -> IResult<&str, Expr> {
+    let (input, path) = parse_path(input)?;
+
+    Ok((input, Expr::Path(path)))
+}
+
 fn parse_enum(parsed_num: &str) -> Expr {
-    let num = f64::from_str(parsed_num).unwrap();
+    let num = parsed_num.parse::<f64>().unwrap();
     Expr::Num(num)
 }
 

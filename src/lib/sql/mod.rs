@@ -8,6 +8,61 @@ pub use bindings::Bindings;
 pub use eval::{run, to_list};
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Expr {
+    Path(Dpath),
+    Num(f64),
+    Add(Box<Expr>, Box<Expr>),
+    Sub(Box<Expr>, Box<Expr>),
+    Mul(Box<Expr>, Box<Expr>),
+    Div(Box<Expr>, Box<Expr>),
+    Exp(Box<Expr>, Box<Expr>),
+}
+
+impl Expr {
+    pub fn expand_fullpath(&self, bindings: &Bindings) -> Self {
+        match self {
+            Self::Path(path) => Self::Path(path.expand_fullpath(&bindings)),
+            Self::Num(_) => self.to_owned(),
+            Self::Add(left, right) => Self::Add(
+                Box::new((*left).expand_fullpath(&bindings)),
+                Box::new((*right).expand_fullpath(&bindings)),
+            ),
+            Self::Sub(left, right) => Self::Sub(
+                Box::new((*left).expand_fullpath(&bindings)),
+                Box::new((*right).expand_fullpath(&bindings)),
+            ),
+            Self::Mul(left, right) => Self::Mul(
+                Box::new((*left).expand_fullpath(&bindings)),
+                Box::new((*right).expand_fullpath(&bindings)),
+            ),
+            Self::Div(left, right) => Self::Div(
+                Box::new((*left).expand_fullpath(&bindings)),
+                Box::new((*right).expand_fullpath(&bindings)),
+            ),
+            Self::Exp(left, right) => Self::Exp(
+                Box::new((*left).expand_fullpath(&bindings)),
+                Box::new((*right).expand_fullpath(&bindings)),
+            ),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Field {
+    pub expr: Expr,
+    pub alias: Option<String>,
+}
+
+impl Field {
+    pub fn expand_fullpath(&self, bindings: &Bindings) -> Self {
+        Self {
+            expr: self.expr.expand_fullpath(&bindings),
+            alias: self.alias.to_owned(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct DField {
     pub path: Dpath,
     pub alias: Option<String>,
@@ -53,6 +108,10 @@ impl Dpath {
 
     pub fn to_vec(&self) -> Vec<&str> {
         self.data.iter().map(|s| s.as_str()).collect::<Vec<_>>()
+    }
+
+    pub fn expand_fullpath(&self, bidings: &Bindings) -> Self {
+        bidings.get_full_path(&self)
     }
 
     pub fn full(&self, bidings: &Bindings) -> Self {
