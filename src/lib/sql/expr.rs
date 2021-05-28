@@ -1,5 +1,6 @@
 use crate::sql::Bindings;
 use crate::sql::DPath;
+use crate::sql::Sql;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
@@ -10,6 +11,7 @@ pub enum Expr {
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
     Exp(Box<Expr>, Box<Expr>),
+    Sql(Sql),
 }
 
 impl Expr {
@@ -37,6 +39,7 @@ impl Expr {
                 Box::new((*left).expand_fullpath(&bindings)),
                 Box::new((*right).expand_fullpath(&bindings)),
             ),
+            _ => todo!(),
         }
     }
 
@@ -49,6 +52,7 @@ impl Expr {
             Expr::Mul(expr1, expr2) => (*expr1).eval() * (*expr2).eval(),
             Expr::Div(expr1, expr2) => (*expr1).eval() / (*expr2).eval(),
             Expr::Exp(expr1, expr2) => (*expr1).eval().powf((*expr2).eval()),
+            _ => todo!(),
         }
     }
 }

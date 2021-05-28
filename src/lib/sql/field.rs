@@ -1,7 +1,7 @@
 use crate::sql::Bindings;
 use crate::sql::Expr;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Field {
     pub path: DPath,
     pub alias: Option<String>,
@@ -16,7 +16,7 @@ impl Field {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct DPath {
     pub data: Vec<String>,
 }
