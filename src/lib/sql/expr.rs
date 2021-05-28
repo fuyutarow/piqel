@@ -6,6 +6,7 @@ use crate::sql::Sql;
 pub enum Expr {
     Path(DPath),
     Num(f64),
+    Func(Box<Func>),
     Add(Box<Expr>, Box<Expr>),
     Sub(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
@@ -55,4 +56,9 @@ impl Expr {
             _ => todo!(),
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Func {
+    Count(Expr),
 }

@@ -2,6 +2,7 @@ use partiql::sql::parser;
 use partiql::sql::DWhereCond;
 use partiql::sql::Expr;
 use partiql::sql::Field;
+use partiql::sql::Func;
 use partiql::sql::Proj;
 use partiql::sql::{DPath, Sql};
 
@@ -222,6 +223,51 @@ FROM hr.employeesNest AS e
                     expr: Expr::Sql(Sql {
                         select_clause: vec![Proj {
                             expr: Expr::Path(DPath::from("p")),
+                            alias: None
+                        }],
+                        from_clause: vec![Field {
+                            path: DPath::from("e.projects"),
+                            alias: Some("p".to_owned()),
+                        }],
+                        left_join_clause: vec![],
+                        where_clause: Some(DWhereCond::Like {
+                            field: Field {
+                                path: DPath::from("p.name"),
+                                alias: None
+                            },
+                            right: "%querying%".to_owned(),
+                        }),
+                    }),
+                    alias: Some("queryProjectsNum".to_owned()),
+                },
+            ],
+            from_clause: vec![Field {
+                path: DPath::from("hr.employeesNest"),
+                alias: Some("e".to_owned()),
+            },],
+            left_join_clause: vec![],
+            where_clause: None,
+        }
+    );
+    Ok(())
+}
+
+#[test]
+fn q4() -> anyhow::Result<()> {
+    let sql = get_sql("q4")?;
+
+    assert_eq!(
+        sql,
+        Sql {
+            select_clause: vec![
+                Proj {
+                    expr: Expr::Path(DPath::from("e.name")),
+                    alias: Some("employeeName".to_owned()),
+                },
+                Proj {
+                    expr: Expr::Sql(Sql {
+                        select_clause: vec![Proj {
+                            expr: Expr::Func(Box::new(Func::Count(Expr::Path(DPath::from("*"))))),
                             alias: None
                         }],
                         from_clause: vec![Field {

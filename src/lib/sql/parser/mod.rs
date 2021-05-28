@@ -22,6 +22,7 @@ use crate::sql::Field;
 use crate::sql::Proj;
 use crate::sql::Sql;
 
+pub mod func;
 pub mod math;
 
 pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
@@ -33,10 +34,6 @@ pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
 
 pub fn parse_path_as_expr<'a>(input: &'a str) -> IResult<&'a str, Expr> {
     map(parse_path, |path| Expr::Path(path))(input)
-}
-
-pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
-    alt((parse_path_as_expr, math::parse))(input)
 }
 
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
@@ -145,10 +142,14 @@ pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
     map(tag("*"), |_| Expr::Path(DPath::from("*")))(input)
 }
 
+pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
+    alt((parse_star_as_expr, func::count, parse_path_as_expr))(input)
+}
+
 pub fn parse_proj<'a>(input: &'a str) -> IResult<&'a str, Proj> {
     let (input, (expr, alias)) = tuple((
         alt((
-            parse_star_as_expr,
+            parse_expr,
             preceded(
                 preceded(whitespace, char('(')),
                 cut(terminated(
@@ -156,12 +157,6 @@ pub fn parse_proj<'a>(input: &'a str) -> IResult<&'a str, Proj> {
                     preceded(whitespace, char(')')),
                 )),
             ),
-            // delimited(
-            //     char('('),
-            //     delimited(whitespace, parse_sql_as_expr, whitespace),
-            //     char(')'),
-            // ),
-            parse_path_as_expr,
         )),
         parse_alias_in_select_clause,
     ))(input)?;

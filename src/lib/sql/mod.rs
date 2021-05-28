@@ -10,7 +10,7 @@ mod where_cond;
 
 pub use bindings::Bindings;
 pub use eval::{run, to_list};
-pub use expr::Expr;
+pub use expr::{Expr, Func};
 pub use field::{DPath, Field};
 pub use where_cond::DWhereCond;
 
