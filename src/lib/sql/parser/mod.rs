@@ -1,5 +1,3 @@
-use indexmap::IndexMap;
-
 use nom::{
     branch::alt,
     bytes::complete::{escaped, tag, take_till, take_while, take_while_m_n},
@@ -14,6 +12,7 @@ use nom::{
     sequence::{delimited, preceded, separated_pair, terminated, tuple},
     IResult, Parser,
 };
+use ordered_float::OrderedFloat;
 
 use crate::sql::DPath;
 use crate::sql::Expr;
@@ -21,6 +20,7 @@ use crate::sql::Field;
 use crate::sql::Proj;
 use crate::sql::Sql;
 use crate::sql::WhereCond;
+use crate::value::PqlValue;
 
 pub mod func;
 pub mod math;
@@ -220,23 +220,26 @@ pub fn string<'a>(input: &'a str) -> IResult<&'a str, &'a str> {
     ))(input)
 }
 
+pub fn parse_value(input: &str) -> IResult<&str, PqlValue> {
+    alt((
+        map(string, |s| PqlValue::Str(s.to_string())),
+        map(double, |f| PqlValue::Float(OrderedFloat(f as f64))),
+    ))(input)
+}
+
 pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
-    let (input, (expr, op, value)) = preceded(
+    let (input, (expr, op, right)) = preceded(
         tag("WHERE"),
         preceded(
             whitespace,
             tuple((
                 parse_expr,
                 preceded(whitespace, alt((tag("="), tag("LIKE")))),
-                preceded(whitespace, string),
+                preceded(whitespace, parse_value),
             )),
         ),
     )(input)?;
 
-    // dbg!(&field, &op, &value);
-
-    // let cond = DWhereCond::default();
-    let right = value.to_string();
     let cond = match op {
         "=" => WhereCond::Eq { expr, right },
         "LIKE" => WhereCond::Like { expr, right },

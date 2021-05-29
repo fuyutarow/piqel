@@ -7,7 +7,7 @@ SELECT t.id AS id,
 FROM matrices AS t,
      t.matrix AS y,
      y AS x
-WHERE x / 2 = 0
+WHERE x % 2 = 0
       "#;
   let sql = parser::parse_sql(&input)?;
   dbg!(&sql);

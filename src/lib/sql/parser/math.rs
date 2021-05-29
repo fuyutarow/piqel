@@ -38,7 +38,10 @@ fn parse_factor(input: &str) -> IResult<&str, Expr> {
 
 fn parse_term(input: &str) -> IResult<&str, Expr> {
     let (input, num1) = parse_factor(input)?;
-    let (input, exprs) = many0(tuple((alt((char('/'), char('*'))), parse_factor)))(input)?;
+    let (input, exprs) = many0(tuple((
+        alt((char('/'), char('*'), char('%'))),
+        parse_factor,
+    )))(input)?;
     Ok((input, parse_expr(num1, exprs)))
 }
 
@@ -59,6 +62,7 @@ fn parse_op(tup: (char, Expr), expr1: Expr) -> Expr {
         '-' => Expr::Sub(Box::new(expr1), Box::new(expr2)),
         '*' => Expr::Mul(Box::new(expr1), Box::new(expr2)),
         '/' => Expr::Div(Box::new(expr1), Box::new(expr2)),
+        '%' => Expr::Mod(Box::new(expr1), Box::new(expr2)),
         '^' => Expr::Exp(Box::new(expr1), Box::new(expr2)),
         _ => unreachable!(),
     }

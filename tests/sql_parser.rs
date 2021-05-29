@@ -1,3 +1,5 @@
+use ordered_float::OrderedFloat;
+
 use partiql::sql::parser;
 use partiql::sql::Expr;
 use partiql::sql::Field;
@@ -5,6 +7,7 @@ use partiql::sql::Func;
 use partiql::sql::Proj;
 use partiql::sql::WhereCond;
 use partiql::sql::{DPath, Sql};
+use partiql::value::PqlValue;
 
 fn get_sql(qi: &str) -> anyhow::Result<Sql> {
     let input = std::fs::read_to_string(format!("samples/{}.sql", qi)).unwrap();
@@ -81,7 +84,6 @@ FROM hr
 #[test]
 fn q1() -> anyhow::Result<()> {
     let sql = get_sql("q1")?;
-    dbg!(&sql);
 
     assert_eq!(
         sql,
@@ -107,7 +109,7 @@ fn q1() -> anyhow::Result<()> {
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Eq {
                 expr: Expr::Path(DPath::from("e.title"),),
-                right: "Dev Mgr".to_owned()
+                right: PqlValue::Str("Dev Mgr".to_owned()),
             })),
         }
     );
@@ -117,7 +119,6 @@ fn q1() -> anyhow::Result<()> {
 #[test]
 fn q2() -> anyhow::Result<()> {
     let sql = get_sql("q2")?;
-    dbg!(&sql);
 
     assert_eq!(
         sql,
@@ -145,7 +146,7 @@ fn q2() -> anyhow::Result<()> {
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Like {
                 expr: Expr::Path(DPath::from("p.name")),
-                right: "%security%".to_owned(),
+                right: PqlValue::Str("%security%".to_owned())
             })),
         }
     );
@@ -155,7 +156,6 @@ fn q2() -> anyhow::Result<()> {
 #[test]
 fn q3() -> anyhow::Result<()> {
     let sql = get_sql("q3")?;
-    dbg!(&sql);
 
     assert_eq!(
         sql,
@@ -226,7 +226,7 @@ FROM hr.employeesNest AS e
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
                             expr: Expr::Path(DPath::from("p.name"),),
-                            right: "%querying%".to_owned(),
+                            right: PqlValue::Str("%querying%".to_owned())
                         })),
                     }),
                     alias: Some("queryProjectsNum".to_owned()),
@@ -268,7 +268,7 @@ fn q4() -> anyhow::Result<()> {
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
                             expr: Expr::Path(DPath::from("p.name"),),
-                            right: "%querying%".to_owned(),
+                            right: PqlValue::Str("%querying%".to_owned())
                         })),
                     }),
                     alias: Some("queryProjectsNum".to_owned()),
@@ -328,14 +328,47 @@ WHERE x / 2 = 0
 }
 
 #[test]
-fn q7() {
-    let sql = get_sql("q7");
+fn q7() -> anyhow::Result<()> {
+    let sql = get_sql("q7")?;
 
-    if sql.is_ok() {
-        assert_eq!(true, true);
-    } else {
-        assert_eq!(false, false);
-    }
+    assert_eq!(
+        sql,
+        Sql {
+            select_clause: vec![
+                Proj {
+                    expr: Expr::Path(DPath::from("t.id")),
+                    alias: Some("id".to_owned()),
+                },
+                Proj {
+                    expr: Expr::Path(DPath::from("x")),
+                    alias: Some("even".to_owned()),
+                },
+            ],
+            from_clause: vec![
+                Field {
+                    path: DPath::from("matrices"),
+                    alias: Some("t".to_owned()),
+                },
+                Field {
+                    path: DPath::from("t.matrix"),
+                    alias: Some("y".to_owned()),
+                },
+                Field {
+                    path: DPath::from("y"),
+                    alias: Some("x".to_owned()),
+                },
+            ],
+            left_join_clause: vec![],
+            where_clause: Some(Box::new(WhereCond::Eq {
+                expr: Expr::Mod(
+                    Box::new(Expr::Path(DPath::from("x"))),
+                    Box::new(Expr::Num(2.))
+                ),
+                right: PqlValue::Float(OrderedFloat(0.))
+            })),
+        }
+    );
+    Ok(())
 }
 
 #[test]

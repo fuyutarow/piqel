@@ -19,6 +19,12 @@ pub enum PqlValue {
     Object(IndexMap<String, Self>),
 }
 
+impl Default for PqlValue {
+    fn default() -> Self {
+        Self::Null
+    }
+}
+
 impl PqlValue {
     pub fn get(self, key: &str) -> Option<Self> {
         match self {

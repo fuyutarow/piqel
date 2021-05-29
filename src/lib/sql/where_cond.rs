@@ -5,15 +5,15 @@ use crate::value::PqlValue;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum WhereCond {
-    Eq { expr: Expr, right: String },
-    Like { expr: Expr, right: String },
+    Eq { expr: Expr, right: PqlValue },
+    Like { expr: Expr, right: PqlValue },
 }
 
 impl Default for WhereCond {
     fn default() -> Self {
         Self::Eq {
             expr: Expr::default(),
-            right: String::default(),
+            right: PqlValue::default(),
         }
     }
 }
