@@ -16,11 +16,11 @@ use nom::{
 };
 
 use crate::sql::DPath;
-use crate::sql::DWhereCond;
 use crate::sql::Expr;
 use crate::sql::Field;
 use crate::sql::Proj;
 use crate::sql::Sql;
+use crate::sql::WhereCond;
 
 pub mod func;
 pub mod math;
@@ -66,7 +66,7 @@ pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
         from_clause: vec_from_clause.first().unwrap_or(&vec![]).to_owned(),
         left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
         where_clause: if let Some(cond) = vec_where_clause.first() {
-            Some(cond.to_owned())
+            Some(Box::new(cond.to_owned()))
         } else {
             None
         },
@@ -142,8 +142,18 @@ pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
     map(tag("*"), |_| Expr::Path(DPath::from("*")))(input)
 }
 
+pub fn parse_number(input: &str) -> IResult<&str, Expr> {
+    map(double, |f| Expr::Num(f as f64))(input)
+}
+
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
-    alt((parse_star_as_expr, func::count, parse_path_as_expr))(input)
+    alt((
+        math::parse,
+        parse_star_as_expr,
+        parse_number,
+        func::count,
+        parse_path_as_expr,
+    ))(input)
 }
 
 pub fn parse_proj<'a>(input: &'a str) -> IResult<&'a str, Proj> {
@@ -210,13 +220,13 @@ pub fn string<'a>(input: &'a str) -> IResult<&'a str, &'a str> {
     ))(input)
 }
 
-pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, DWhereCond> {
-    let (input, (path, op, value)) = preceded(
+pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
+    let (input, (expr, op, value)) = preceded(
         tag("WHERE"),
         preceded(
             whitespace,
             tuple((
-                parse_path,
+                parse_expr,
                 preceded(whitespace, alt((tag("="), tag("LIKE")))),
                 preceded(whitespace, string),
             )),
@@ -226,39 +236,10 @@ pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, DWhereCond> {
     // dbg!(&field, &op, &value);
 
     // let cond = DWhereCond::default();
-    let field = Field { path, alias: None };
     let right = value.to_string();
     let cond = match op {
-        "=" => DWhereCond::Eq { field, right },
-        "LIKE" => DWhereCond::Like { field, right },
-        _ => unreachable!(),
-    };
-
-    Ok((input, cond))
-}
-
-pub fn _parse_where<'a>(input: &'a str) -> IResult<&'a str, DWhereCond> {
-    let (input, (field, op, value)) = preceded(
-        alt((tag("WHERE"), tag("where"))),
-        preceded(
-            whitespace,
-            tuple((
-                parse_field,
-                preceded(whitespace, alt((tag("="), tag("LIKE"), tag("like")))),
-                preceded(whitespace, string),
-            )),
-        ),
-    )(input)?;
-
-    let cond = match op {
-        "=" => DWhereCond::Eq {
-            field,
-            right: value.to_string(),
-        },
-        "LIKE" | "like" => DWhereCond::Like {
-            field,
-            right: value.to_string(),
-        },
+        "=" => WhereCond::Eq { expr, right },
+        "LIKE" => WhereCond::Like { expr, right },
         _ => unreachable!(),
     };
 

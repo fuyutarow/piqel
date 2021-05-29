@@ -11,8 +11,15 @@ pub enum Expr {
     Sub(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
+    Mod(Box<Expr>, Box<Expr>),
     Exp(Box<Expr>, Box<Expr>),
     Sql(Sql),
+}
+
+impl Default for Expr {
+    fn default() -> Self {
+        Self::Num(0.)
+    }
 }
 
 impl Expr {
@@ -36,6 +43,10 @@ impl Expr {
                 Box::new((*left).expand_fullpath(&bindings)),
                 Box::new((*right).expand_fullpath(&bindings)),
             ),
+            Self::Mod(left, right) => Self::Mod(
+                Box::new((*left).expand_fullpath(&bindings)),
+                Box::new((*right).expand_fullpath(&bindings)),
+            ),
             Self::Exp(left, right) => Self::Exp(
                 Box::new((*left).expand_fullpath(&bindings)),
                 Box::new((*right).expand_fullpath(&bindings)),
@@ -52,6 +63,7 @@ impl Expr {
             Expr::Sub(expr1, expr2) => (*expr1).eval() - (*expr2).eval(),
             Expr::Mul(expr1, expr2) => (*expr1).eval() * (*expr2).eval(),
             Expr::Div(expr1, expr2) => (*expr1).eval() / (*expr2).eval(),
+            Expr::Mod(expr1, expr2) => (*expr1).eval() % (*expr2).eval(),
             Expr::Exp(expr1, expr2) => (*expr1).eval().powf((*expr2).eval()),
             _ => todo!(),
         }

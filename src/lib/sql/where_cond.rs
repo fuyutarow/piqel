@@ -1,12 +1,29 @@
 use crate::sql::bindings::Bindings;
 use crate::sql::field::Field;
+use crate::sql::Expr;
 use crate::value::PqlValue;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum WhereCond {
+    Eq { expr: Expr, right: String },
+    Like { expr: Expr, right: String },
+}
+
+impl Default for WhereCond {
+    fn default() -> Self {
+        Self::Eq {
+            expr: Expr::default(),
+            right: String::default(),
+        }
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DWhereCond {
     Eq { field: Field, right: String },
     Like { field: Field, right: String },
 }
+
 impl Default for DWhereCond {
     fn default() -> Self {
         Self::Eq {

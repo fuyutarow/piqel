@@ -67,7 +67,11 @@ fn parse_op(tup: (char, Expr), expr1: Expr) -> Expr {
 fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
     delimited(
         space0,
-        alt((parse_number, parser::parse_path_as_expr)),
+        alt((
+            parser::parse_number,
+            parser::func::count,
+            parser::parse_path_as_expr,
+        )),
         space0,
     )(input)
 }
@@ -79,7 +83,7 @@ fn parse_number(input: &str) -> IResult<&str, Expr> {
 #[cfg(test)]
 mod tests {
     use super::parse;
-    use crate::sql::{Dpath, Expr};
+    use crate::sql::{DPath, Expr};
 
     #[test]
     fn parse_sub_sub_path() {
@@ -90,10 +94,10 @@ mod tests {
                 "",
                 Expr::Sub(
                     Box::new(Expr::Sub(
-                        Box::new(Expr::Path(Dpath::from("a"))),
-                        Box::new(Expr::Path(Dpath::from("b"))),
+                        Box::new(Expr::Path(DPath::from("a"))),
+                        Box::new(Expr::Path(DPath::from("b"))),
                     )),
-                    Box::new(Expr::Path(Dpath::from("c"))),
+                    Box::new(Expr::Path(DPath::from("c"))),
                 )
             ))
         );

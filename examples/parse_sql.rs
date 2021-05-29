@@ -2,15 +2,23 @@ use partiql::sql::parser;
 
 fn main() -> anyhow::Result<()> {
   let input = r#"
-  SELECT e.name AS employeeName,
-    ( SELECT COUNT(*)
-      FROM e.projects AS p
-      WHERE p.name LIKE'%querying%'
-    ) AS queryProjectsNum
-  FROM hr.employeesNest AS e
+SELECT t.id AS id,
+       x AS even
+FROM matrices AS t,
+     t.matrix AS y,
+     y AS x
+WHERE x / 2 = 0
       "#;
   let sql = parser::parse_sql(&input)?;
   dbg!(&sql);
+
+  let input = "a- COUNT(*) * 12.";
+  let r = parser::parse_expr(&input)?;
+  dbg!(r);
+
+  let input = "WHERE x/2 = 0";
+  let r = parser::parse_where(&input)?;
+  dbg!(r);
 
   Ok(())
 }

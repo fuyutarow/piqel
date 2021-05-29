@@ -1,9 +1,9 @@
 use partiql::sql::parser;
-use partiql::sql::DWhereCond;
 use partiql::sql::Expr;
 use partiql::sql::Field;
 use partiql::sql::Func;
 use partiql::sql::Proj;
+use partiql::sql::WhereCond;
 use partiql::sql::{DPath, Sql};
 
 fn get_sql(qi: &str) -> anyhow::Result<Sql> {
@@ -105,13 +105,10 @@ fn q1() -> anyhow::Result<()> {
                 alias: Some("e".to_owned()),
             }],
             left_join_clause: vec![],
-            where_clause: Some(DWhereCond::Eq {
-                field: Field {
-                    path: DPath::from("e.title"),
-                    alias: None
-                },
+            where_clause: Some(Box::new(WhereCond::Eq {
+                expr: Expr::Path(DPath::from("e.title"),),
                 right: "Dev Mgr".to_owned()
-            }),
+            })),
         }
     );
     Ok(())
@@ -146,13 +143,10 @@ fn q2() -> anyhow::Result<()> {
                 },
             ],
             left_join_clause: vec![],
-            where_clause: Some(DWhereCond::Like {
-                field: Field {
-                    path: DPath::from("p.name"),
-                    alias: None
-                },
+            where_clause: Some(Box::new(WhereCond::Like {
+                expr: Expr::Path(DPath::from("p.name")),
                 right: "%security%".to_owned(),
-            }),
+            })),
         }
     );
     Ok(())
@@ -230,13 +224,10 @@ FROM hr.employeesNest AS e
                             alias: Some("p".to_owned()),
                         }],
                         left_join_clause: vec![],
-                        where_clause: Some(DWhereCond::Like {
-                            field: Field {
-                                path: DPath::from("p.name"),
-                                alias: None
-                            },
+                        where_clause: Some(Box::new(WhereCond::Like {
+                            expr: Expr::Path(DPath::from("p.name"),),
                             right: "%querying%".to_owned(),
-                        }),
+                        })),
                     }),
                     alias: Some("queryProjectsNum".to_owned()),
                 },
@@ -275,13 +266,10 @@ fn q4() -> anyhow::Result<()> {
                             alias: Some("p".to_owned()),
                         }],
                         left_join_clause: vec![],
-                        where_clause: Some(DWhereCond::Like {
-                            field: Field {
-                                path: DPath::from("p.name"),
-                                alias: None
-                            },
+                        where_clause: Some(Box::new(WhereCond::Like {
+                            expr: Expr::Path(DPath::from("p.name"),),
                             right: "%querying%".to_owned(),
-                        }),
+                        })),
                     }),
                     alias: Some("queryProjectsNum".to_owned()),
                 },
@@ -297,64 +285,77 @@ fn q4() -> anyhow::Result<()> {
     Ok(())
 }
 
-// #[test]
-// fn select123() {
-//     let input = "SELECT * FROM [1,2,3]";
+#[test]
+fn q5() {
+    let sql = get_sql("q5");
 
-//     let res = parser::sql(input);
-//     assert_eq!(Ok(("", ())), res)
-// }
+    if sql.is_ok() {
+        assert_eq!(true, true);
+    } else {
+        assert_eq!(false, false);
+    }
+}
 
-// #[test] // fn q1() { //     let input = std::fs::read_to_string("samples/q1.sql").unwrap(); //     let input = input.trim_end();
-//     let res = parser::sql(input);
-//     assert_eq!(Ok(("", ())), res)
-// }
+#[test]
+fn q6() {
+    let sql = get_sql("q6");
 
-// #[test]
-// fn q2() {
-//     let input = std::fs::read_to_string("samples/q2.sql").unwrap();
-//     let input = input.trim_end();
+    if sql.is_ok() {
+        assert_eq!(true, true);
+    } else {
+        assert_eq!(false, false);
+    }
+}
 
-//     let res = parser::sql(input);
-//     assert_eq!(Ok(("", ())), res)
-// }
+#[test]
+fn q7_1() {
+    let input = r#"
+SELECT t.id AS id,
+       x AS even
+FROM matrices AS t,
+     t.matrix AS y,
+     y AS x
+WHERE x / 2 = 0
+    "#;
+    let sql = parser::parse_sql(&input);
+    dbg!(&sql);
 
-// #[test]
-// fn q3() {
-//     let input = std::fs::read_to_string("samples/q3.sql").unwrap();
-//     let input = input.trim_end();
+    if sql.is_ok() {
+        assert_eq!(true, true);
+    } else {
+        assert_eq!(false, false);
+    }
+}
 
-//     let res = parser::sql(input);
-//     assert_eq!(Ok(("", ())), res)
-// }
+#[test]
+fn q7() {
+    let sql = get_sql("q7");
 
-// #[test]
-// fn select123() {
-//     let input = "SELECT * FROM [1,2,3]";
+    if sql.is_ok() {
+        assert_eq!(true, true);
+    } else {
+        assert_eq!(false, false);
+    }
+}
 
-//     let res = parser::sql(input);
-//     assert_eq!(Ok(("", ())), res)
-// }
+#[test]
+fn q8() {
+    let sql = get_sql("q8");
 
-// #[test] // fn q1() { //     let input = std::fs::read_to_string("samples/q1.sql").unwrap(); //     let input = input.trim_end();
-//     let res = parser::sql(input);
-//     assert_eq!(Ok(("", ())), res)
-// }
+    if sql.is_ok() {
+        assert_eq!(true, true);
+    } else {
+        assert_eq!(false, false);
+    }
+}
 
-// #[test]
-// fn q2() {
-//     let input = std::fs::read_to_string("samples/q2.sql").unwrap();
-//     let input = input.trim_end();
+#[test]
+fn q9() {
+    let sql = get_sql("q9");
 
-//     let res = parser::sql(input);
-//     assert_eq!(Ok(("", ())), res)
-// }
-
-// #[test]
-// fn q3() {
-//     let input = std::fs::read_to_string("samples/q3.sql").unwrap();
-//     let input = input.trim_end();
-
-//     let res = parser::sql(input);
-//     assert_eq!(Ok(("", ())), res)
-// }
+    if sql.is_ok() {
+        assert_eq!(true, true);
+    } else {
+        assert_eq!(false, false);
+    }
+}

@@ -12,7 +12,7 @@ pub use bindings::Bindings;
 pub use eval::{run, to_list};
 pub use expr::{Expr, Func};
 pub use field::{DPath, Field};
-pub use where_cond::DWhereCond;
+pub use where_cond::WhereCond;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Proj {
@@ -25,5 +25,5 @@ pub struct Sql {
     pub select_clause: Vec<Proj>,
     pub from_clause: Vec<Field>,
     pub left_join_clause: Vec<Field>,
-    pub where_clause: Option<DWhereCond>,
+    pub where_clause: Option<Box<WhereCond>>,
 }
