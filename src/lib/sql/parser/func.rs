@@ -11,9 +11,11 @@ use crate::sql::Proj;
 
 use crate::sql::parser::{parse_expr, whitespace};
 
-pub fn count(input: &str) -> IResult<&str, Expr> {
-    let (input, (_, expr)) = tuple((
-        preceded(whitespace, tag("COUNT(")),
+pub fn count<'a>(input: &'a str) -> IResult<&'a str, Expr> {
+    let name = "COUNT";
+    let (input, (_, _, expr)) = tuple((
+        preceded(whitespace, tag(name)),
+        char('('),
         cut(terminated(
             preceded(whitespace, parse_expr),
             preceded(whitespace, char(')')),
@@ -21,6 +23,22 @@ pub fn count(input: &str) -> IResult<&str, Expr> {
     ))(input)?;
 
     let res = Expr::Func(Box::new(Func::Count(expr)));
+
+    Ok((input, res))
+}
+
+pub fn upper<'a>(input: &'a str) -> IResult<&'a str, Expr> {
+    let name = "UPPER";
+    let (input, (_, _, expr)) = tuple((
+        preceded(whitespace, tag(name)),
+        char('('),
+        cut(terminated(
+            preceded(whitespace, parse_expr),
+            preceded(whitespace, char(')')),
+        )),
+    ))(input)?;
+
+    let res = Expr::Func(Box::new(Func::Upper(expr)));
 
     Ok((input, res))
 }
