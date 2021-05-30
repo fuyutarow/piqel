@@ -80,62 +80,60 @@ impl Bindings {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::Bindings;
-//     use crate::sql::{DField, DSql, Dpath};
+#[cfg(test)]
+mod tests {
+    use super::Bindings;
+    use crate::sql::parser;
+    use crate::sql::{DPath, Field, Sql};
 
-//     #[test]
-//     fn get_full_path() {
-//         let sql = DSql {
-//             select_clause: vec![
-//                 DField {
-//                     path: Dpath::from("e.name"),
-//                     alias: Some("employeeName".to_owned()),
-//                 },
-//                 DField {
-//                     path: Dpath::from("p.name"),
-//                     alias: Some("projectName".to_owned()),
-//                 },
-//             ],
-//             from_clause: vec![
-//                 DField {
-//                     path: Dpath::from("hr.employeesNest"),
-//                     alias: Some("e".to_owned()),
-//                 },
-//                 DField {
-//                     path: Dpath::from("e.projects"),
-//                     alias: Some("p".to_owned()),
-//                 },
-//             ],
-//             left_join_clause: vec![],
-//             where_clause: None,
-//         };
+    #[test]
+    fn get_full_path() -> anyhow::Result<()> {
+        let sql = Sql {
+            select_clause: parser::parse_select_clause(
+                r#"SELECT e.name AS employeeName, p.name AS projectName"#,
+            )?
+            .1,
+            from_clause: vec![
+                Field {
+                    path: DPath::from("hr.employeesNest"),
+                    alias: Some("e".to_owned()),
+                },
+                Field {
+                    path: DPath::from("e.projects"),
+                    alias: Some("p".to_owned()),
+                },
+            ],
+            left_join_clause: vec![],
+            where_clause: None,
+        };
 
-//         let bingings = Bindings::from(
-//             sql.select_clause
-//                 .into_iter()
-//                 .chain(sql.from_clause.into_iter())
-//                 .collect::<Vec<_>>()
-//                 .as_slice(),
-//         );
+        let fields = sql
+            .from_clause
+            .iter()
+            .chain(sql.left_join_clause.iter())
+            .map(|e| e.to_owned())
+            .collect::<Vec<_>>();
 
-//         let field = DField {
-//             path: Dpath::from("e.name"),
-//             alias: Some("employeetName".to_owned()),
-//         };
-//         assert_eq!(
-//             bingings.get_full_path(&field.path).to_string(),
-//             "hr.employeesNest.name",
-//         );
+        let bindings = Bindings::from(fields.as_slice());
 
-//         let field = DField {
-//             path: Dpath::from("p.name"),
-//             alias: Some("projectName".to_owned()),
-//         };
-//         assert_eq!(
-//             bingings.get_full_path(&field.path).to_string(),
-//             "hr.employeesNest.projects.name",
-//         );
-//     }
-// }
+        let field = Field {
+            path: DPath::from("e.name"),
+            alias: Some("employeetName".to_owned()),
+        };
+        assert_eq!(
+            bindings.get_full_path(&field.path).to_string(),
+            "hr.employeesNest.name",
+        );
+
+        let field = Field {
+            path: DPath::from("p.name"),
+            alias: Some("projectName".to_owned()),
+        };
+        assert_eq!(
+            bindings.get_full_path(&field.path).to_string(),
+            "hr.employeesNest.projects.name",
+        );
+
+        Ok(())
+    }
+}

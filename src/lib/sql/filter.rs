@@ -1,14 +1,10 @@
-use crate::pqlir_parser;
-use crate::sql::parser;
 use crate::sql::re_from_str;
 use crate::sql::Bindings;
 use crate::sql::DPath;
 use crate::sql::Expr;
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
-use collect_mac::collect;
 use indexmap::IndexMap as Map;
-use nom::FindSubstring;
 
 pub fn restrict(
     value: Option<PqlValue>,
@@ -78,12 +74,12 @@ pub fn restrict(
 
 #[cfg(test)]
 mod tests {
-    use collect_mac::collect;
-    use indexmap::IndexMap as Map;
 
     use super::restrict;
     use crate::pqlir_parser;
     use crate::sql::DPath;
+    use crate::sql::Expr;
+    use crate::sql::WhereCond;
     use crate::value::PqlValue;
 
     #[test]
@@ -163,7 +159,7 @@ mod tests {
         let path = DPath::from("hr.employeesNest.projects.name");
         let cond = WhereCond::Like {
             expr: Expr::default(),
-            right: Some("%security%"),
+            right: "%security%".to_owned(),
         };
         let res = restrict(Some(data), &path, &Some(cond));
         let expected = pqlir_parser::pql_model(
