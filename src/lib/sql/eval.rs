@@ -21,10 +21,26 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
 
     let data = match &sql.where_clause {
         None => data.to_owned(),
+        Some(box WhereCond::Eq { expr, right }) => match expr {
+            Expr::Path(path) => {
+                let path = path.expand_fullpath(&bindings);
+                let cond = WhereCond::Eq {
+                    expr: expr.to_owned(),
+                    right: right.to_owned(),
+                };
+                let data = restrict(Some(data.to_owned()), &path, &Some(cond)).unwrap();
+                data
+            }
+            _ => todo!(),
+        },
         Some(box WhereCond::Like { expr, right }) => match expr {
             Expr::Path(path) => {
                 let path = path.expand_fullpath(&bindings);
-                let data = restrict(Some(data.to_owned()), &path, Some(&right)).unwrap();
+                let cond = WhereCond::Like {
+                    expr: expr.to_owned(),
+                    right: right.to_owned(),
+                };
+                let data = restrict(Some(data.to_owned()), &path, &Some(cond)).unwrap();
                 data
             }
             _ => todo!(),

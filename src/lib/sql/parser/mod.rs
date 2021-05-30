@@ -59,7 +59,6 @@ pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
             many_m_n(0, 1, preceded(whitespace, parse_left_join)),
             many_m_n(0, 1, preceded(whitespace, parse_where)),
         ))(input)?;
-    dbg!(&vec_where_clause);
 
     let sql = Sql {
         select_clause,

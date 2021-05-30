@@ -3,26 +3,35 @@ use crate::sql::parser;
 use crate::sql::re_from_str;
 use crate::sql::Bindings;
 use crate::sql::DPath;
+use crate::sql::Expr;
+use crate::sql::WhereCond;
 use crate::value::PqlValue;
 use collect_mac::collect;
 use indexmap::IndexMap as Map;
 use nom::FindSubstring;
 
-pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> Option<PqlValue> {
+pub fn restrict(
+    value: Option<PqlValue>,
+    path: &DPath,
+    cond: &Option<WhereCond>,
+) -> Option<PqlValue> {
     match value {
         None => None,
         Some(PqlValue::Boolean(boolean)) if boolean => Some(PqlValue::Boolean(boolean)),
         Some(PqlValue::Boolean(_)) => None,
         Some(PqlValue::Null) => None,
         Some(PqlValue::Str(string)) => {
-            if let Some(pattern) = right {
-                if re_from_str(pattern).is_match(&string) {
-                    Some(PqlValue::Str(string))
-                } else {
-                    None
+            let is_match = match cond {
+                Some(WhereCond::Eq { expr, right }) => {
+                    PqlValue::Str(string.clone()) == right.to_owned()
                 }
+                Some(WhereCond::Like { expr, right }) => re_from_str(&right).is_match(&string),
+                _ => unreachable!(),
+            };
+            if is_match {
+                Some(PqlValue::Str(string.to_owned()))
             } else {
-                Some(PqlValue::Str(string))
+                None
             }
         }
         Some(PqlValue::Float(float)) => Some(PqlValue::Float(float)),
@@ -30,7 +39,7 @@ pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> O
             let arr = array
                 .into_iter()
                 .filter_map(|v| {
-                    let vv = restrict(Some(v), path, right);
+                    let vv = restrict(Some(v), path, cond);
                     vv
                 })
                 .collect::<Vec<_>>();
@@ -44,7 +53,7 @@ pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> O
         Some(PqlValue::Object(mut object)) => {
             if let Some((first, tail)) = &path.split_first() {
                 if let Some(value) = object.get(&first.to_string()) {
-                    match restrict(Some(value.to_owned()), &tail, right) {
+                    match restrict(Some(value.to_owned()), &tail, cond) {
                         Some(v) if tail.to_vec().len() > 0 => {
                             // Some(value.to_owned())
                             let it = object.get_mut(&first.to_string()).unwrap();
@@ -85,7 +94,7 @@ mod tests {
    ",
         )?;
 
-        let res = restrict(Some(data), &DPath::default(), None);
+        let res = restrict(Some(data), &DPath::default(), &None);
         assert_eq!(res, Some(PqlValue::Array(vec![PqlValue::Boolean(true)])));
         Ok(())
     }
@@ -103,7 +112,7 @@ mod tests {
 }
    ",
         )?;
-        let res = restrict(Some(data), &DPath::from("top.b"), None);
+        let res = restrict(Some(data), &DPath::from("top.b"), &None);
         let expected = pqlir_parser::pql_model(
             "
 {
@@ -152,7 +161,11 @@ mod tests {
    ",
         )?;
         let path = DPath::from("hr.employeesNest.projects.name");
-        let res = restrict(Some(data), &path, Some("%security%"));
+        let cond = WhereCond::Like {
+            expr: Expr::default(),
+            right: Some("%security%"),
+        };
+        let res = restrict(Some(data), &path, &Some(cond));
         let expected = pqlir_parser::pql_model(
             "
 {

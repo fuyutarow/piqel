@@ -33,13 +33,13 @@ fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {
     Ok((sql, data, output))
 }
 
-// #[test]
-// fn q1() -> anyhow::Result<()> {
-//     let (sql, data, output) = get_sql_data_output("q1")?;
-//     let res = evaluate(&sql, &data);
-//     assert_eq!(res, output);
-//     Ok(())
-// }
+#[test]
+fn q1() -> anyhow::Result<()> {
+    let (sql, data, output) = get_sql_data_output("q1")?;
+    let res = evaluate(&sql, &data);
+    assert_eq!(res, output);
+    Ok(())
+}
 
 #[test]
 fn q2() -> anyhow::Result<()> {
@@ -49,34 +49,34 @@ fn q2() -> anyhow::Result<()> {
     Ok(())
 }
 
-// #[test]
-// fn q3() -> anyhow::Result<()> {
-//     let (sql, data, output) = get_sql_data_output("q3")?;
-//     let res = run(&sql, &data);
-//     assert_eq!(res, output);
-//     Ok(())
-// }
+#[test]
+fn q3() -> anyhow::Result<()> {
+    let (sql, data, output) = get_sql_data_output("q3")?;
+    let res = evaluate(&sql, &data);
+    assert_eq!(res, output);
+    Ok(())
+}
 
-// // #[test]
-// // fn q4() -> anyhow::Result<()> {
-// //     let (sql, data, output) = get_sql_data_output("q4")?;
-// //     let res = run(&sql, &data);
-// //     assert_eq!(res, output);
-// //     Ok(())
-// // }
+#[test]
+fn q4() -> anyhow::Result<()> {
+    let (sql, data, output) = get_sql_data_output("q4")?;
+    let res = evaluate(&sql, &data);
+    assert_eq!(res, output);
+    Ok(())
+}
 
-// // #[test]
-// // fn q5() -> anyhow::Result<()> {
-// //     let (sql, data, output) = get_sql_data_output("q5")?;
-// //     let res = run(&sql, &data);
-// //     assert_eq!(res, output);
-// //     Ok(())
-// // }
+#[test]
+fn q5() -> anyhow::Result<()> {
+    let (sql, data, output) = get_sql_data_output("q5")?;
+    let res = evaluate(&sql, &data);
+    assert_eq!(res, output);
+    Ok(())
+}
 
-// #[test]
-// fn q6() -> anyhow::Result<()> {
-//     let (sql, data, output) = get_sql_data_output("q6")?;
-//     let res = run(&sql, &data);
-//     assert_eq!(res, output);
-//     Ok(())
-// }
+#[test]
+fn q6() -> anyhow::Result<()> {
+    let (sql, data, output) = get_sql_data_output("q6")?;
+    let res = evaluate(&sql, &data);
+    assert_eq!(res, output);
+    Ok(())
+}
