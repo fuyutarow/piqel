@@ -32,10 +32,10 @@ args = ["test"]
 dependencies = ["build"]
 
 [tasks."test:pq"]
-script = '''
-zx ./tests/pq/*.mjs
-'''
 dependencies = ["build:pq"]
+script = '''
+ls -1 tests/pq/*.mjs | xargs -I{} zx {}
+'''
 
 [tasks.up]
 script = '''
