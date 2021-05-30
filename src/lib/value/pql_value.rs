@@ -6,6 +6,7 @@ use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::DPath;
 use crate::sql::Field;
+use crate::sql::Sql;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]

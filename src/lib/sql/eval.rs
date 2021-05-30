@@ -1,9 +1,49 @@
 use indexmap::IndexMap as Map;
 use itertools::Itertools;
 
+use crate::sql::restrict;
 use crate::sql::Bindings;
+use crate::sql::Expr;
+use crate::sql::Field;
 use crate::sql::Sql;
+use crate::sql::WhereCond;
 use crate::value::PqlValue;
+
+pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
+    let fields = sql
+        .from_clause
+        .iter()
+        .chain(sql.left_join_clause.iter())
+        .map(|e| e.to_owned())
+        .collect::<Vec<_>>();
+
+    let bindings = Bindings::from(fields.as_slice());
+
+    let data = match &sql.where_clause {
+        None => data.to_owned(),
+        Some(box WhereCond::Like { expr, right }) => match expr {
+            Expr::Path(path) => {
+                let path = path.expand_fullpath(&bindings);
+                let data = restrict(Some(data.to_owned()), &path, Some(&right)).unwrap();
+                data
+            }
+            _ => todo!(),
+        },
+        Some(_) => todo!(),
+    };
+
+    let select_fields = sql
+        .select_clause
+        .to_owned()
+        .into_iter()
+        .map(|proj| proj.to_field(&bindings))
+        .collect::<Vec<Field>>();
+
+    let d = data.select_by_fields(&select_fields).unwrap();
+    let d = to_list(d);
+
+    PqlValue::Array(d)
+}
 
 pub fn run(sql: &Sql, data: &PqlValue) -> PqlValue {
     todo!();

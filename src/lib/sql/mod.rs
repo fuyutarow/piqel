@@ -1,3 +1,5 @@
+#![feature(box_patterns)]
+
 use crate::value::PqlValue;
 
 mod bindings;
@@ -10,7 +12,7 @@ mod utils;
 mod where_cond;
 
 pub use bindings::Bindings;
-pub use eval::{run, to_list};
+pub use eval::{evaluate, run, to_list};
 pub use expr::{Expr, Func};
 pub use field::{DPath, Field};
 pub use filter::restrict;
@@ -21,6 +23,19 @@ pub use where_cond::WhereCond;
 pub struct Proj {
     pub expr: Expr,
     pub alias: Option<String>,
+}
+
+impl Proj {
+    pub fn to_field(&self, bindings: &Bindings) -> Field {
+        let expr = self.expr.expand_fullpath(&bindings);
+        match expr {
+            Expr::Path(path) => Field {
+                path,
+                alias: self.alias.to_owned(),
+            },
+            _ => todo!(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

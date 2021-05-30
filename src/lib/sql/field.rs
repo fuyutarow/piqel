@@ -68,7 +68,6 @@ impl DPath {
     }
 
     pub fn expand_fullpath(&self, bidings: &Bindings) -> Self {
-        // bidings.get_full_path(&self)
-        todo!()
+        bidings.get_full_path(&self)
     }
 }

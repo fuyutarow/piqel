@@ -17,14 +17,11 @@ pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> O
         Some(PqlValue::Str(string)) => {
             if let Some(pattern) = right {
                 if re_from_str(pattern).is_match(&string) {
-                    dbg!("!1", right, &string);
                     Some(PqlValue::Str(string))
                 } else {
-                    dbg!("!2", right, &string);
                     None
                 }
             } else {
-                dbg!("!3");
                 Some(PqlValue::Str(string))
             }
         }
@@ -33,19 +30,10 @@ pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> O
             let arr = array
                 .into_iter()
                 .filter_map(|v| {
-                    dbg!(&v);
                     let vv = restrict(Some(v), path, right);
-                    dbg!(&vv);
                     vv
-
-                    // if let Some((first, tail)) = &path.split_first() {
-                    //     restrict(Some(v), tail, right)
-                    // } else {
-                    //     None
-                    // }
                 })
                 .collect::<Vec<_>>();
-            dbg!(&arr);
 
             if arr.len() > 0 {
                 Some(PqlValue::Array(arr))
@@ -56,35 +44,24 @@ pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> O
         Some(PqlValue::Object(mut object)) => {
             if let Some((first, tail)) = &path.split_first() {
                 if let Some(value) = object.get(&first.to_string()) {
-                    dbg!(&value);
                     match restrict(Some(value.to_owned()), &tail, right) {
                         Some(v) if tail.to_vec().len() > 0 => {
-                            dbg!("#1-1", first, tail, &v);
                             // Some(value.to_owned())
                             let it = object.get_mut(&first.to_string()).unwrap();
                             *it = v.to_owned();
                             Some(PqlValue::Object(object))
                         }
-                        Some(v) => {
-                            dbg!("#1-2", first, tail);
-                            Some(PqlValue::Object(object.to_owned()))
-                        }
-                        _ => {
-                            dbg!("#2");
-                            None
-                        }
+                        Some(v) => Some(PqlValue::Object(object.to_owned())),
+                        _ => None,
                     }
                 } else {
-                    dbg!("#3");
                     None
                 }
             } else {
-                dbg!("#4");
                 Some(PqlValue::Object(object.to_owned()))
             }
         }
         _ => {
-            dbg!(value);
             todo!();
         }
     }
