@@ -17,13 +17,14 @@ pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> O
         Some(PqlValue::Str(string)) => {
             if let Some(pattern) = right {
                 if re_from_str(pattern).is_match(&string) {
-                    dbg!("#1", right, &string);
+                    dbg!("!1", right, &string);
                     Some(PqlValue::Str(string))
                 } else {
-                    dbg!("#2", right, &string);
+                    dbg!("!2", right, &string);
                     None
                 }
             } else {
+                dbg!("!3");
                 Some(PqlValue::Str(string))
             }
         }
@@ -33,7 +34,7 @@ pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> O
                 .into_iter()
                 .filter_map(|v| {
                     dbg!(&v);
-                    let vv = restrict(Some(v), path, None);
+                    let vv = restrict(Some(v), path, right);
                     dbg!(&vv);
                     vv
 
@@ -52,18 +53,17 @@ pub fn restrict(value: Option<PqlValue>, path: &DPath, right: Option<&str>) -> O
                 None
             }
         }
-        Some(PqlValue::Object(object)) => {
+        Some(PqlValue::Object(mut object)) => {
             if let Some((first, tail)) = &path.split_first() {
                 if let Some(value) = object.get(&first.to_string()) {
                     dbg!(&value);
-                    match restrict(Some(value.to_owned()), &tail, None) {
+                    match restrict(Some(value.to_owned()), &tail, right) {
                         Some(v) if tail.to_vec().len() > 0 => {
-                            dbg!("#1-1", first, tail);
+                            dbg!("#1-1", first, tail, &v);
                             // Some(value.to_owned())
-                            Some(PqlValue::Object(collect! {
-                                as Map<String,_>:
-                                first.to_string() => v.to_owned()
-                            }))
+                            let it = object.get_mut(&first.to_string()).unwrap();
+                            *it = v.to_owned();
+                            Some(PqlValue::Object(object))
                         }
                         Some(v) => {
                             dbg!("#1-2", first, tail);
@@ -133,6 +133,71 @@ mod tests {
     'top': <<
         {'a': 1, 'b': true, 'c': 'alpha'}
     >>
+}
+   ",
+        )?;
+        assert_eq!(res, Some(expected));
+
+        Ok(())
+    }
+
+    #[test]
+    fn pattern_string() -> anyhow::Result<()> {
+        let data = pqlir_parser::pql_model(
+            "
+{
+    'hr': {
+        'employeesNest': <<
+            {
+            'id': 3,
+            'name': 'Bob Smith',
+            'title': null,
+            'projects': [ { 'name': 'AWS Redshift Spectrum querying' },
+                            { 'name': 'AWS Redshift security' },
+                            { 'name': 'AWS Aurora security' }
+                        ]
+            },
+            {
+                'id': 4,
+                'name': 'Susan Smith',
+                'title': 'Dev Mgr',
+                'projects': []
+            },
+            {
+                'id': 6,
+                'name': 'Jane Smith',
+                'title': 'Software Eng 2',
+                'projects': [ { 'name': 'AWS Redshift security' } ]
+            }
+        >>
+    }
+}
+   ",
+        )?;
+        let path = DPath::from("hr.employeesNest.projects.name");
+        let res = restrict(Some(data), &path, Some("%security%"));
+        let expected = pqlir_parser::pql_model(
+            "
+{
+    'hr': {
+        'employeesNest': <<
+            {
+                'id': 3,
+                'name': 'Bob Smith',
+                'title': null,
+                'projects': [
+                    { 'name': 'AWS Redshift security' },
+                    { 'name': 'AWS Aurora security' }
+                ]
+            },
+            {
+                'id': 6,
+                'name': 'Jane Smith',
+                'title': 'Software Eng 2',
+                'projects': [ { 'name': 'AWS Redshift security' } ]
+            }
+        >>
+    }
 }
    ",
         )?;

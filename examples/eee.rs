@@ -8,27 +8,42 @@ fn main() -> anyhow::Result<()> {
     let data = pqlir_parser::pql_model(
         "
 {
-    'top': <<
-        {'a': 1, 'b': true, 'c': 'alpha'},
-        {'a': 2, 'b': null, 'c': 'beta'},
-        {'a': 3, 'c': 'gamma'}
-    >>
-}
+    'hr': {
+        'employeesNest': <<
+            {
+            'id': 3,
+            'name': 'Bob Smith',
+            'title': null,
+            'projects': [ { 'name': 'AWS Redshift Spectrum querying' },
+                            { 'name': 'AWS Redshift security' },
+                            { 'name': 'AWS Aurora security' }
+                        ]
+            },
+            {
+                'id': 4,
+                'name': 'Susan Smith',
+                'title': 'Dev Mgr',
+                'projects': []
+            },
+            {
+                'id': 6,
+                'name': 'Jane Smith',
+                'title': 'Software Eng 2',
+                'projects': [ { 'name': 'AWS Redshift security' } ]
+            }
+        >>
+        }
+    }
    ",
     )?;
 
     dbg!(&data);
-    let res = restrict(Some(data), &DPath::from("top.b"), None);
+    // let path = DPath::from("hr.employeesNest.title");
+    // let path = DPath::from("hr.employeesNest.projects");
+    let path = DPath::from("hr.employeesNest.projects.name");
+    let res = restrict(Some(data), &path, Some("%security%"));
     dbg!(res);
     // assert_eq!(res, Some(PqlValue::Array(vec![PqlValue::Boolean(true)])));
-    let expected = pqlir_parser::pql_model(
-        "
-    <<
-        {'a': 1, 'b': true, 'c': 'alpha'}
-    >>
-   ",
-    )?;
-    dbg!(expected);
 
     Ok(())
 }
