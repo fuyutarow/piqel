@@ -1,42 +1,64 @@
 use indexmap::IndexMap as Map;
 use itertools::Itertools;
 
+use crate::sql::restrict;
 use crate::sql::Bindings;
-use crate::sql::DSql as Sql;
+use crate::sql::Expr;
+use crate::sql::Field;
+use crate::sql::Sql;
+use crate::sql::WhereCond;
 use crate::value::PqlValue;
 
-pub fn run(sql: &Sql, data: &PqlValue) -> PqlValue {
+pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
     let fields = sql
-        .select_clause
+        .from_clause
         .iter()
-        .chain(sql.from_clause.iter())
         .chain(sql.left_join_clause.iter())
         .map(|e| e.to_owned())
         .collect::<Vec<_>>();
+
     let bindings = Bindings::from(fields.as_slice());
+
+    let data = match &sql.where_clause {
+        None => data.to_owned(),
+        Some(box WhereCond::Eq { expr, right }) => match expr {
+            Expr::Path(path) => {
+                let path = path.expand_fullpath(&bindings);
+                let cond = WhereCond::Eq {
+                    expr: expr.to_owned(),
+                    right: right.to_owned(),
+                };
+                let data = restrict(Some(data.to_owned()), &path, &Some(cond)).unwrap();
+                data
+            }
+            _ => todo!(),
+        },
+        Some(box WhereCond::Like { expr, right }) => match expr {
+            Expr::Path(path) => {
+                let path = path.expand_fullpath(&bindings);
+                let cond = WhereCond::Like {
+                    expr: expr.to_owned(),
+                    right: right.to_owned(),
+                };
+                let data = restrict(Some(data.to_owned()), &path, &Some(cond)).unwrap();
+                data
+            }
+            _ => todo!(),
+        },
+        Some(_) => todo!(),
+    };
 
     let select_fields = sql
         .select_clause
-        .iter()
-        .map(|field| field.to_owned().full(&bindings))
-        .collect::<Vec<_>>();
-    let bindings_for_select = Bindings::from(select_fields.as_slice());
+        .to_owned()
+        .into_iter()
+        .map(|proj| proj.to_field(&bindings))
+        .collect::<Vec<Field>>();
 
-    let value = data.select_by_fields(&select_fields).unwrap();
-    let list = to_list(value);
+    let d = data.select_by_fields(&select_fields).unwrap();
+    let d = to_list(d);
 
-    let filtered_list = list
-        .iter()
-        .filter_map(|value| match &sql.where_clause {
-            Some(cond) if cond.eval(&value.to_owned(), &bindings, &bindings_for_select) => {
-                Some(value.to_owned())
-            }
-            Some(_) => None,
-            _ => Some(value.to_owned()),
-        })
-        .collect::<Vec<PqlValue>>();
-
-    PqlValue::Array(filtered_list)
+    PqlValue::Array(d)
 }
 
 pub fn to_list(value_selected_by_fields: PqlValue) -> Vec<PqlValue> {

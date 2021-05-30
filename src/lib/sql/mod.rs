@@ -1,151 +1,47 @@
-use indexmap::IndexMap;
+#![feature(box_patterns)]
 
 use crate::value::PqlValue;
 
 mod bindings;
 mod eval;
+mod expr;
+mod field;
+mod filter;
+pub mod parser;
 mod utils;
+mod where_cond;
+
 pub use bindings::Bindings;
-pub use eval::{run, to_list};
+pub use eval::{evaluate, run, to_list};
+pub use expr::{Expr, Func};
+pub use field::{DPath, Field};
+pub use filter::restrict;
+pub use where_cond::re_from_str;
+pub use where_cond::WhereCond;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Field {
-    pub source: String,
-    pub path: String,
+pub struct Proj {
+    pub expr: Expr,
     pub alias: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub struct DField {
-    pub path: Dpath,
-    pub alias: Option<String>,
-}
-
-impl DField {
-    pub fn full(&self, bidings: &Bindings) -> Self {
-        let path = bidings.get_full_path(&self.path);
-        Self {
-            path,
-            alias: self.alias.to_owned(),
+impl Proj {
+    pub fn to_field(&self, bindings: &Bindings) -> Field {
+        let expr = self.expr.expand_fullpath(&bindings);
+        match expr {
+            Expr::Path(path) => Field {
+                path,
+                alias: self.alias.to_owned(),
+            },
+            _ => todo!(),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
-pub struct Dpath {
-    pub data: Vec<String>,
-}
-
-impl From<&[&str]> for Dpath {
-    fn from(ss: &[&str]) -> Self {
-        let data = ss.iter().map(|s| s.to_string()).collect::<Vec<_>>();
-        Self { data }
-    }
-}
-
-impl From<&str> for Dpath {
-    fn from(s: &str) -> Self {
-        let data = s
-            .to_string()
-            .split(".")
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>();
-        Self { data }
-    }
-}
-
-impl Dpath {
-    pub fn to_string(&self) -> String {
-        self.data.join(".")
-    }
-
-    pub fn to_vec(&self) -> Vec<&str> {
-        self.data.iter().map(|s| s.as_str()).collect::<Vec<_>>()
-    }
-
-    pub fn full(&self, bidings: &Bindings) -> Self {
-        bidings.get_full_path(&self)
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
-pub struct DSql {
-    pub select_clause: Vec<DField>,
-    pub from_clause: Vec<DField>,
-    pub left_join_clause: Vec<DField>,
-    pub where_clause: Option<DWhereCond>,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum DWhereCond {
-    Eq { field: DField, right: String },
-    Like { field: DField, right: String },
-}
-
-impl DWhereCond {
-    pub fn eval(
-        &self,
-        left: &PqlValue,
-        bindings: &Bindings,
-        bindings_for_select: &Bindings,
-    ) -> bool {
-        match self {
-            Self::Eq { field, right } => {
-                let where_arg_path = field.path.full(&bindings);
-                let access_path = bindings_for_select
-                    .to_alias(&where_arg_path)
-                    .unwrap_or(where_arg_path.to_owned());
-                if let Some(value) = left.clone().select_by_path(&access_path) {
-                    value == PqlValue::Str(right.to_owned())
-                } else {
-                    false
-                }
-            }
-            Self::Like { field, right } => {
-                let pattern = match (right.starts_with("%"), right.ends_with("%")) {
-                    (true, true) => {
-                        format!("{}", right.trim_start_matches("%").trim_end_matches("%"))
-                    }
-                    (true, false) => format!("{}$", right.trim_start_matches("%")),
-                    (false, true) => format!("^{}", right.trim_end_matches("%")),
-                    (false, false) => format!("^{}$", right),
-                };
-                let re = regex::Regex::new(&pattern).unwrap();
-
-                let where_arg_path = field.path.full(&bindings);
-                let access_path = bindings_for_select
-                    .to_alias(&where_arg_path)
-                    .unwrap_or(where_arg_path.to_owned());
-                match left.select_by_path(&access_path) {
-                    Some(PqlValue::Str(s)) if re.is_match(&s) => true,
-                    _ => false,
-                }
-            }
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::Dpath;
-
-    #[test]
-    fn dpath_from_vec() {
-        let path = Dpath::from(vec!["hr", "employeesNest", "projects", "name"].as_slice());
-        assert_eq!(path.to_string().as_str(), "hr.employeesNest.projects.name",);
-        assert_eq!(
-            path.to_vec(),
-            vec!["hr", "employeesNest", "projects", "name"]
-        );
-    }
-
-    #[test]
-    fn dpath_from_str() {
-        let path = Dpath::from("hr.employeesNest.projects.name");
-        assert_eq!(path.to_string().as_str(), "hr.employeesNest.projects.name",);
-        assert_eq!(
-            path.to_vec(),
-            vec!["hr", "employeesNest", "projects", "name"]
-        );
-    }
+pub struct Sql {
+    pub select_clause: Vec<Proj>,
+    pub from_clause: Vec<Field>,
+    pub left_join_clause: Vec<Field>,
+    pub where_clause: Option<Box<WhereCond>>,
 }
