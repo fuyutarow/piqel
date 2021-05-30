@@ -146,7 +146,7 @@ fn q2() -> anyhow::Result<()> {
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Like {
                 expr: Expr::Path(DPath::from("p.name")),
-                right: PqlValue::Str("%security%".to_owned())
+                right: "%security%".to_owned()
             })),
         }
     );
@@ -226,7 +226,7 @@ FROM hr.employeesNest AS e
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
                             expr: Expr::Path(DPath::from("p.name"),),
-                            right: PqlValue::Str("%querying%".to_owned())
+                            right: "%querying%".to_owned()
                         })),
                     }),
                     alias: Some("queryProjectsNum".to_owned()),
@@ -268,7 +268,7 @@ fn q4() -> anyhow::Result<()> {
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
                             expr: Expr::Path(DPath::from("p.name"),),
-                            right: PqlValue::Str("%querying%".to_owned())
+                            right: "%querying%".to_owned()
                         })),
                     }),
                     alias: Some("queryProjectsNum".to_owned()),

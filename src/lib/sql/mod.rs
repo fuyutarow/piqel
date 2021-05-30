@@ -4,6 +4,7 @@ mod bindings;
 mod eval;
 mod expr;
 mod field;
+mod filter;
 pub mod parser;
 mod utils;
 mod where_cond;
@@ -12,6 +13,8 @@ pub use bindings::Bindings;
 pub use eval::{run, to_list};
 pub use expr::{Expr, Func};
 pub use field::{DPath, Field};
+pub use filter::restrict;
+pub use where_cond::re_from_str;
 pub use where_cond::WhereCond;
 
 #[derive(Debug, Clone, PartialEq)]

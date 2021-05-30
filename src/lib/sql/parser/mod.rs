@@ -51,7 +51,7 @@ pub fn sql(input: &str) -> anyhow::Result<Sql> {
     }
 }
 
-pub fn parse_sql<'a>(input: &'a str) -> IResult<&'a str, Sql> {
+pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
     let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause)) =
         tuple((
             preceded(whitespace, parse_select_clause),
@@ -227,26 +227,41 @@ pub fn parse_value(input: &str) -> IResult<&str, PqlValue> {
     ))(input)
 }
 
-pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
-    let (input, (expr, op, right)) = preceded(
-        tag("WHERE"),
-        preceded(
-            whitespace,
-            tuple((
-                parse_expr,
-                preceded(whitespace, alt((tag("="), tag("LIKE")))),
-                preceded(whitespace, parse_value),
-            )),
-        ),
+pub fn parse_where_like(input: &str) -> IResult<&str, WhereCond> {
+    let (input, (expr, _, s)) = preceded(
+        whitespace,
+        tuple((
+            parse_expr,
+            preceded(whitespace, tag("LIKE")),
+            preceded(whitespace, string),
+        )),
     )(input)?;
 
-    let cond = match op {
-        "=" => WhereCond::Eq { expr, right },
-        "LIKE" => WhereCond::Like { expr, right },
-        _ => unreachable!(),
+    let res = WhereCond::Like {
+        expr,
+        right: s.to_string(),
     };
 
-    Ok((input, cond))
+    Ok((input, res))
+}
+
+pub fn parse_where_eq(input: &str) -> IResult<&str, WhereCond> {
+    let (input, (expr, _, right)) = preceded(
+        whitespace,
+        tuple((
+            parse_expr,
+            preceded(whitespace, tag("=")),
+            preceded(whitespace, parse_value),
+        )),
+    )(input)?;
+
+    let res = WhereCond::Eq { expr, right };
+
+    Ok((input, res))
+}
+
+pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
+    preceded(tag("WHERE"), alt((parse_where_eq, parse_where_like)))(input)
 }
 
 pub fn array<'a>(input: &'a str) -> IResult<&'a str, Vec<u64>> {

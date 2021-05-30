@@ -1,5 +1,8 @@
+use collect_mac::collect;
+
 use crate::sql::Bindings;
 use crate::sql::Expr;
+use std::collections::VecDeque;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Field {
@@ -18,12 +21,12 @@ impl Field {
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct DPath {
-    pub data: Vec<String>,
+    pub data: VecDeque<String>,
 }
 
 impl From<&[&str]> for DPath {
     fn from(ss: &[&str]) -> Self {
-        let data = ss.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        let data = ss.iter().map(|s| s.to_string()).collect::<VecDeque<_>>();
         Self { data }
     }
 }
@@ -34,14 +37,30 @@ impl From<&str> for DPath {
             .to_string()
             .split(".")
             .map(|s| s.to_string())
-            .collect::<Vec<_>>();
+            .collect::<VecDeque<_>>();
         Self { data }
     }
 }
 
 impl DPath {
+    pub fn split_first(&self) -> Option<(Self, Self)> {
+        let mut data = self.data.clone();
+
+        if let Some(first) = data.pop_front() {
+            let mut vec = VecDeque::new();
+            vec.push_back(first);
+            Some((Self { data: vec }, Self { data }))
+        } else {
+            None
+        }
+    }
+
     pub fn to_string(&self) -> String {
-        self.data.join(".")
+        self.data
+            .clone()
+            .into_iter()
+            .collect::<Vec<String>>()
+            .join(".")
     }
 
     pub fn to_vec(&self) -> Vec<&str> {

@@ -6,7 +6,7 @@ use crate::sql::Field;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bindings {
     locals: Map<String, DPath>,
-    // locals_rev: Map<String, String>,
+    locals_rev: Map<String, String>,
 }
 
 impl From<&[Field]> for Bindings {
@@ -14,27 +14,26 @@ impl From<&[Field]> for Bindings {
         let locals = fields
             .iter()
             .filter_map(|field| {
-                // if let Some(alias) = &field.alias {
-                //     Some((alias.to_string(), field.path.to_owned()))
-                // } else {
-                //     None
-                // }
-                None
+                if let Some(alias) = &field.alias {
+                    Some((alias.to_string(), field.path.to_owned()))
+                } else {
+                    None
+                }
             })
             .collect::<Map<String, DPath>>();
 
-        // let locals_rev = fields
-        //     .iter()
-        //     .filter_map(|field| {
-        //         if let Some(alias) = &field.alias {
-        //             Some((field.path.to_string(), alias.to_string()))
-        //         } else {
-        //             None
-        //         }
-        //     })
-        //     .collect::<IndexMap<String, String>>();
+        let locals_rev = fields
+            .iter()
+            .filter_map(|field| {
+                if let Some(alias) = &field.alias {
+                    Some((field.path.to_string(), alias.to_string()))
+                } else {
+                    None
+                }
+            })
+            .collect::<Map<String, String>>();
 
-        Self { locals }
+        Self { locals, locals_rev }
     }
 }
 
