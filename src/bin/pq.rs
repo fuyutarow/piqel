@@ -6,7 +6,6 @@ use structopt::StructOpt;
 
 use partiql::lang::{Lang, LangType};
 use partiql::sql;
-use partiql::sql::evaluate;
 
 fn read_from_stdin() -> anyhow::Result<String> {
     let mut buf = String::new();

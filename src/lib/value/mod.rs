@@ -1,5 +1,6 @@
 pub mod json_value;
 mod pql_value;
+pub mod table;
 mod toml_value;
 pub use json_value::{BJsonValue, JsonValue};
 pub use pql_value::{BPqlValue, PqlValue};
