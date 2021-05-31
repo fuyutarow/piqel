@@ -6,6 +6,7 @@ use structopt::StructOpt;
 
 use partiql::lang::{Lang, LangType};
 use partiql::sql;
+use partiql::sql::evaluate;
 
 fn read_from_stdin() -> anyhow::Result<String> {
     let mut buf = String::new();
@@ -36,7 +37,7 @@ struct Opt {
 }
 
 fn main() -> anyhow::Result<()> {
-    match Opt::from_args() {
+    let _ = match Opt::from_args() {
         Opt {
             file_or_stdin,
             query,
@@ -59,7 +60,7 @@ fn main() -> anyhow::Result<()> {
 
             if let Some(q) = query {
                 let sql = sql::parser::sql(&q)?;
-                let result = sql::run(&sql, &lang.data);
+                let result = sql::evaluate(&sql, &lang.data);
                 lang.data = result;
             }
 

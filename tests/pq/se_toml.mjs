@@ -40,7 +40,9 @@ cat<<EOS | ./target/debug/pq -t toml
   "license": "MIT"
 }
 EOS
-`).stdout, `license = 'MIT'
+`).stdout, `name = 'partiql-pokemon'
+private = true
+license = 'MIT'
 
 [scripts]
 dev = 'next'

@@ -5,7 +5,6 @@ use itertools::Itertools;
 use partiql::pqlir_parser;
 use partiql::sql;
 use partiql::sql::evaluate;
-use partiql::sql::run;
 use partiql::sql::Sql;
 use partiql::value::PqlValue;
 
@@ -76,6 +75,14 @@ fn q5() -> anyhow::Result<()> {
 #[test]
 fn q6() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q6")?;
+    let res = evaluate(&sql, &data);
+    assert_eq!(res, output);
+    Ok(())
+}
+
+#[test]
+fn q7() -> anyhow::Result<()> {
+    let (sql, data, output) = get_sql_data_output("q7")?;
     let res = evaluate(&sql, &data);
     assert_eq!(res, output);
     Ok(())

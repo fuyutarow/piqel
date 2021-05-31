@@ -28,8 +28,7 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
                     expr: expr.to_owned(),
                     right: right.to_owned(),
                 };
-                let data = restrict(Some(data.to_owned()), &path, &Some(cond)).unwrap();
-                data
+                restrict(Some(data.to_owned()), &path, &Some(cond)).expect("restricted value")
             }
             _ => todo!(),
         },
@@ -40,8 +39,7 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
                     expr: expr.to_owned(),
                     right: right.to_owned(),
                 };
-                let data = restrict(Some(data.to_owned()), &path, &Some(cond)).unwrap();
-                data
+                restrict(Some(data.to_owned()), &path, &Some(cond)).expect("restricted value")
             }
             _ => todo!(),
         },

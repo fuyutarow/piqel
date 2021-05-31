@@ -45,8 +45,17 @@ EOS
 // TODO: This test should be equal
 assert.notEqual((await $`
 cat samples/ip_addr.json | ./target/debug/pq -q "$(cat<<EOS
+SELECT addr_info
+WHERE addr_info.family = 'inet6'
+EOS
+)" -S
+`).stdout, expected)
+
+// TODO: This test should be equal
+assert.notEqual((await $`
+cat samples/ip_addr.json | ./target/debug/pq -q "$(cat<<EOS
 SELECT addr_info AS info
-WHERE info.family = 'inet6'
+WHERE addr_info.family = 'inet6'
 EOS
 )" | jq -S
 `).stdout, expected)

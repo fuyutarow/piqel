@@ -1,5 +1,3 @@
-#![feature(box_patterns)]
-
 use crate::value::PqlValue;
 
 mod bindings;
@@ -12,7 +10,7 @@ mod utils;
 mod where_cond;
 
 pub use bindings::Bindings;
-pub use eval::{evaluate, run, to_list};
+pub use eval::{evaluate, to_list};
 pub use expr::{Expr, Func};
 pub use field::{DPath, Field};
 pub use filter::restrict;
@@ -33,7 +31,9 @@ impl Proj {
                 path,
                 alias: self.alias.to_owned(),
             },
-            _ => todo!(),
+            _ => {
+                todo!();
+            }
         }
     }
 }
