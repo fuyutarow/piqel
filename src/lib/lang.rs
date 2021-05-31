@@ -91,6 +91,7 @@ impl Lang {
     pub fn print(&self) -> anyhow::Result<()> {
         let output = match (&self.to, &self.from == &self.to) {
             (LangType::Csv, _) => {
+                // To pad missing values with null, serialize them to json, deserialize them with polars, and write them to csv from there.
                 let sss = match &self.data {
                     PqlValue::Array(array) => array
                         .iter()
