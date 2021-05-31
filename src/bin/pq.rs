@@ -27,7 +27,7 @@ struct Opt {
     query: Option<String>,
 
     /// target config file
-    #[structopt(short, long, possible_values(&["json", "toml", "yaml", "xml"]))]
+    #[structopt(short, long, possible_values(&["csv", "json", "toml", "yaml", "xml"]))]
     to: Option<String>,
 
     /// sort keys of objects on output. it on works when --to option is json, currently
@@ -61,6 +61,7 @@ fn main() -> anyhow::Result<()> {
                 let sql = sql::parser::sql(&q)?;
                 let result = sql::evaluate(&sql, &lang.data);
                 lang.data = result;
+                lang.colnames = sql.get_colnames();
             }
 
             if lang.to == LangType::Json && sort_keys {

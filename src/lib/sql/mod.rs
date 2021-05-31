@@ -36,6 +36,19 @@ impl Proj {
             }
         }
     }
+
+    pub fn get_colname(&self) -> String {
+        if let Some(alias) = self.alias.to_owned() {
+            alias
+        } else {
+            match self.expr.to_owned() {
+                Expr::Path(path) => path.to_vec().last().unwrap().to_string(),
+                _ => {
+                    todo!();
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -44,4 +57,13 @@ pub struct Sql {
     pub from_clause: Vec<Field>,
     pub left_join_clause: Vec<Field>,
     pub where_clause: Option<Box<WhereCond>>,
+}
+
+impl Sql {
+    pub fn get_colnames(&self) -> Vec<String> {
+        self.select_clause
+            .iter()
+            .map(|proj| proj.get_colname())
+            .collect()
+    }
 }
