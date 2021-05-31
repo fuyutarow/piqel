@@ -1,3 +1,5 @@
+use std::convert::TryFrom;
+
 use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;
 use polars::datatypes::AnyValue;
@@ -41,5 +43,51 @@ impl From<DataFrame> for PqlValue {
             .collect::<Vec<_>>();
 
         PqlValue::Array(table)
+    }
+}
+
+impl TryFrom<PqlValue> for DataFrame {
+    type Error = anyhow::Error;
+
+    fn try_from(pqlv: PqlValue) -> anyhow::Result<Self> {
+        let rows = match pqlv {
+            PqlValue::Array(array) => {
+                let rows = array
+                    .into_par_iter()
+                    .map(|value| {
+                        let series_list = match value {
+                            PqlValue::Object(object) => {
+                                let series_list = object
+                                    .into_iter()
+                                    .map(|(k, v)| match v {
+                                        PqlValue::Int(int) => Series::new(&k, &[int]),
+                                        PqlValue::Float(float) => {
+                                            let f: f64 = float.into_inner();
+                                            Series::new(&k, &[f])
+                                        }
+                                        _ => todo!(),
+                                    })
+                                    .collect::<Vec<Series>>();
+                                series_list
+                            }
+                            _ => panic!("Only object can be converted to tables"),
+                        };
+                        let row = DataFrame::new(series_list).unwrap();
+                        row
+                    })
+                    .collect::<Vec<DataFrame>>();
+                rows
+            }
+            _ => anyhow::bail!("Only arrays can be converted to tables"),
+        };
+        dbg!(rows.len());
+
+        let mut it = rows.into_iter();
+        let mut df = it.next().unwrap();
+        for row in it {
+            df = df.vstack(&row)?;
+        }
+
+        Ok(df)
     }
 }

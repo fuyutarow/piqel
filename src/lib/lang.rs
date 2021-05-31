@@ -87,6 +87,7 @@ impl Lang {
 
     pub fn print(&self) {
         let output = match (&self.to, &self.from == &self.to) {
+            (LangType::Csv, _) => todo!(),
             (LangType::Json, _) => serde_json::to_string_pretty(&self.data).unwrap(),
             (_, true) => self.text.to_owned(),
             (LangType::Toml, _) => {
@@ -95,7 +96,6 @@ impl Lang {
             }
             (LangType::Yaml, _) => serde_yaml::to_string(&self.data).unwrap(),
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
-            (LangType::Csv, _) => todo!(),
         };
 
         if atty::is(atty::Stream::Stdout) {
