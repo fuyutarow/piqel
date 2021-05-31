@@ -31,7 +31,9 @@ impl Proj {
                 path,
                 alias: self.alias.to_owned(),
             },
-            _ => todo!(),
+            _ => {
+                todo!();
+            }
         }
     }
 }

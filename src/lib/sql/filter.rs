@@ -22,6 +22,7 @@ pub fn restrict(
                     PqlValue::Str(string.clone()) == right.to_owned()
                 }
                 Some(WhereCond::Like { expr, right }) => re_from_str(&right).is_match(&string),
+
                 _ => unreachable!(),
             };
             if is_match {
@@ -40,10 +41,10 @@ pub fn restrict(
                 })
                 .collect::<Vec<_>>();
 
-            if arr.len() > 0 {
-                Some(PqlValue::Array(arr))
-            } else {
+            if arr.is_empty() {
                 None
+            } else {
+                Some(PqlValue::Array(arr))
             }
         }
         Some(PqlValue::Object(mut object)) => {
@@ -74,7 +75,6 @@ pub fn restrict(
 
 #[cfg(test)]
 mod tests {
-
     use super::restrict;
     use crate::pqlir_parser;
     use crate::sql::DPath;

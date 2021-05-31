@@ -53,7 +53,7 @@ SELECT
   info.family AS inet,
   info.local
 FROM addr_info AS info
-WHERE inet LIKE 'inet%'
+WHERE info.family LIKE 'inet%'
 EOS
 )" -S
 `).stdout, expected)
@@ -64,7 +64,7 @@ SELECT
   address,
   addr_info.family AS inet,
   addr_info.local
-WHERE inet LIKE 'inet%'
+WHERE addr_info.family LIKE 'inet%'
 EOS
 )" -S
 `).stdout, expected)

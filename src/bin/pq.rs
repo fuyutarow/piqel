@@ -37,7 +37,7 @@ struct Opt {
 }
 
 fn main() -> anyhow::Result<()> {
-    match Opt::from_args() {
+    let _ = match Opt::from_args() {
         Opt {
             file_or_stdin,
             query,

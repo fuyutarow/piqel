@@ -142,16 +142,19 @@ pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
 }
 
 pub fn parse_number(input: &str) -> IResult<&str, Expr> {
-    map(double, |f| Expr::Num(f as f64))(input)
+    map(
+        delimited(many1(whitespace), double, many1(whitespace)),
+        |f| Expr::Num(f as f64),
+    )(input)
 }
 
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
     alt((
-        math::parse,
+        // math::parse,
         parse_star_as_expr,
-        parse_number,
-        func::count,
         parse_path_as_expr,
+        func::count,
+        parse_number,
     ))(input)
 }
 

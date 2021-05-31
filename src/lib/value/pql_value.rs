@@ -6,7 +6,6 @@ use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::DPath;
 use crate::sql::Field;
-use crate::sql::Sql;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -29,13 +28,7 @@ impl Default for PqlValue {
 impl PqlValue {
     pub fn get(self, key: &str) -> Option<Self> {
         match self {
-            Self::Object(map) => {
-                if let Some(value) = map.get(key) {
-                    Some(value.to_owned())
-                } else {
-                    None
-                }
-            }
+            Self::Object(map) => map.get(key).map(|v| v.to_owned()),
             _ => None,
         }
     }
@@ -43,10 +36,10 @@ impl PqlValue {
     pub fn get_path(self, path: &[&str]) -> Option<Self> {
         if let Some((key, path)) = path.split_first() {
             if let Some(obj) = self.get(key) {
-                if path.len() > 0 {
-                    obj.get_path(path)
-                } else {
+                if path.is_empty() {
                     Some(obj)
+                } else {
+                    obj.get_path(path)
                 }
             } else {
                 None
