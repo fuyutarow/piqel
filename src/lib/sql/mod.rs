@@ -9,6 +9,7 @@ mod utils;
 mod where_cond;
 
 pub use bindings::Bindings;
+pub use eval::FieldBook;
 pub use eval::{evaluate, to_list};
 pub use expr::{Expr, Func};
 pub use field::{DPath, Field};

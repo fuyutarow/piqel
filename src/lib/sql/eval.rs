@@ -1,5 +1,7 @@
 use indexmap::IndexMap as Map;
 use itertools::Itertools;
+use rayon::prelude::*;
+use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::restrict;
 use crate::sql::Bindings;
@@ -59,6 +61,47 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
     PqlValue::Array(d)
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct FieldBook {
+    pub fields: Map<String, Vec<PqlValue>>,
+    pub size: usize,
+    pub keys: Vec<String>,
+}
+
+impl From<PqlValue> for FieldBook {
+    fn from(pqlv_object: PqlValue) -> Self {
+        let (fields, size, keys) = {
+            let mut tables = Map::<String, Vec<PqlValue>>::new();
+            let mut n = 0;
+            let mut keys = vec![];
+            if let PqlValue::Object(map) = pqlv_object {
+                keys = map
+                    .keys()
+                    .into_iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<String>>();
+                for (key, value) in map {
+                    match value {
+                        PqlValue::Array(array) => {
+                            if n == 0 {
+                                n = array.len();
+                            }
+                            tables.insert(key, array);
+                        }
+                        _ => {
+                            n = 1;
+                            tables.insert(key, vec![value]);
+                        }
+                    }
+                }
+            }
+            (tables, n, keys)
+        };
+
+        Self { fields, size, keys }
+    }
+}
+
 pub fn to_list(value_selected_by_fields: PqlValue) -> Vec<PqlValue> {
     let (tables, n, keys) = {
         let mut tables = Map::<String, Vec<PqlValue>>::new();
@@ -109,11 +152,11 @@ pub fn to_list(value_selected_by_fields: PqlValue) -> Vec<PqlValue> {
     };
 
     let list = records
-        .into_iter()
+        .into_par_iter()
         .map(|record| {
             let record = record
                 .into_iter()
-                .filter_map(|(k, v)| if v.len() > 0 { Some((k, v)) } else { None })
+                .filter_map(|(k, v)| if !v.is_empty() { Some((k, v)) } else { None })
                 .collect::<Map<String, Vec<PqlValue>>>();
 
             let keys = record.keys();

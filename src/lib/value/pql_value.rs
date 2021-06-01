@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
@@ -6,6 +7,18 @@ use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::DPath;
 use crate::sql::Field;
+
+#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum BPqlValue {
+    Null,
+    Str(String),
+    Boolean(bool),
+    Float(OrderedFloat<f64>),
+    Int(i64),
+    Array(BTreeSet<Self>),
+    Object(BTreeMap<String, Self>),
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -106,14 +119,72 @@ impl PqlValue {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum BPqlValue {
-    Null,
-    Str(String),
-    Boolean(bool),
-    Float(OrderedFloat<f64>),
-    Int(i64),
-    Array(BTreeSet<Self>),
-    Object(BTreeMap<String, Self>),
+impl Add for PqlValue {
+    type Output = Self;
+    fn add(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (Self::Int(a), Self::Int(b)) => Self::Int(a + b),
+            (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) + b),
+            (Self::Float(a), Self::Int(b)) => Self::Float(a + OrderedFloat(b as f64)),
+            (Self::Float(a), Self::Float(b)) => Self::Float(a + b),
+            _ => todo!(),
+        }
+    }
+}
+
+impl Sub for PqlValue {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (Self::Int(a), Self::Int(b)) => Self::Int(a - b),
+            (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) - b),
+            (Self::Float(a), Self::Int(b)) => Self::Float(a - OrderedFloat(b as f64)),
+            (Self::Float(a), Self::Float(b)) => Self::Float(a - b),
+            _ => todo!(),
+        }
+    }
+}
+
+impl Mul for PqlValue {
+    type Output = Self;
+    fn mul(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (Self::Int(a), Self::Int(b)) => Self::Int(a * b),
+            (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) * b),
+            (Self::Float(a), Self::Int(b)) => Self::Float(a * OrderedFloat(b as f64)),
+            (Self::Float(a), Self::Float(b)) => Self::Float(a * b),
+            _ => todo!(),
+        }
+    }
+}
+
+impl Div for PqlValue {
+    type Output = Self;
+    fn div(self, other: Self) -> Self::Output {
+        match (self, other) {
+            (Self::Int(a), Self::Int(b)) => Self::Float(OrderedFloat(a as f64 / b as f64)),
+            (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) / b),
+            (Self::Float(a), Self::Int(b)) => Self::Float(a / OrderedFloat(b as f64)),
+            (Self::Float(a), Self::Float(b)) => Self::Float(a / b),
+            _ => todo!(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::PqlValue;
+    use ordered_float::OrderedFloat;
+
+    #[test]
+    fn add_sub_mul_div() {
+        assert_eq!(
+            PqlValue::Float(OrderedFloat(1.)) + PqlValue::Float(OrderedFloat(2.)),
+            PqlValue::Float(OrderedFloat(3.))
+        );
+        assert_eq!(
+            PqlValue::Float(OrderedFloat(1.)) / PqlValue::Float(OrderedFloat(0.)),
+            PqlValue::Float(OrderedFloat(f64::INFINITY))
+        );
+    }
 }
