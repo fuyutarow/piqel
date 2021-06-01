@@ -5,7 +5,6 @@ mod eval;
 mod expr;
 mod field;
 mod filter;
-pub mod parser;
 mod utils;
 mod where_cond;
 

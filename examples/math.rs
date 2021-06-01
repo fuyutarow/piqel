@@ -3,7 +3,7 @@ use nom::error::{Error, ErrorKind, ParseError};
 use nom::number::complete::recognize_float;
 use nom::IResult;
 
-use partiql::sql::parser;
+use partiql::parser;
 use partiql::sql::Expr;
 
 fn main() -> anyhow::Result<()> {
@@ -18,8 +18,9 @@ WHERE x % 2 = 0
     let sql = parser::sql(&input)?;
     dbg!(&sql);
 
-    let input = "x/2";
-    let r = parser::parse_expr(input);
+    let input = "3*3";
+    let (_, expr) = parser::parse_expr(input)?;
+    let r = expr.eval();
     dbg!(r);
 
     Ok(())

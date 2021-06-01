@@ -83,7 +83,7 @@ impl Bindings {
 #[cfg(test)]
 mod tests {
     use super::Bindings;
-    use crate::sql::parser;
+    use crate::parser;
     use crate::sql::{DPath, Field, Sql};
 
     #[test]

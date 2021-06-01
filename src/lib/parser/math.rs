@@ -9,7 +9,7 @@ use nom::IResult;
 use crate::sql::Expr;
 use crate::sql::Field;
 
-use crate::sql::parser;
+use crate::parser;
 
 pub fn parse(input: &str) -> IResult<&str, Expr> {
     parse_math_expr(input)

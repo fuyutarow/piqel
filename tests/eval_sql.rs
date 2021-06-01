@@ -2,6 +2,7 @@ use indexmap::IndexMap;
 
 use itertools::Itertools;
 
+use partiql::parser;
 use partiql::pqlir_parser;
 use partiql::sql;
 use partiql::sql::evaluate;
@@ -11,7 +12,7 @@ use partiql::value::PqlValue;
 fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {
     let sql = {
         let input = std::fs::read_to_string(format!("samples/{}.sql", qi)).unwrap();
-        let sql = sql::parser::sql(&input)?;
+        let sql = parser::sql(&input)?;
         sql
     };
 

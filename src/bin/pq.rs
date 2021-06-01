@@ -5,6 +5,7 @@ use std::str::FromStr;
 use structopt::StructOpt;
 
 use partiql::lang::{Lang, LangType};
+use partiql::parser;
 use partiql::sql;
 
 fn read_from_stdin() -> anyhow::Result<String> {
@@ -58,7 +59,7 @@ fn main() -> anyhow::Result<()> {
             }
 
             if let Some(q) = query {
-                let sql = sql::parser::sql(&q)?;
+                let sql = parser::sql(&q)?;
                 let result = sql::evaluate(&sql, &lang.data);
                 lang.data = result;
                 lang.colnames = sql.get_colnames();

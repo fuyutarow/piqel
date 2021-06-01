@@ -1,8 +1,7 @@
-
-use partiql::sql::parser;
+use partiql::parser;
 
 fn main() -> anyhow::Result<()> {
-  let input =r#"
+    let input = r#"
 SELECT t.id AS id,
        x AS even
 FROM matrices AS t,
@@ -11,7 +10,7 @@ FROM matrices AS t,
 WHERE x % 2 = 0
   "#;
 
-  let input =r#"
+    let input = r#"
 SELECT t.id AS id,
        x AS even
 FROM matrices AS t,
@@ -22,7 +21,5 @@ WHERE x/2 = 0
     let sql = parser::sql(&input)?;
     dbg!(&sql);
 
-
-
-  Ok(())
+    Ok(())
 }
