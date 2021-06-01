@@ -56,15 +56,16 @@ impl Expr {
     }
 
     pub fn eval(&self) -> f64 {
+        dbg!(&self);
         match self {
             Self::Path(_) => 0.,
             Self::Num(num) => num.to_owned(),
-            Expr::Add(expr1, expr2) => (*expr1).eval() + (*expr2).eval(),
-            Expr::Sub(expr1, expr2) => (*expr1).eval() - (*expr2).eval(),
-            Expr::Mul(expr1, expr2) => (*expr1).eval() * (*expr2).eval(),
-            Expr::Div(expr1, expr2) => (*expr1).eval() / (*expr2).eval(),
-            Expr::Mod(expr1, expr2) => (*expr1).eval() % (*expr2).eval(),
-            Expr::Exp(expr1, expr2) => (*expr1).eval().powf((*expr2).eval()),
+            Self::Add(expr1, expr2) => (*expr1).eval() + (*expr2).eval(),
+            Self::Sub(expr1, expr2) => (*expr1).eval() - (*expr2).eval(),
+            Self::Mul(expr1, expr2) => (*expr1).eval() * (*expr2).eval(),
+            Self::Div(expr1, expr2) => (*expr1).eval() / (*expr2).eval(),
+            Self::Mod(expr1, expr2) => (*expr1).eval() % (*expr2).eval(),
+            Self::Exp(expr1, expr2) => (*expr1).eval().powf((*expr2).eval()),
             _ => todo!(),
         }
     }

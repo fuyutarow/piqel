@@ -2,6 +2,7 @@ use nom::branch::alt;
 use nom::character::complete::{alpha1, alphanumeric1, char, digit1, space0};
 use nom::combinator::map;
 use nom::multi::many0;
+use nom::number::complete::double;
 use nom::sequence::{delimited, preceded, tuple};
 use nom::IResult;
 
@@ -11,10 +12,6 @@ use crate::sql::Field;
 use crate::sql::parser;
 
 pub fn parse(input: &str) -> IResult<&str, Expr> {
-    parse_basic_expr(input)
-}
-
-fn parse_basic_expr(input: &str) -> IResult<&str, Expr> {
     parse_math_expr(input)
 }
 
@@ -68,11 +65,11 @@ fn parse_op(tup: (char, Expr), expr1: Expr) -> Expr {
     }
 }
 
-fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
+pub fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
     delimited(
         space0,
         alt((
-            parser::parse_number,
+            parser::float_number,
             parser::func::count,
             parser::parse_path_as_expr,
         )),
@@ -81,7 +78,8 @@ fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
 }
 
 fn parse_number(input: &str) -> IResult<&str, Expr> {
-    map(digit1, |s: &str| Expr::Num(s.parse::<f64>().unwrap()))(input)
+    // map(digit1, |s: &str| Expr::Num(s.parse::<f64>().unwrap()))(input)
+    map(double, |f| Expr::Num(f as f64))(input)
 }
 
 #[cfg(test)]

@@ -32,6 +32,7 @@ impl Proj {
                 alias: self.alias.to_owned(),
             },
             _ => {
+                dbg!(expr);
                 todo!();
             }
         }

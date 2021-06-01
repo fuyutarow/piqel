@@ -1,51 +1,26 @@
-use std::str::FromStr;
+use nom::combinator::map;
+use nom::error::{Error, ErrorKind, ParseError};
+use nom::number::complete::recognize_float;
+use nom::IResult;
 
-use partiql::lang::Lang;
-use partiql::sql;
-use partiql::sql::parser::math;
+use partiql::sql::parser;
 use partiql::sql::Expr;
 
 fn main() -> anyhow::Result<()> {
-    let input = "a - b - c";
-    // let r = sql::parser::parse_expr(&input);
-    let (_, expr) = sql::parser::math::parse(&input)?;
-    dbg!(&expr);
-
-    let input = "1 - 2 - 3";
-    let (_, expr) = sql::parser::math::parse(&input)?;
-    dbg!(&expr.eval());
-    assert_eq!(expr.eval(), -4.);
-
-    let input = "12 - 34 + 15 - 9";
-    let (_, expr) = sql::parser::math::parse(&input)?;
-    dbg!(&expr.eval());
-    assert_eq!(expr.eval(), -16.);
-
-    let input = "1 * 2 + 3 / 4 ^ 6";
-    let (_, expr) = sql::parser::math::parse(&input)?;
-    dbg!(&expr.eval());
-    assert_eq!(expr.eval() as u64, 2);
-
-    let input = "(1 + 2) * 3";
-    let (_, expr) = sql::parser::math::parse(&input)?;
-    dbg!(&expr.eval());
-    assert_eq!(expr.eval(), 9.);
-
     let input = r#"
-{
-    "a": 1,
-    "b": 2,
-    "c": 3
-}
-"#;
+SELECT t.id AS id,
+       x AS even
+FROM matrices AS t,
+     t.matrix AS y,
+     y AS x
+WHERE x % 2 = 0
+  "#;
+    let sql = parser::sql(&input)?;
+    dbg!(&sql);
 
-    let r = Lang::from_str(&input)?;
-    dbg!(&r);
-    // dbg!(eval(expr));
-    // dbg!(eval(r));
+    let input = "x/2";
+    let r = parser::parse_expr(input);
+    dbg!(r);
 
-    // let input = "3+5*(3+3)";
-    // let r = math::expr(input)?;
-    // dbg!(r);
     Ok(())
 }
