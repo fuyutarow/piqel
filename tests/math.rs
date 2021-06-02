@@ -4,7 +4,7 @@ use partiql::parser;
 fn calc() -> anyhow::Result<()> {
     let input = "1 - 2 - 3";
     let (_, expr) = parser::math::parse(&input)?;
-    assert_eq!(expr.eval(), -4.);
+    assert_eq!(expr.eval(), -3.);
 
     let input = "12 - 34 + 15 - 9";
     let (_, expr) = parser::math::parse(&input)?;

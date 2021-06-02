@@ -1,8 +1,8 @@
-#!/usr/bin/env zx
-import { strict as assert } from 'assert'
 
-assert.equal((await $`
-cat<<EOS | ./target/debug/pq -t toml
+[tests.nonamed-table]
+script = '''
+alias pq ="./target/debug/pq"
+cat<<EOS | pq -t toml
 [
   {
     "id": 3,
@@ -16,7 +16,9 @@ cat<<EOS | ./target/debug/pq -t toml
   }
 ]
 EOS
-`).stdout, `[[]]
+'''
+tobe = '''
+[[]]
 id = 3
 name = 'Bob Smith'
 
@@ -25,10 +27,13 @@ id = 6
 name = 'Jane Smith'
 title = 'Software Eng 2'
 
-`)
+'''
 
-assert.equal((await $`
-cat<<EOS | ./target/debug/pq -t toml
+
+[tests.value-after-table]
+script = '''
+alias pq ="./target/debug/pq"
+cat<<EOS | pq -t toml
 {
   "name": "partiql-pokemon",
   "private": true,
@@ -40,7 +45,9 @@ cat<<EOS | ./target/debug/pq -t toml
   "license": "MIT"
 }
 EOS
-`).stdout, `name = 'partiql-pokemon'
+'''
+tobe = '''
+name = 'partiql-pokemon'
 private = true
 license = 'MIT'
 
@@ -49,4 +56,4 @@ dev = 'next'
 build = 'next build'
 start = 'next start'
 
-`)
+'''
