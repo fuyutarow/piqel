@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::convert::TryFrom;
+use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
@@ -27,10 +28,34 @@ pub enum PqlValue {
     Null,
     Str(String),
     Boolean(bool),
-    Float(OrderedFloat<f64>),
     Int(i64),
+    Float(OrderedFloat<f64>),
     Array(Vec<Self>),
     Object(IndexMap<String, Self>),
+}
+
+impl From<&str> for PqlValue {
+    fn from(s: &str) -> Self {
+        Self::Str(s.to_owned())
+    }
+}
+
+impl From<bool> for PqlValue {
+    fn from(b: bool) -> Self {
+        Self::Boolean(b)
+    }
+}
+
+impl From<i64> for PqlValue {
+    fn from(i: i64) -> Self {
+        Self::Int(i)
+    }
+}
+
+impl From<f64> for PqlValue {
+    fn from(f: f64) -> Self {
+        Self::Float(OrderedFloat(f))
+    }
 }
 
 impl Default for PqlValue {
@@ -182,6 +207,44 @@ impl Div for PqlValue {
             (Self::Float(a), Self::Int(b)) => Self::Float(a / OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a / b),
             _ => todo!(),
+        }
+    }
+}
+
+impl Rem for PqlValue {
+    type Output = Self;
+    fn rem(self, other: Self) -> Self::Output {
+        let (a, b) = match (self, other) {
+            (Self::Int(a), Self::Int(b)) => (a as f64, b as f64),
+            (Self::Int(a), Self::Float(OrderedFloat(b))) => (a as f64, b),
+            (Self::Float(OrderedFloat(a)), Self::Int(b)) => (a, b as f64),
+            (Self::Float(OrderedFloat(a)), Self::Float(OrderedFloat(b))) => (a, b),
+            _ => todo!(),
+        };
+        Self::from(a % b)
+    }
+}
+
+impl PqlValue {
+    pub fn powf(self, other: Self) -> Self {
+        let (a, b) = match (self, other) {
+            (Self::Int(a), Self::Int(b)) => (a as f64, b as f64),
+            (Self::Int(a), Self::Float(OrderedFloat(b))) => (a as f64, b),
+            (Self::Float(OrderedFloat(a)), Self::Int(b)) => (a, b as f64),
+            (Self::Float(OrderedFloat(a)), Self::Float(OrderedFloat(b))) => (a, b),
+            _ => todo!(),
+        };
+        Self::from(a.powf(b))
+    }
+}
+
+impl TryFrom<PqlValue> for i64 {
+    type Error = anyhow::Error;
+    fn try_from(value: PqlValue) -> anyhow::Result<Self> {
+        match value {
+            PqlValue::Int(int) => Ok(int),
+            PqlValue::Float(OrderedFloat(f)) => Ok(f as i64),
+            _ => anyhow::bail!("not numeric"),
         }
     }
 }

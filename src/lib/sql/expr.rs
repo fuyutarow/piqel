@@ -94,16 +94,16 @@ impl Expr {
     }
 
     pub fn eval(self) -> PqlValue {
-        match self {
+        match self.to_owned() {
             Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
-            Self::Add(expr1, expr2) => (*expr1).eval() + (*expr2).eval(),
-            Self::Sub(expr1, expr2) => (*expr1).eval() - (*expr2).eval(),
-            Self::Mul(expr1, expr2) => (*expr1).eval() * (*expr2).eval(),
-            Self::Div(expr1, expr2) => (*expr1).eval() / (*expr2).eval(),
-            // Self::Mod(expr1, expr2) => (*expr1).eval() % (*expr2).eval(),
-            // Self::Exp(expr1, expr2) => (*expr1).eval().powf((*expr2).eval()),
+            Self::Add(box expr1, box expr2) => (expr1).eval() + (expr2).eval(),
+            Self::Sub(box expr1, box expr2) => (expr1).eval() - (expr2).eval(),
+            Self::Mul(box expr1, box expr2) => (expr1).eval() * (expr2).eval(),
+            Self::Div(box expr1, box expr2) => (expr1).eval() / (expr2).eval(),
+            Self::Mod(box expr1, box expr2) => (expr1).eval() % (expr2).eval(),
+            Self::Exp(box expr1, box expr2) => (expr1).eval().powf((expr2).eval()),
             _ => {
-                // dbg!(&self);
+                dbg!(&self);
 
                 todo!()
             }
