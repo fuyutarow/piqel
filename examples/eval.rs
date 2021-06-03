@@ -7,7 +7,6 @@ use partiql::pqlir_parser;
 use partiql::sql::evaluate;
 use partiql::sql::re_from_str;
 use partiql::sql::restrict;
-use partiql::sql::to_list;
 use partiql::sql::Bindings;
 use partiql::sql::DPath;
 use partiql::sql::Expr;

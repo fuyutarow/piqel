@@ -61,7 +61,7 @@ fn main() -> anyhow::Result<()> {
             if let Some(q) = query {
                 let sql = parser::sql(&q)?;
                 let result = sql::evaluate(&sql, &lang.data);
-                lang.data = result;
+                lang.data = result?;
                 lang.colnames = sql.get_colnames();
             }
 

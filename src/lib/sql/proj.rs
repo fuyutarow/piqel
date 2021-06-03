@@ -1,9 +1,12 @@
+use std::collections::HashSet;
+
 use ordered_float::OrderedFloat;
 
 use crate::sql::Bindings;
 use crate::sql::Expr;
 use crate::sql::Field;
 use crate::sql::FieldBook;
+use crate::value::json_value::to_pqlvalue;
 use crate::value::PqlValue;
 use crate::value::PqlVector;
 
@@ -15,28 +18,7 @@ pub struct Proj {
 
 impl Proj {
     pub fn eval(self, book: &FieldBook) -> PqlVector {
-        match self.expr {
-            Expr::Path(path) => {
-                let v = book
-                    .source_fields
-                    .get(&path.last().unwrap())
-                    .unwrap()
-                    .to_owned();
-                PqlVector(v)
-            }
-            Expr::Num(float) => {
-                PqlVector(vec![PqlValue::Float(OrderedFloat(float)); book.column_size])
-            }
-            Expr::Mul(box left, box right) => {
-                left.eval_to_vector(&book) * right.eval_to_vector(&book)
-            }
-            // Expr::Add(_)  =>
-            // | Expr::Sub(_)
-            _ => {
-                dbg!(self.expr);
-                todo!();
-            }
-        }
+        self.expr.eval_to_vector(&book)
     }
 
     pub fn to_field(&self, bindings: &Bindings) -> Field {
@@ -53,7 +35,11 @@ impl Proj {
         }
     }
 
-    pub fn get_colname(&self) -> String {
+    pub fn source_field_name_set(&self) -> HashSet<String> {
+        self.expr.source_field_name_set()
+    }
+
+    pub fn target_field_name(&self) -> String {
         if let Some(alias) = self.alias.to_owned() {
             alias
         } else {

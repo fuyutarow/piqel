@@ -10,8 +10,8 @@ mod utils;
 mod where_cond;
 
 pub use bindings::Bindings;
+pub use eval::evaluate;
 pub use eval::FieldBook;
-pub use eval::{evaluate, to_list};
 pub use expr::{Expr, Func};
 pub use field::{DPath, Field};
 pub use filter::restrict;
@@ -31,7 +31,7 @@ impl Sql {
     pub fn get_colnames(&self) -> Vec<String> {
         self.select_clause
             .iter()
-            .map(|proj| proj.get_colname())
+            .map(|proj| proj.target_field_name())
             .collect()
     }
 }

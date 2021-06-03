@@ -1,3 +1,6 @@
+use std::collections::HashSet;
+
+use collect_mac::collect;
 use ordered_float::OrderedFloat;
 use rayon::vec;
 
@@ -82,9 +85,15 @@ impl Expr {
             Self::Add(box expr1, box expr2) => {
                 expr1.eval_to_vector(&book) + expr2.eval_to_vector(&book)
             }
+            // Self::Sub(box expr1, box expr2) => {
+            //     expr1.eval_to_vector(&book) - expr2.eval_to_vector(&book)
+            // }
             Self::Mul(box expr1, box expr2) => {
                 expr1.eval_to_vector(&book) * expr2.eval_to_vector(&book)
             }
+            // Self::Div(box expr1, box expr2) => {
+            //     expr1.eval_to_vector(&book) / expr2.eval_to_vector(&book)
+            // }
             _ => {
                 dbg!(&self);
 
@@ -106,6 +115,53 @@ impl Expr {
                 dbg!(&self);
 
                 todo!()
+            }
+        }
+    }
+
+    pub fn source_field_name_set(&self) -> HashSet<String> {
+        match self.to_owned() {
+            Expr::Num(_) => HashSet::default(),
+            Expr::Path(path) => {
+                collect! {
+                    as HashSet<String>:
+                    path.to_string()
+                }
+            }
+            Expr::Add(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set();
+                let b = expr2.source_field_name_set();
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Sub(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set();
+                let b = expr2.source_field_name_set();
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Mul(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set();
+                let b = expr2.source_field_name_set();
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Div(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set();
+                let b = expr2.source_field_name_set();
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Mod(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set();
+                let b = expr2.source_field_name_set();
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Exp(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set();
+                let b = expr2.source_field_name_set();
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            _ => {
+                dbg!(&self);
+
+                todo!();
             }
         }
     }
