@@ -43,6 +43,14 @@ impl From<&str> for DPath {
 }
 
 impl DPath {
+    pub fn last(&self) -> Option<String> {
+        if let Some(last) = self.to_vec().last() {
+            Some(last.to_string())
+        } else {
+            None
+        }
+    }
+
     pub fn split_first(&self) -> Option<(Self, Self)> {
         let mut data = self.data.clone();
 

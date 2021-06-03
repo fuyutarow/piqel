@@ -3,6 +3,7 @@ use std::ops::{Add, Div, Mul, Neg, Sub};
 
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
+use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::DPath;
@@ -119,6 +120,17 @@ impl PqlValue {
     }
 }
 
+impl Neg for PqlValue {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        match self {
+            Self::Int(a) => Self::Int(-a),
+            Self::Float(a) => Self::Float(-a),
+            _ => todo!(),
+        }
+    }
+}
+
 impl Add for PqlValue {
     type Output = Self;
     fn add(self, other: Self) -> Self::Output {
@@ -148,12 +160,15 @@ impl Sub for PqlValue {
 impl Mul for PqlValue {
     type Output = Self;
     fn mul(self, other: Self) -> Self::Output {
-        match (self, other) {
+        match (self.to_owned(), other.to_owned()) {
             (Self::Int(a), Self::Int(b)) => Self::Int(a * b),
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) * b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a * OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a * b),
-            _ => todo!(),
+            _ => {
+                dbg!(&self, &other);
+                todo!()
+            }
         }
     }
 }

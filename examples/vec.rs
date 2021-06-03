@@ -1,6 +1,7 @@
 extern crate nalgebra as na;
 use na::{Dynamic, SMatrix};
 use ordered_float::OrderedFloat;
+use partiql::value::PqlVector;
 
 use partiql::sql::Expr;
 use partiql::value::PqlValue;
@@ -21,9 +22,15 @@ fn main() -> anyhow::Result<()> {
         PqlValue::Float(OrderedFloat(3.)),
     );
     let w = v.clone();
-    let r = PqlValue::Float(OrderedFloat(1.)) + PqlValue::Float(OrderedFloat(2.));
-    let r = PqlValue::Float(OrderedFloat(1.)) / PqlValue::Float(OrderedFloat(0.));
-    dbg!(r);
+    let v = vec![
+        PqlValue::Float(OrderedFloat(1.)),
+        PqlValue::Float(OrderedFloat(2.)),
+    ];
+    // let vv = PqlVector(v);
+
+    let a = 4;
+    assert_eq!(3, a);
+    // dbg!(-PqlVector(v));
 
     Ok(())
 }

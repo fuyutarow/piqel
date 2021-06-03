@@ -7,6 +7,7 @@ use crate::sql::restrict;
 use crate::sql::Bindings;
 use crate::sql::Expr;
 use crate::sql::Field;
+use crate::sql::Proj;
 use crate::sql::Sql;
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
@@ -63,14 +64,16 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FieldBook {
-    pub fields: Map<String, Vec<PqlValue>>,
-    pub size: usize,
-    pub keys: Vec<String>,
+    pub source_fields: Map<String, Vec<PqlValue>>,
+    pub target_fields: Map<String, Vec<PqlValue>>,
+    pub column_size: usize,
+    pub source_keys: Vec<String>,
+    pub target_keys: Vec<String>,
 }
 
 impl From<PqlValue> for FieldBook {
     fn from(pqlv_object: PqlValue) -> Self {
-        let (fields, size, keys) = {
+        let (source_fields, size, source_keys) = {
             let mut tables = Map::<String, Vec<PqlValue>>::new();
             let mut n = 0;
             let mut keys = vec![];
@@ -98,7 +101,24 @@ impl From<PqlValue> for FieldBook {
             (tables, n, keys)
         };
 
-        Self { fields, size, keys }
+        // let target_size = projs.len();
+        // let target_fields = projs
+        //     .into_iter()
+        //     .map(|proj| (proj.alias.unwrap(), proj.expr.eval()))
+        //     .collect::<Map<String, PqlValue>>();
+        // let target_keys = target_fields
+        //     .keys()
+        //     .into_iter()
+        //     .map(String::from)
+        //     .collect::<Vec<String>>();
+
+        Self {
+            column_size: size,
+            source_keys,
+            source_fields,
+            target_keys: Vec::default(),
+            target_fields: Map::default(),
+        }
     }
 }
 

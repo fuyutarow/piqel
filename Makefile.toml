@@ -7,7 +7,7 @@ zx tests/pq/poke.mjs
 [tasks.install-dev]
 script = '''
 brew install jq jo yj
-npm i -g zx
+brew install fuyutarow/tap/tests-make
 '''
 
 [tasks."build:pq"]
@@ -34,7 +34,7 @@ dependencies = ["build"]
 [tasks."test:pq"]
 dependencies = ["build:pq"]
 script = '''
-ls -1 tests/pq/*.mjs | xargs -I{} zx {}
+tests-make tests-make.toml
 '''
 
 [tasks.up]

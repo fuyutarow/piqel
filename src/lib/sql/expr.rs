@@ -1,6 +1,12 @@
+use ordered_float::OrderedFloat;
+use rayon::vec;
+
 use crate::sql::Bindings;
 use crate::sql::DPath;
+use crate::sql::FieldBook;
 use crate::sql::Sql;
+use crate::value::PqlValue;
+use crate::value::PqlVector;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
@@ -23,6 +29,13 @@ impl Default for Expr {
 }
 
 impl Expr {
+    pub fn as_path(&self) -> Option<DPath> {
+        match self {
+            Expr::Path(path) => Some(path.to_owned()),
+            _ => None,
+        }
+    }
+
     pub fn expand_fullpath(&self, bindings: &Bindings) -> Self {
         match self {
             Self::Path(path) => Self::Path(path.expand_fullpath(&bindings)),
@@ -55,18 +68,45 @@ impl Expr {
         }
     }
 
-    pub fn eval(&self) -> f64 {
-        dbg!(&self);
+    pub fn eval_to_vector(self, book: &FieldBook) -> PqlVector {
+        match self.to_owned() {
+            Expr::Path(path) => {
+                let v = book
+                    .source_fields
+                    .get(&path.last().unwrap())
+                    .unwrap()
+                    .to_owned();
+                PqlVector(v)
+            }
+            Self::Num(num) => PqlVector(vec![PqlValue::Float(OrderedFloat(num)); book.column_size]),
+            Self::Add(box expr1, box expr2) => {
+                expr1.eval_to_vector(&book) + expr2.eval_to_vector(&book)
+            }
+            Self::Mul(box expr1, box expr2) => {
+                expr1.eval_to_vector(&book) * expr2.eval_to_vector(&book)
+            }
+            _ => {
+                dbg!(&self);
+
+                todo!()
+            }
+        }
+    }
+
+    pub fn eval(self) -> PqlValue {
         match self {
-            Self::Path(_) => 0.,
-            Self::Num(num) => num.to_owned(),
+            Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
             Self::Add(expr1, expr2) => (*expr1).eval() + (*expr2).eval(),
             Self::Sub(expr1, expr2) => (*expr1).eval() - (*expr2).eval(),
             Self::Mul(expr1, expr2) => (*expr1).eval() * (*expr2).eval(),
             Self::Div(expr1, expr2) => (*expr1).eval() / (*expr2).eval(),
-            Self::Mod(expr1, expr2) => (*expr1).eval() % (*expr2).eval(),
-            Self::Exp(expr1, expr2) => (*expr1).eval().powf((*expr2).eval()),
-            _ => todo!(),
+            // Self::Mod(expr1, expr2) => (*expr1).eval() % (*expr2).eval(),
+            // Self::Exp(expr1, expr2) => (*expr1).eval().powf((*expr2).eval()),
+            _ => {
+                // dbg!(&self);
+
+                todo!()
+            }
         }
     }
 }
