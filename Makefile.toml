@@ -37,6 +37,12 @@ script = '''
 tests-make tests-make.toml
 '''
 
+[tasks.update-tap]
+script = '''
+cargo-distribute --tap ~/homebrew-tap/ --channel nightly --bin pq
+'''
+
+
 [tasks.up]
 script = '''
 git remote add upstream https://github.com/fuyutarow/partiql-rs
