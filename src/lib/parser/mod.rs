@@ -22,8 +22,11 @@ use crate::sql::Sql;
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
 
+pub mod elements;
 pub mod func;
 pub mod math;
+
+pub use elements::float_number;
 
 pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
     let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
@@ -70,6 +73,7 @@ pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
             None
         },
     };
+    dbg!(&input);
     Ok((input, sql))
 }
 
@@ -141,20 +145,14 @@ pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
     map(tag("*"), |_| Expr::Path(DPath::from("*")))(input)
 }
 
-pub fn parse_number(input: &str) -> IResult<&str, Expr> {
-    map(
-        delimited(many1(whitespace), double, many1(whitespace)),
-        |f| Expr::Num(f as f64),
-    )(input)
-}
-
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
+    // The math::parse must be placed after the parse_path_as_expr to prevent the inf keyword from being parsed.
     alt((
-        // math::parse,
         parse_star_as_expr,
-        parse_path_as_expr,
+        math::parse,
+        float_number,
         func::count,
-        parse_number,
+        parse_path_as_expr,
     ))(input)
 }
 

@@ -5,51 +5,20 @@ mod eval;
 mod expr;
 mod field;
 mod filter;
-pub mod parser;
+mod proj;
 mod utils;
 mod where_cond;
 
 pub use bindings::Bindings;
-pub use eval::{evaluate, to_list};
+pub use eval::evaluate;
+pub use eval::to_list;
+pub use eval::FieldBook;
 pub use expr::{Expr, Func};
 pub use field::{DPath, Field};
 pub use filter::restrict;
+pub use proj::Proj;
 pub use where_cond::re_from_str;
 pub use where_cond::WhereCond;
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Proj {
-    pub expr: Expr,
-    pub alias: Option<String>,
-}
-
-impl Proj {
-    pub fn to_field(&self, bindings: &Bindings) -> Field {
-        let expr = self.expr.expand_fullpath(&bindings);
-        match expr {
-            Expr::Path(path) => Field {
-                path,
-                alias: self.alias.to_owned(),
-            },
-            _ => {
-                todo!();
-            }
-        }
-    }
-
-    pub fn get_colname(&self) -> String {
-        if let Some(alias) = self.alias.to_owned() {
-            alias
-        } else {
-            match self.expr.to_owned() {
-                Expr::Path(path) => path.to_vec().last().unwrap().to_string(),
-                _ => {
-                    todo!();
-                }
-            }
-        }
-    }
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Sql {
@@ -63,7 +32,7 @@ impl Sql {
     pub fn get_colnames(&self) -> Vec<String> {
         self.select_clause
             .iter()
-            .map(|proj| proj.get_colname())
+            .map(|proj| proj.target_field_name())
             .collect()
     }
 }

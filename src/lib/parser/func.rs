@@ -9,7 +9,7 @@ use crate::sql::Expr;
 use crate::sql::Func;
 use crate::sql::Proj;
 
-use crate::sql::parser::{parse_expr, whitespace};
+use crate::parser::{parse_expr, whitespace};
 
 pub fn count<'a>(input: &'a str) -> IResult<&'a str, Expr> {
     let name = "COUNT";

@@ -1,8 +1,7 @@
-#!/usr/bin/env zx
-import { strict as assert } from 'assert'
-
-assert.equal((await $`
-cat<<EOS | ./target/debug/pq -q "SELECT NAME, LOGNAME" -t json
+[tests.no-sortkey]
+script = '''
+alias pq ="./target/debug/pq"
+cat<<EOS | pq -q "SELECT NAME, LOGNAME" -t json
 {
   "SHELL": "/bin/bash",
   "NAME": "my machine name",
@@ -15,17 +14,20 @@ cat<<EOS | ./target/debug/pq -q "SELECT NAME, LOGNAME" -t json
   "_": "/usr/bin/env"
 }
 EOS
-`).stdout,
-`[
+'''
+tobe = '''
+[
   {
     "NAME": "my machine name",
     "LOGNAME": "fuyutarow"
   }
 ]
-`)
+'''
 
-assert.equal((await $`
-cat<<EOS | ./target/debug/pq -q "SELECT NAME, LOGNAME" -t json -S
+[tests.use-sortkey]
+script = '''
+alias pq ="./target/debug/pq"
+cat<<EOS | pq -q "SELECT NAME, LOGNAME" -t json -S
 {
   "SHELL": "/bin/bash",
   "NAME": "my machine name",
@@ -38,11 +40,12 @@ cat<<EOS | ./target/debug/pq -q "SELECT NAME, LOGNAME" -t json -S
   "_": "/usr/bin/env"
 }
 EOS
-`).stdout,
-`[
+'''
+tobe = '''
+[
   {
     "LOGNAME": "fuyutarow",
     "NAME": "my machine name"
   }
 ]
-`)
+'''

@@ -3,8 +3,8 @@ use std::path::PathBuf;
 use std::str::FromStr;
 
 use partiql::lang::{Lang, LangType};
+use partiql::parser;
 use partiql::sql::evaluate;
-use partiql::sql::parser;
 use partiql::value::JsonValue;
 
 fn main() -> anyhow::Result<()> {

@@ -1,6 +1,15 @@
+use std::collections::HashSet;
+
+use collect_mac::collect;
+use ordered_float::OrderedFloat;
+use rayon::vec;
+
 use crate::sql::Bindings;
 use crate::sql::DPath;
+use crate::sql::FieldBook;
 use crate::sql::Sql;
+use crate::value::PqlValue;
+use crate::value::PqlVector;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
@@ -23,6 +32,13 @@ impl Default for Expr {
 }
 
 impl Expr {
+    pub fn as_path(&self) -> Option<DPath> {
+        match self {
+            Expr::Path(path) => Some(path.to_owned()),
+            _ => None,
+        }
+    }
+
     pub fn expand_fullpath(&self, bindings: &Bindings) -> Self {
         match self {
             Self::Path(path) => Self::Path(path.expand_fullpath(&bindings)),
@@ -55,17 +71,103 @@ impl Expr {
         }
     }
 
-    pub fn eval(&self) -> f64 {
-        match self {
-            Self::Path(_) => 0.,
-            Self::Num(num) => num.to_owned(),
-            Expr::Add(expr1, expr2) => (*expr1).eval() + (*expr2).eval(),
-            Expr::Sub(expr1, expr2) => (*expr1).eval() - (*expr2).eval(),
-            Expr::Mul(expr1, expr2) => (*expr1).eval() * (*expr2).eval(),
-            Expr::Div(expr1, expr2) => (*expr1).eval() / (*expr2).eval(),
-            Expr::Mod(expr1, expr2) => (*expr1).eval() % (*expr2).eval(),
-            Expr::Exp(expr1, expr2) => (*expr1).eval().powf((*expr2).eval()),
-            _ => todo!(),
+    pub fn eval_to_vector(self, book: &FieldBook, bindings: &Bindings) -> PqlVector {
+        match self.to_owned() {
+            Expr::Path(path) => {
+                let path = path.expand_fullpath(&bindings);
+                let v = book
+                    .source_fields
+                    .get(path.to_string().as_str())
+                    .unwrap()
+                    .to_owned();
+                PqlVector(v)
+            }
+            Self::Num(num) => PqlVector(vec![PqlValue::Float(OrderedFloat(num)); book.column_size]),
+            Self::Add(box expr1, box expr2) => {
+                expr1.eval_to_vector(&book, &bindings) + expr2.eval_to_vector(&book, &bindings)
+            }
+            // Self::Sub(box expr1, box expr2) => {
+            //     expr1.eval_to_vector(&book) - expr2.eval_to_vector(&book)
+            // }
+            Self::Mul(box expr1, box expr2) => {
+                expr1.eval_to_vector(&book, &bindings) * expr2.eval_to_vector(&book, &bindings)
+            }
+            Expr::Num(_) => todo!(),
+            Expr::Func(_) => todo!(),
+            Expr::Add(_, _) => todo!(),
+            Expr::Sub(_, _) => todo!(),
+            Expr::Mul(_, _) => todo!(),
+            Expr::Div(_, _) => todo!(),
+            Expr::Mod(_, _) => todo!(),
+            Expr::Exp(_, _) => todo!(),
+            Expr::Sql(_) => todo!(),
+            // Self::Div(box expr1, box expr2) => {
+            //     expr1.eval_to_vector(&book) / expr2.eval_to_vector(&book)
+            // }
+        }
+    }
+
+    pub fn eval(self) -> PqlValue {
+        match self.to_owned() {
+            Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
+            Self::Add(box expr1, box expr2) => (expr1).eval() + (expr2).eval(),
+            Self::Sub(box expr1, box expr2) => (expr1).eval() - (expr2).eval(),
+            Self::Mul(box expr1, box expr2) => (expr1).eval() * (expr2).eval(),
+            Self::Div(box expr1, box expr2) => (expr1).eval() / (expr2).eval(),
+            Self::Mod(box expr1, box expr2) => (expr1).eval() % (expr2).eval(),
+            Self::Exp(box expr1, box expr2) => (expr1).eval().powf((expr2).eval()),
+            _ => {
+                dbg!(&self);
+
+                todo!()
+            }
+        }
+    }
+
+    pub fn source_field_name_set(&self, bindings: &Bindings) -> HashSet<String> {
+        match self.to_owned() {
+            Expr::Num(_) => HashSet::default(),
+            Expr::Path(path) => {
+                collect! {
+                    as HashSet<String>:
+                    path.expand_fullpath(&bindings).to_string()
+                }
+            }
+            Expr::Add(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set(&bindings);
+                let b = expr2.source_field_name_set(&bindings);
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Sub(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set(&bindings);
+                let b = expr2.source_field_name_set(&bindings);
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Mul(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set(&bindings);
+                let b = expr2.source_field_name_set(&bindings);
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Div(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set(&bindings);
+                let b = expr2.source_field_name_set(&bindings);
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Mod(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set(&bindings);
+                let b = expr2.source_field_name_set(&bindings);
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            Expr::Exp(box expr1, box expr2) => {
+                let a = expr1.source_field_name_set(&bindings);
+                let b = expr2.source_field_name_set(&bindings);
+                a.union(&b).map(String::from).collect::<HashSet<_>>()
+            }
+            _ => {
+                dbg!(&self);
+
+                todo!();
+            }
         }
     }
 }

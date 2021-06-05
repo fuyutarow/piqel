@@ -1,6 +1,6 @@
 use ordered_float::OrderedFloat;
 
-use partiql::sql::parser;
+use partiql::parser;
 use partiql::sql::Expr;
 use partiql::sql::Field;
 use partiql::sql::Func;

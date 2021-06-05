@@ -1,0 +1,65 @@
+[tests.use-eq]
+script = '''
+alias pq ="./target/debug/pq"
+cat samples/ip_addr.json | pq -q "$(cat<<EOS
+SELECT addr_info
+WHERE addr_info.family = 'inet6'
+EOS
+'''
+tobe = '''
+[
+  {
+    "addr_info": {
+      "family": "inet6",
+      "local": "::1",
+      "preferred_life_time": 4292929465,
+      "prefixlen": 128,
+      "scope": "host",
+      "valid_life_time": 4294339495
+    }
+  },
+  {
+    "addr_info": {
+      "family": "inet6",
+      "local": "de99::112:5dfd:de17:e1cf",
+      "preferred_life_time": 4294393545,
+      "prefixlen": 64,
+      "scope": "link",
+      "valid_life_time": 42949393995
+    }
+  }
+]
+'''
+
+[tests.use-like]
+script = '''
+alias pq ="./target/debug/pq"
+cat samples/ip_addr.json | pq -q "$(cat<<EOS
+SELECT addr_info
+WHERE addr_info.family LIKE 'inet6'
+EOS
+'''
+tobe = '''
+[
+  {
+    "addr_info": {
+      "family": "inet6",
+      "local": "::1",
+      "preferred_life_time": 4292929465,
+      "prefixlen": 128,
+      "scope": "host",
+      "valid_life_time": 4294339495
+    }
+  },
+  {
+    "addr_info": {
+      "family": "inet6",
+      "local": "de99::112:5dfd:de17:e1cf",
+      "preferred_life_time": 4294393545,
+      "prefixlen": 64,
+      "scope": "link",
+      "valid_life_time": 42949393995
+    }
+  }
+]
+'''
