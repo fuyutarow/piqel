@@ -75,10 +75,8 @@ impl Expr {
         match self.to_owned() {
             Expr::Path(path) => {
                 let path = path.expand_fullpath(&bindings);
-                dbg!(&path);
                 let v = book
                     .source_fields
-                    // .get(&path.last().unwrap())
                     .get(path.to_string().as_str())
                     .unwrap()
                     .to_owned();

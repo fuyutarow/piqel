@@ -65,23 +65,26 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
         .collect::<Vec<_>>();
     dbg!(&projs);
 
-    let selected_source = {
-        let v = projs
-            .iter()
-            .map(|proj| proj.source_field_name_set(&bindings))
-            .fold(HashSet::default(), |acc, x| {
-                acc.union(&x).map(String::from).collect::<HashSet<_>>()
-            });
+    let source_field_name_list = projs
+        .iter()
+        .map(|proj| proj.source_field_name_set(&bindings))
+        .fold(HashSet::default(), |acc, x| {
+            acc.union(&x).map(String::from).collect::<HashSet<_>>()
+        });
 
-        data.select_by_fields(
-            v.into_iter()
-                .map(|s| parser::parse_field(&s).unwrap().1)
+    let selected_source = data
+        .select_by_fields(
+            source_field_name_list
+                .into_iter()
+                .map(|s| {
+                    let mut field = parser::parse_field(&s).unwrap().1;
+                    field.alias = Some(field.path.to_string());
+                    field
+                })
                 .collect::<Vec<_>>()
                 .as_slice(),
         )
-        .unwrap()
-    };
-
+        .unwrap();
     let mut book = FieldBook::from(selected_source.to_owned());
     book.project_fields(&projs, &bindings);
 
