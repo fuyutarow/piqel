@@ -17,8 +17,8 @@ pub struct Proj {
 }
 
 impl Proj {
-    pub fn eval(self, book: &FieldBook) -> PqlVector {
-        self.expr.eval_to_vector(&book)
+    pub fn eval(self, book: &FieldBook, bindings: &Bindings) -> PqlVector {
+        self.expr.eval_to_vector(&book, &bindings)
     }
 
     pub fn to_field(&self, bindings: &Bindings) -> Field {
@@ -35,8 +35,8 @@ impl Proj {
         }
     }
 
-    pub fn source_field_name_set(&self) -> HashSet<String> {
-        self.expr.source_field_name_set()
+    pub fn source_field_name_set(&self, bindings: &Bindings) -> HashSet<String> {
+        self.expr.source_field_name_set(bindings)
     }
 
     pub fn target_field_name(&self) -> String {

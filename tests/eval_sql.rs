@@ -36,7 +36,7 @@ fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {
 #[test]
 fn q1() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q1")?;
-    let res = evaluate(&sql, &data)?;
+    let res = evaluate(&sql, &data);
     assert_eq!(res, output);
     Ok(())
 }
@@ -44,7 +44,7 @@ fn q1() -> anyhow::Result<()> {
 #[test]
 fn q2() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q2")?;
-    let res = evaluate(&sql, &data)?;
+    let res = evaluate(&sql, &data);
     assert_eq!(res, output);
     Ok(())
 }
@@ -52,7 +52,7 @@ fn q2() -> anyhow::Result<()> {
 #[test]
 fn q3() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q3")?;
-    let res = evaluate(&sql, &data)?;
+    let res = evaluate(&sql, &data);
     assert_eq!(res, output);
     Ok(())
 }
@@ -68,7 +68,7 @@ fn q3() -> anyhow::Result<()> {
 #[test]
 fn q5() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q5")?;
-    let res = evaluate(&sql, &data)?;
+    let res = evaluate(&sql, &data);
     assert_eq!(res, output);
     Ok(())
 }

@@ -37,40 +37,39 @@ struct Opt {
 }
 
 fn main() -> anyhow::Result<()> {
-    let _ = match Opt::from_args() {
-        Opt {
-            file_or_stdin,
-            query,
-            to,
-            sort_keys,
-        } => {
-            let input = if let Some(file) = file_or_stdin {
-                std::fs::read_to_string(file)?
-            } else {
-                read_from_stdin()?
-            };
+    let Opt {
+        file_or_stdin,
+        query,
+        to,
+        sort_keys,
+    } = Opt::from_args();
+    let _ = {
+        let input = if let Some(file) = file_or_stdin {
+            std::fs::read_to_string(file)?
+        } else {
+            read_from_stdin()?
+        };
 
-            let mut lang = Lang::from_str(&input)?;
-            if let Some(t) = to {
-                match LangType::from_str(&t) {
-                    Ok(lang_type) => lang.to = lang_type,
-                    Err(err) => eprintln!("not support"),
-                }
+        let mut lang = Lang::from_str(&input)?;
+        if let Some(t) = to {
+            match LangType::from_str(&t) {
+                Ok(lang_type) => lang.to = lang_type,
+                Err(err) => eprintln!("not support"),
             }
-
-            if let Some(q) = query {
-                let sql = parser::sql(&q)?;
-                let result = sql::evaluate(&sql, &lang.data);
-                lang.data = result?;
-                lang.colnames = sql.get_colnames();
-            }
-
-            if lang.to == LangType::Json && sort_keys {
-                lang.sort_keys();
-            }
-
-            lang.print();
         }
+
+        if let Some(q) = query {
+            let sql = parser::sql(&q)?;
+            let result = sql::evaluate(&sql, &lang.data);
+            lang.data = result;
+            lang.colnames = sql.get_colnames();
+        }
+
+        if lang.to == LangType::Json && sort_keys {
+            lang.sort_keys();
+        }
+
+        lang.print();
     };
 
     Ok(())

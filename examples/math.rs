@@ -11,6 +11,7 @@ use ordered_float::OrderedFloat;
 
 use partiql::lang::Lang;
 use partiql::parser;
+use partiql::sql::Bindings;
 use partiql::sql::FieldBook;
 use partiql::sql::Proj;
 use partiql::sql::{evaluate, Expr};
@@ -36,23 +37,32 @@ fn main() -> anyhow::Result<()> {
     )?;
     dbg!(&sql);
 
+    let fields = sql
+        .from_clause
+        .iter()
+        .chain(sql.left_join_clause.iter())
+        .map(|e| e.to_owned())
+        .collect::<Vec<_>>();
+
+    let bindings = Bindings::from(fields.as_slice());
+
     let projs = sql
         .select_clause
-        .to_owned()
         .into_iter()
         .map(|proj| Proj {
             expr: proj.expr.to_owned(),
             alias: Some(proj.target_field_name()),
         })
         .collect::<Vec<_>>();
-    dbg!(&projs);
+    // dbg!(&projs);
 
     let v = projs
         .iter()
-        .map(|proj| proj.source_field_name_set())
+        .map(|proj| proj.source_field_name_set(&bindings))
         .fold(HashSet::default(), |acc, x| {
             acc.union(&x).map(String::from).collect::<HashSet<_>>()
         });
+    // dbg!(&v);
 
     let selected_source = lang
         .data
@@ -63,14 +73,15 @@ fn main() -> anyhow::Result<()> {
                 .as_slice(),
         )
         .unwrap();
-    dbg!(&&selected_source);
+    dbg!(&selected_source);
+    let mut book = FieldBook::from(selected_source.to_owned());
+    dbg!(&book);
+    // book.project_fields(&projs);
 
-    let mut book = FieldBook::from(selected_source);
-    book.project_fields(&projs);
+    //     let records = book.to_record();
 
-    let records = book.to_record();
-
-    let list = records.into_pqlv();
+    //     let list = records.into_pqlv();
+    //     dbg!(&list);
 
     Ok(())
 }
