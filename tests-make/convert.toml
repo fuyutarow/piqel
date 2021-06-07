@@ -7,10 +7,10 @@ INPUT = '''
 }
 '''
 
-[tests.to_json]
+[tests.to-json]
 script = '''
 alias pq ="./target/debug/pq"
-echo ${INPUT} | pq -t json
+echo "${INPUT}" | pq -t json
 '''
 tobe = '''
 {
@@ -20,10 +20,10 @@ tobe = '''
 }
 '''
 
-[tests.to_toml]
+[tests.to-toml]
 script = '''
 alias pq ="./target/debug/pq"
-echo ${INPUT} | pq -t toml
+echo "${INPUT}" | pq -t toml
 '''
 tobe = '''
 name = 'Mew'
@@ -32,10 +32,10 @@ fleeRate = 0.1
 
 '''
 
-[tests.to_yaml]
+[tests.to-yaml]
 script = '''
 alias pq ="./target/debug/pq"
-echo ${INPUT} | pq -t yaml
+echo "${INPUT}" | pq -t yaml
 '''
 tobe = '''
 ---
@@ -45,10 +45,10 @@ fleeRate: 0.1
 
 '''
 
-[tests.to_xml]
+[tests.to-xml]
 script = '''
 alias pq ="./target/debug/pq"
-echo ${INPUT} | pq -t xml
+echo "${INPUT}" | pq -t xml
 '''
 tobe = '''
 <name>Mew</name><id>151</id><fleeRate>0.1</fleeRate>

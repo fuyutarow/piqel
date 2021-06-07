@@ -22,9 +22,15 @@ args = ["build", "--release"]
 command = "cargo"
 args = ["build", "--bin", "pq", "--release"]
 
-# not working
+
+[tasks.test]
+alias = "test:all"
+
 [tasks."test:all"]
-run_task = [{ name = "test:lib" }, { name = "test:pq" }]
+script = '''
+makers test:lib
+makers test:pq
+'''
 
 [tasks."test:lib"]
 command = "cargo"
@@ -71,7 +77,5 @@ script = '''
 alias pc="./target/debug/partiql-cli"
 alias pq="./target/debug/pq"
 for i in $(seq 1 18)
-do
-    cat samples/q$i.env | pc from --to json | pq -S > samples/q$i.json
-done
+cat samples/q$i.env | pc from --to json | pq -S > samples/q$i.json
 '''
