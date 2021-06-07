@@ -32,15 +32,16 @@ impl FromStr for Lang {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> anyhow::Result<Self> {
-        if let Ok(data) = csvstr_to_pqlv(&input) {
-            Ok(Self {
-                data,
-                text: input.to_string(),
-                from: LangType::Csv,
-                to: LangType::Csv,
-                colnames: Vec::default(),
-            })
-        } else if let Ok(data) = serde_json::from_str::<serde_json::value::Value>(&input) {
+        // if let Ok(data) = csvstr_to_pqlv(&input) {
+        //     Ok(Self {
+        //         data,
+        //         text: input.to_string(),
+        //         from: LangType::Csv,
+        //         to: LangType::Csv,
+        //         colnames: Vec::default(),
+        //     })
+        // } else
+        if let Ok(data) = serde_json::from_str::<serde_json::value::Value>(&input) {
             // Json does not distinguish between Float and Int. For this reason, it it parsed once with serde_json::value::Value, not crate::value::PqlValue.
             Ok(Self {
                 data: crate::value::json_value::to_pqlvalue(data),
@@ -117,7 +118,14 @@ impl Lang {
                 let v = TomlValue::from(self.data.to_owned());
                 toml::to_string_pretty(&v).unwrap()
             }
-            (LangType::Yaml, _) => serde_yaml::to_string(&self.data).unwrap(),
+            (LangType::Yaml, _) => {
+                dbg!("yaml");
+
+                serde_yaml::to_string(&self.data)
+                    .unwrap()
+                    .trim_start_matches("---\n")
+                    .to_string()
+            }
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
         };
 

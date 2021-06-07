@@ -33,9 +33,9 @@ makers test:pq
 '''
 
 [tasks."test:lib"]
+dependencies = ["build"]
 command = "cargo"
 args = ["test"]
-dependencies = ["build"]
 
 [tasks."test:pq"]
 dependencies = ["build:pq"]
