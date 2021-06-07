@@ -360,7 +360,7 @@ fn q7() -> anyhow::Result<()> {
             ],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Eq {
-                expr: Expr::Mod(
+                expr: Expr::Rem(
                     Box::new(Expr::Path(DPath::from("x"))),
                     Box::new(Expr::Num(2.))
                 ),

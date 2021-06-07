@@ -20,7 +20,7 @@ pub enum Expr {
     Sub(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
-    Mod(Box<Expr>, Box<Expr>),
+    Rem(Box<Expr>, Box<Expr>),
     Exp(Box<Expr>, Box<Expr>),
     Sql(Sql),
 }
@@ -59,7 +59,7 @@ impl Expr {
                 Box::new((*left).expand_fullpath(&bindings)),
                 Box::new((*right).expand_fullpath(&bindings)),
             ),
-            Self::Mod(left, right) => Self::Mod(
+            Self::Rem(left, right) => Self::Rem(
                 Box::new((*left).expand_fullpath(&bindings)),
                 Box::new((*right).expand_fullpath(&bindings)),
             ),
@@ -86,24 +86,19 @@ impl Expr {
             Self::Add(box expr1, box expr2) => {
                 expr1.eval_to_vector(&book, &bindings) + expr2.eval_to_vector(&book, &bindings)
             }
-            // Self::Sub(box expr1, box expr2) => {
-            //     expr1.eval_to_vector(&book) - expr2.eval_to_vector(&book)
-            // }
+            Self::Sub(box expr1, box expr2) => {
+                expr1.eval_to_vector(&book, &bindings) - expr2.eval_to_vector(&book, &bindings)
+            }
             Self::Mul(box expr1, box expr2) => {
                 expr1.eval_to_vector(&book, &bindings) * expr2.eval_to_vector(&book, &bindings)
             }
-            Expr::Num(_) => todo!(),
-            Expr::Func(_) => todo!(),
-            Expr::Add(_, _) => todo!(),
-            Expr::Sub(_, _) => todo!(),
-            Expr::Mul(_, _) => todo!(),
-            Expr::Div(_, _) => todo!(),
-            Expr::Mod(_, _) => todo!(),
-            Expr::Exp(_, _) => todo!(),
-            Expr::Sql(_) => todo!(),
-            // Self::Div(box expr1, box expr2) => {
-            //     expr1.eval_to_vector(&book) / expr2.eval_to_vector(&book)
-            // }
+            Self::Div(box expr1, box expr2) => {
+                expr1.eval_to_vector(&book, &bindings) / expr2.eval_to_vector(&book, &bindings)
+            }
+            Self::Rem(box expr1, box expr2) => {
+                expr1.eval_to_vector(&book, &bindings) % expr2.eval_to_vector(&book, &bindings)
+            }
+            _ => todo!(),
         }
     }
 
@@ -114,7 +109,7 @@ impl Expr {
             Self::Sub(box expr1, box expr2) => (expr1).eval() - (expr2).eval(),
             Self::Mul(box expr1, box expr2) => (expr1).eval() * (expr2).eval(),
             Self::Div(box expr1, box expr2) => (expr1).eval() / (expr2).eval(),
-            Self::Mod(box expr1, box expr2) => (expr1).eval() % (expr2).eval(),
+            Self::Rem(box expr1, box expr2) => (expr1).eval() % (expr2).eval(),
             Self::Exp(box expr1, box expr2) => (expr1).eval().powf((expr2).eval()),
             _ => {
                 dbg!(&self);
@@ -153,7 +148,7 @@ impl Expr {
                 let b = expr2.source_field_name_set(&bindings);
                 a.union(&b).map(String::from).collect::<HashSet<_>>()
             }
-            Expr::Mod(box expr1, box expr2) => {
+            Expr::Rem(box expr1, box expr2) => {
                 let a = expr1.source_field_name_set(&bindings);
                 let b = expr2.source_field_name_set(&bindings);
                 a.union(&b).map(String::from).collect::<HashSet<_>>()
