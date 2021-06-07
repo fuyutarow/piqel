@@ -1,8 +1,7 @@
 
 [tests.nonamed-table]
 script = '''
-alias pq ="./target/debug/pq"
-cat<<EOS | pq -t toml
+cat<<EOS | ./target/debug/pq -t toml
 [
   {
     "id": 3,
@@ -32,8 +31,7 @@ title = 'Software Eng 2'
 
 [tests.value-after-table]
 script = '''
-alias pq ="./target/debug/pq"
-cat<<EOS | pq -t toml
+cat<<EOS | ./target/debug/pq -t toml
 {
   "name": "partiql-pokemon",
   "private": true,

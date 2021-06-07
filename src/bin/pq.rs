@@ -1,3 +1,4 @@
+use std::convert::TryFrom;
 use std::io::{self, Read};
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -29,6 +30,10 @@ struct Opt {
 
     /// target config file
     #[structopt(short, long, possible_values(&["csv", "json", "toml", "yaml", "xml"]))]
+    from: Option<String>,
+
+    /// target config file
+    #[structopt(short, long, possible_values(&["csv", "json", "toml", "yaml", "xml"]))]
     to: Option<String>,
 
     /// sort keys of objects on output. it on works when --to option is json, currently
@@ -40,6 +45,7 @@ fn main() -> anyhow::Result<()> {
     let Opt {
         file_or_stdin,
         query,
+        from,
         to,
         sort_keys,
     } = Opt::from_args();
@@ -50,7 +56,13 @@ fn main() -> anyhow::Result<()> {
             read_from_stdin()?
         };
 
-        let mut lang = Lang::from_str(&input)?;
+        let mut lang = if let Some(s_lang_type) = from {
+            let lang_type = LangType::from_str(&s_lang_type)?;
+            Lang::from_as(&input, lang_type)?
+        } else {
+            Lang::from_str(&input)?
+        };
+
         if let Some(t) = to {
             match LangType::from_str(&t) {
                 Ok(lang_type) => lang.to = lang_type,
