@@ -22,6 +22,20 @@ pub enum BPqlValue {
     Object(BTreeMap<String, Self>),
 }
 
+impl From<PqlValue> for BPqlValue {
+    fn from(pqlv: PqlValue) -> Self {
+        match pqlv {
+            PqlValue::Null => Self::Null,
+            PqlValue::Str(s) => Self::Str(s),
+            PqlValue::Boolean(b) => Self::Boolean(b),
+            PqlValue::Int(i) => Self::Int(i),
+            PqlValue::Float(f) => Self::Float(f),
+            PqlValue::Array(_) => todo!(),
+            PqlValue::Object(_) => todo!(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum PqlValue {

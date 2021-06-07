@@ -11,7 +11,6 @@ mod where_cond;
 
 pub use bindings::Bindings;
 pub use eval::evaluate;
-pub use eval::to_list;
 pub use eval::FieldBook;
 pub use expr::{Expr, Func};
 pub use field::{DPath, Field};
