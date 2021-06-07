@@ -19,6 +19,15 @@ tobe = '''
 }
 '''
 
+[tests.to-json-compact]
+script = '''
+echo $INPUT | ./target/debug/pq -t json -c
+'''
+tobe = '''
+{"name":"Mew","id":151,"fleeRate":0.1}
+'''
+
+
 [tests.to-toml]
 script = '''
 echo $INPUT | ./target/debug/pq -t toml

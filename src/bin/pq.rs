@@ -39,6 +39,10 @@ struct Opt {
     /// sort keys of objects on output. it on works when --to option is json, currently
     #[structopt(short = "S", long)]
     sort_keys: bool,
+
+    /// compact instead of pretty-printed output, only when outputting in JSON
+    #[structopt(short, long)]
+    compact: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -48,6 +52,7 @@ fn main() -> anyhow::Result<()> {
         from,
         to,
         sort_keys,
+        compact,
     } = Opt::from_args();
     let _ = {
         let input = if let Some(file) = file_or_stdin {
@@ -81,7 +86,7 @@ fn main() -> anyhow::Result<()> {
             lang.sort_keys();
         }
 
-        lang.print();
+        lang.print(compact);
     };
 
     Ok(())

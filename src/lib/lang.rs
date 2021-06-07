@@ -136,7 +136,7 @@ impl Lang {
         self.data = data;
     }
 
-    pub fn print(&self) -> anyhow::Result<()> {
+    pub fn print(&self, compact: bool) -> anyhow::Result<()> {
         let output = match (&self.to, &self.from == &self.to) {
             (LangType::Csv, _) => {
                 // To pad missing values with null, serialize them to json, deserialize them with polars, and write them to csv from there.
@@ -159,6 +159,7 @@ impl Lang {
                 let s = String::from_utf8(v)?;
                 s
             }
+            (LangType::Json, _) if compact => serde_json::to_string(&self.data).unwrap(),
             (LangType::Json, _) => serde_json::to_string_pretty(&self.data).unwrap(),
             (_, true) => self.text.to_owned(),
             (LangType::Toml, _) => {
