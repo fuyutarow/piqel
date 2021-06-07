@@ -8,6 +8,7 @@ zx tests/pq/poke.mjs
 script = '''
 brew install jq jo yj
 brew install fuyutarow/tap/tests-make
+brew install fuyutarow/tap/version-make
 '''
 
 [tasks."build:pq"]
