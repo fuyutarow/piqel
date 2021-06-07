@@ -27,8 +27,7 @@ pub mod elements;
 pub mod func;
 pub mod math;
 
-pub use elements::float_number;
-pub use elements::whitespace;
+pub use elements::{float_number, string_allowed_in_field, whitespace};
 
 pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
     let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
@@ -52,15 +51,25 @@ pub fn sql(input: &str) -> anyhow::Result<Sql> {
 }
 
 pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
-    let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause, v_limit)) =
-        tuple((
-            preceded(whitespace, parse_select_clause),
-            many_m_n(0, 1, preceded(whitespace, parse_from_clause)),
-            many_m_n(0, 1, preceded(whitespace, parse_left_join)),
-            many_m_n(0, 1, preceded(whitespace, parse_where)),
-            many_m_n(0, 1, preceded(whitespace, clauses::limit)),
-            // many_m_n(0, 1, preceded(whitespace, clauses::offset)),
-        ))(input)?;
+    let (
+        input,
+        (
+            select_clause,
+            vec_from_clause,
+            vec_left_join_clause,
+            vec_where_clause,
+            v_order_by,
+            v_limit,
+        ),
+    ) = tuple((
+        preceded(whitespace, parse_select_clause),
+        many_m_n(0, 1, preceded(whitespace, parse_from_clause)),
+        many_m_n(0, 1, preceded(whitespace, parse_left_join)),
+        many_m_n(0, 1, preceded(whitespace, parse_where)),
+        many_m_n(0, 1, preceded(whitespace, clauses::orderby)),
+        many_m_n(0, 1, preceded(whitespace, clauses::limit)),
+        // many_m_n(0, 1, preceded(whitespace, clauses::offset)),
+    ))(input)?;
 
     let sql = Sql {
         select_clause,
@@ -71,6 +80,7 @@ pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
         } else {
             None
         },
+        orderby: v_order_by.first().map(|e| e.to_owned()),
         limit: v_limit.first().map(|e| e.to_owned()),
     };
     dbg!(&input);
@@ -83,12 +93,6 @@ fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
         '\\',
         one_of("\"n\\"),
     )(i)
-}
-
-pub fn string_allowed_in_field<'a>(input: &'a str) -> IResult<&'a str, String> {
-    let (input, ss) = many1(alt((alphanumeric1, tag("_"))))(input)?;
-
-    Ok((input, ss.into_iter().collect::<String>()))
 }
 
 pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {

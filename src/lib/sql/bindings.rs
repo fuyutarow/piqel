@@ -105,6 +105,7 @@ mod tests {
             ],
             left_join_clause: vec![],
             where_clause: None,
+            orderby: None,
             limit: None,
         };
 

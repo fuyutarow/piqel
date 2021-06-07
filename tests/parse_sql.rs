@@ -75,6 +75,7 @@ FROM hr
             }],
             left_join_clause: vec![],
             where_clause: None,
+            orderby: None,
             limit: None,
         }
     );
@@ -112,6 +113,7 @@ fn q1() -> anyhow::Result<()> {
                 expr: Expr::Path(DPath::from("e.title"),),
                 right: PqlValue::Str("Dev Mgr".to_owned()),
             })),
+            orderby: None,
             limit: None,
         }
     );
@@ -150,6 +152,7 @@ fn q2() -> anyhow::Result<()> {
                 expr: Expr::Path(DPath::from("p.name")),
                 right: "%security%".to_owned()
             })),
+            orderby: None,
             limit: None,
         }
     );
@@ -190,6 +193,7 @@ fn q3() -> anyhow::Result<()> {
                 alias: Some("p".to_owned()),
             },],
             where_clause: None,
+            orderby: None,
             limit: None,
         }
     );
@@ -232,6 +236,7 @@ FROM hr.employeesNest AS e
                             expr: Expr::Path(DPath::from("p.name"),),
                             right: "%querying%".to_owned()
                         })),
+                        orderby: None,
                         limit: None,
                     }),
                     alias: Some("queryProjectsNum".to_owned()),
@@ -243,6 +248,7 @@ FROM hr.employeesNest AS e
             },],
             left_join_clause: vec![],
             where_clause: None,
+            orderby: None,
             limit: None,
         }
     );
@@ -276,6 +282,7 @@ fn q4() -> anyhow::Result<()> {
                             expr: Expr::Path(DPath::from("p.name"),),
                             right: "%querying%".to_owned()
                         })),
+                        orderby: None,
                         limit: None,
                     }),
                     alias: Some("queryProjectsNum".to_owned()),
@@ -287,6 +294,7 @@ fn q4() -> anyhow::Result<()> {
             },],
             left_join_clause: vec![],
             where_clause: None,
+            orderby: None,
             limit: None,
         }
     );
@@ -374,6 +382,7 @@ fn q7() -> anyhow::Result<()> {
                 ),
                 right: PqlValue::Float(OrderedFloat(0.))
             })),
+            orderby: None,
             limit: None,
         }
     );

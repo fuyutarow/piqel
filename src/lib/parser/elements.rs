@@ -1,6 +1,10 @@
+use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::bytes::complete::take_while;
+use nom::character::complete::alphanumeric1;
 use nom::character::complete::digit1;
 use nom::error::{ErrorKind, ParseError};
+use nom::multi::many1;
 use nom::number::complete::recognize_float;
 use nom::IResult;
 
@@ -9,6 +13,12 @@ use crate::sql::Expr;
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";
     take_while(move |c| chars.contains(c))(input)
+}
+
+pub fn string_allowed_in_field<'a>(input: &'a str) -> IResult<&'a str, String> {
+    let (input, ss) = many1(alt((alphanumeric1, tag("_"))))(input)?;
+
+    Ok((input, ss.into_iter().collect::<String>()))
 }
 
 pub fn integer<'a>(input: &'a str) -> IResult<&'a str, u64> {
