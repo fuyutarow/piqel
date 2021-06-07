@@ -8,6 +8,7 @@ zx tests/pq/poke.mjs
 script = '''
 brew install jq jo yj
 brew install fuyutarow/tap/tests-make
+brew install fuyutarow/tap/version-make
 '''
 
 [tasks."build:pq"]
@@ -42,6 +43,12 @@ dependencies = ["build:pq"]
 script = '''
 tests-make tests-make.toml
 '''
+
+[tasks.update-tap]
+script = '''
+cargo-distribute --tap ~/homebrew-tap/ --channel nightly --bin pq
+'''
+
 
 [tasks.up]
 script = '''
