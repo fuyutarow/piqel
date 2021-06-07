@@ -26,6 +26,7 @@ pub struct Sql {
     pub from_clause: Vec<Field>,
     pub left_join_clause: Vec<Field>,
     pub where_clause: Option<Box<WhereCond>>,
+    pub limit: Option<clause::Limit>,
 }
 
 impl Sql {
@@ -34,5 +35,13 @@ impl Sql {
             .iter()
             .map(|proj| proj.target_field_name())
             .collect()
+    }
+}
+
+pub mod clause {
+    #[derive(Debug, Default, Clone, PartialEq)]
+    pub struct Limit {
+        pub limit: u64,
+        pub offset: u64,
     }
 }

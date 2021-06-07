@@ -22,11 +22,13 @@ use crate::sql::Sql;
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
 
+pub mod clauses;
 pub mod elements;
 pub mod func;
 pub mod math;
 
 pub use elements::float_number;
+pub use elements::whitespace;
 
 pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
     let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
@@ -37,11 +39,6 @@ pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
 
 pub fn parse_path_as_expr<'a>(input: &'a str) -> IResult<&'a str, Expr> {
     map(parse_path, |path| Expr::Path(path))(input)
-}
-
-pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
-    let chars = " \t\r\n";
-    take_while(move |c| chars.contains(c))(input)
 }
 
 pub fn sql(input: &str) -> anyhow::Result<Sql> {
@@ -55,12 +52,14 @@ pub fn sql(input: &str) -> anyhow::Result<Sql> {
 }
 
 pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
-    let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause)) =
+    let (input, (select_clause, vec_from_clause, vec_left_join_clause, vec_where_clause, v_limit)) =
         tuple((
             preceded(whitespace, parse_select_clause),
             many_m_n(0, 1, preceded(whitespace, parse_from_clause)),
             many_m_n(0, 1, preceded(whitespace, parse_left_join)),
             many_m_n(0, 1, preceded(whitespace, parse_where)),
+            many_m_n(0, 1, preceded(whitespace, clauses::limit)),
+            // many_m_n(0, 1, preceded(whitespace, clauses::offset)),
         ))(input)?;
 
     let sql = Sql {
@@ -72,6 +71,7 @@ pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
         } else {
             None
         },
+        limit: v_limit.first().map(|e| e.to_owned()),
     };
     dbg!(&input);
     Ok((input, sql))
