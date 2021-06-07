@@ -1,8 +1,7 @@
 
 [tests.as-name]
 script = '''
-alias pq ="./target/debug/pq"
-cat samples/ip_addr.json | pq -q "SELECT address, ifname, addr_info.family" -t csv
+cat samples/ip_addr.json | ./target/debug/pq -q "SELECT address, ifname, addr_info.family" -t csv
 '''
 tobe = '''
 address,ifname,family

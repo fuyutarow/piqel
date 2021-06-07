@@ -12,9 +12,9 @@ use crate::value::{BPqlValue, PqlValue, TomlValue};
 #[derive(Display, FromStr, PartialEq, Clone, Debug)]
 #[display(style = "snake_case")]
 pub enum LangType {
+    Toml,
     Csv,
     Json,
-    Toml,
     Yaml,
     Xml,
 }
@@ -32,7 +32,33 @@ impl FromStr for Lang {
     type Err = anyhow::Error;
 
     fn from_str(input: &str) -> anyhow::Result<Self> {
-        if let Ok(data) = csvstr_to_pqlv(&input) {
+        if let Ok(this) = Self::from_as_json(input) {
+            Ok(this)
+        } else if let Ok(this) = Self::from_as_toml(input) {
+            Ok(this)
+        } else if let Ok(this) = Self::from_as_xml(input) {
+            Ok(this)
+        } else if let Ok(this) = Self::from_as_xml(input) {
+            Ok(this)
+        } else {
+            anyhow::bail!("not supported")
+        }
+    }
+}
+
+impl Lang {
+    pub fn from_as(input: &str, lnag_type: LangType) -> anyhow::Result<Self> {
+        match lnag_type {
+            LangType::Csv => Self::from_as_csv(input),
+            LangType::Json => Self::from_as_json(input),
+            LangType::Toml => Self::from_as_toml(input),
+            LangType::Yaml => Self::from_as_yaml(input),
+            LangType::Xml => Self::from_as_xml(input),
+        }
+    }
+
+    pub fn from_as_csv(input: &str) -> anyhow::Result<Self> {
+        if let Ok(data) = csvstr_to_pqlv(input) {
             Ok(Self {
                 data,
                 text: input.to_string(),
@@ -40,7 +66,13 @@ impl FromStr for Lang {
                 to: LangType::Csv,
                 colnames: Vec::default(),
             })
-        } else if let Ok(data) = serde_json::from_str::<serde_json::value::Value>(&input) {
+        } else {
+            anyhow::bail!("fail to parse input as csv");
+        }
+    }
+
+    pub fn from_as_json(input: &str) -> anyhow::Result<Self> {
+        if let Ok(data) = serde_json::from_str::<serde_json::value::Value>(input) {
             // Json does not distinguish between Float and Int. For this reason, it it parsed once with serde_json::value::Value, not crate::value::PqlValue.
             Ok(Self {
                 data: crate::value::json_value::to_pqlvalue(data),
@@ -49,7 +81,13 @@ impl FromStr for Lang {
                 to: LangType::Json,
                 colnames: Vec::default(),
             })
-        } else if let Ok(data) = toml::from_str::<PqlValue>(&input) {
+        } else {
+            anyhow::bail!("fail to parse input as json");
+        }
+    }
+
+    pub fn from_as_toml(input: &str) -> anyhow::Result<Self> {
+        if let Ok(data) = toml::from_str::<PqlValue>(input) {
             Ok(Self {
                 data,
                 text: input.to_string(),
@@ -57,7 +95,13 @@ impl FromStr for Lang {
                 to: LangType::Toml,
                 colnames: Vec::default(),
             })
-        } else if let Ok(data) = quick_xml::de::from_str::<PqlValue>(&input) {
+        } else {
+            anyhow::bail!("fail to parse input as toml");
+        }
+    }
+
+    pub fn from_as_xml(input: &str) -> anyhow::Result<Self> {
+        if let Ok(data) = quick_xml::de::from_str::<PqlValue>(input) {
             Ok(Self {
                 data,
                 text: input.to_string(),
@@ -65,7 +109,13 @@ impl FromStr for Lang {
                 to: LangType::Xml,
                 colnames: Vec::default(),
             })
-        } else if let Ok(data) = serde_yaml::from_str::<PqlValue>(&input) {
+        } else {
+            anyhow::bail!("fail to parse input as xml");
+        }
+    }
+
+    pub fn from_as_yaml(input: &str) -> anyhow::Result<Self> {
+        if let Ok(data) = serde_yaml::from_str::<PqlValue>(input) {
             Ok(Self {
                 data,
                 text: input.to_string(),
@@ -74,12 +124,10 @@ impl FromStr for Lang {
                 colnames: Vec::default(),
             })
         } else {
-            anyhow::bail!("not supported")
+            anyhow::bail!("fail to parse input as yaml");
         }
     }
-}
 
-impl Lang {
     pub fn sort_keys(&mut self) {
         let json = serde_json::to_string(&self.data).unwrap();
         let bdata = serde_json::from_str::<BPqlValue>(&json).unwrap();
@@ -88,7 +136,7 @@ impl Lang {
         self.data = data;
     }
 
-    pub fn print(&self) -> anyhow::Result<()> {
+    pub fn print(&self, compact: bool) -> anyhow::Result<()> {
         let output = match (&self.to, &self.from == &self.to) {
             (LangType::Csv, _) => {
                 // To pad missing values with null, serialize them to json, deserialize them with polars, and write them to csv from there.
@@ -111,13 +159,21 @@ impl Lang {
                 let s = String::from_utf8(v)?;
                 s
             }
+            (LangType::Json, _) if compact => serde_json::to_string(&self.data).unwrap(),
             (LangType::Json, _) => serde_json::to_string_pretty(&self.data).unwrap(),
             (_, true) => self.text.to_owned(),
             (LangType::Toml, _) => {
                 let v = TomlValue::from(self.data.to_owned());
                 toml::to_string_pretty(&v).unwrap()
             }
-            (LangType::Yaml, _) => serde_yaml::to_string(&self.data).unwrap(),
+            (LangType::Yaml, _) => {
+                dbg!("yaml");
+
+                serde_yaml::to_string(&self.data)
+                    .unwrap()
+                    .trim_start_matches("---\n")
+                    .to_string()
+            }
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
         };
 
