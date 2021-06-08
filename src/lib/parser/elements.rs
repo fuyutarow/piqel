@@ -5,12 +5,14 @@ use nom::bytes::complete::take_while;
 use nom::character::complete::alphanumeric1;
 use nom::character::complete::char;
 use nom::character::complete::digit1;
+use nom::character::complete::multispace0;
 use nom::character::complete::one_of;
 use nom::character::complete::space1;
 use nom::combinator::cut;
 use nom::error::{ErrorKind, ParseError};
 use nom::multi::many1;
 use nom::number::complete::recognize_float;
+use nom::sequence::delimited;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::{IResult, InputLength};
 
@@ -22,6 +24,10 @@ pub fn eof<I: Copy + InputLength, E: ParseError<I>>(input: I) -> IResult<I, I, E
     } else {
         Err(nom::Err::Error(E::from_error_kind(input, ErrorKind::Eof)))
     }
+}
+
+pub fn comma(input: &str) -> IResult<&str, &str> {
+    delimited(multispace0, tag(","), multispace0)(input)
 }
 
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {

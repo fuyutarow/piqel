@@ -27,7 +27,7 @@ fn keyword_follow_char(input: &str) -> IResult<&str, &str> {
     )))(input)
 }
 
-fn sql_keyword(input: &str) -> IResult<&str, &str> {
+pub fn sql_keyword(input: &str) -> IResult<&str, &str> {
     alt((
         terminated(tag_no_case("SELECT"), keyword_follow_char),
         terminated(tag_no_case("FROM"), keyword_follow_char),
@@ -39,4 +39,8 @@ fn sql_keyword(input: &str) -> IResult<&str, &str> {
         terminated(tag_no_case("LIMIT"), keyword_follow_char),
         terminated(tag_no_case("OFFSET"), keyword_follow_char),
     ))(input)
+}
+
+pub fn clause_delimiter(input: &str) -> IResult<&str, &str> {
+    alt((sql_keyword, eof))(input)
 }
