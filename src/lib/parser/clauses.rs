@@ -112,13 +112,18 @@ pub fn parse_where_like(input: &str) -> IResult<&str, WhereCond> {
 }
 
 pub fn orderby(input: &str) -> IResult<&str, clause::OrderBy> {
-    let (input, (_, field_name, asc_or_desc)) = tuple((
-        tag_no_case("GROUP BY"),
+    let (input, (_, field_name, opt_asc_or_desc)) = tuple((
+        tag_no_case("ORDER BY"),
         preceded(multispace0, string_allowed_in_field),
-        alt((tag_no_case("ASC"), tag_no_case("DESC"))),
+        preceded(
+            multispace0,
+            opt(alt((tag_no_case("ASC"), tag_no_case("DESC")))),
+        ),
     ))(input)?;
 
-    let is_asc = asc_or_desc.to_lowercase() == "asc";
+    let is_asc = opt_asc_or_desc
+        .map(|asc_or_desc| asc_or_desc.to_lowercase() == "asc")
+        .unwrap_or(true);
     Ok((
         input,
         clause::OrderBy {

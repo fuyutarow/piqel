@@ -64,7 +64,6 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
             alias: Some(proj.target_field_name()),
         })
         .collect::<Vec<_>>();
-    dbg!(&projs);
 
     let source_field_name_list = projs
         .iter()
