@@ -24,10 +24,13 @@ use crate::value::PqlValue;
 
 pub mod clauses;
 pub mod elements;
+pub mod expressions;
 pub mod func;
+pub mod keywords;
 pub mod math;
 
 pub use elements::{float_number, string_allowed_in_field, whitespace};
+pub use expressions::parse_expr;
 
 pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
     let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
@@ -55,70 +58,37 @@ pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
         input,
         (
             select_clause,
-            vec_from_clause,
-            vec_left_join_clause,
-            vec_where_clause,
-            v_order_by,
-            v_limit,
+            opt_from_clause,
+            opt_left_join_clause,
+            opt_where_clause,
+            opt_order_by,
+            opt_limit,
         ),
     ) = tuple((
-        preceded(whitespace, parse_select_clause),
-        many_m_n(0, 1, preceded(whitespace, parse_from_clause)),
-        many_m_n(0, 1, preceded(whitespace, parse_left_join)),
-        many_m_n(0, 1, preceded(whitespace, parse_where)),
-        many_m_n(0, 1, preceded(whitespace, clauses::orderby)),
-        many_m_n(0, 1, preceded(whitespace, clauses::limit)),
-        // many_m_n(0, 1, preceded(whitespace, clauses::offset)),
+        preceded(whitespace, clauses::select),
+        opt(preceded(whitespace, parse_from_clause)),
+        opt(preceded(whitespace, parse_left_join)),
+        opt(preceded(whitespace, clauses::parse_where)),
+        opt(preceded(whitespace, clauses::orderby)),
+        opt(preceded(whitespace, clauses::limit)),
     ))(input)?;
 
     let sql = Sql {
         select_clause,
-        from_clause: vec_from_clause.first().unwrap_or(&vec![]).to_owned(),
-        left_join_clause: vec_left_join_clause.first().unwrap_or(&vec![]).to_owned(),
-        where_clause: if let Some(cond) = vec_where_clause.first() {
-            Some(Box::new(cond.to_owned()))
-        } else {
-            None
-        },
-        orderby: v_order_by.first().map(|e| e.to_owned()),
-        limit: v_limit.first().map(|e| e.to_owned()),
+        from_clause: opt_from_clause.unwrap_or_default(),
+        left_join_clause: opt_left_join_clause.unwrap_or_default(),
+        where_clause: opt_where_clause.map(Box::new),
+        orderby: opt_order_by,
+        limit: opt_limit,
     };
     dbg!(&input);
     Ok((input, sql))
-}
-
-fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
-    escaped(
-        alt((alphanumeric1, space1, tag("%"))),
-        '\\',
-        one_of("\"n\\"),
-    )(i)
 }
 
 pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
     let (input, (path, alias)) = tuple((parse_path, parse_alias_in_from_clause))(input)?;
     let res = Field { path, alias };
     Ok((input, res))
-}
-
-pub fn parse_alias_in_select_clause(input: &str) -> IResult<&str, Option<String>> {
-    let (input, vec) = many_m_n(
-        0,
-        1,
-        tuple((
-            preceded(whitespace, alt((tag("AS"), tag("as")))),
-            preceded(whitespace, string_allowed_in_field),
-        )),
-    )(input)?;
-
-    let alias = if let Some(as_alias) = vec.first() {
-        let (_, alias) = as_alias;
-        Some(alias.to_string())
-    } else {
-        None
-    };
-
-    Ok((input, alias))
 }
 
 pub fn parse_alias_in_from_clause(input: &str) -> IResult<&str, Option<String>> {
@@ -139,56 +109,6 @@ pub fn parse_alias_in_from_clause(input: &str) -> IResult<&str, Option<String>> 
     };
 
     Ok((input, alias))
-}
-
-pub fn parse_sql_as_expr(input: &str) -> IResult<&str, Expr> {
-    map(parse_sql, |sql| Expr::Sql(sql))(input)
-}
-
-pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
-    map(tag("*"), |_| Expr::Path(DPath::from("*")))(input)
-}
-
-pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
-    // The math::parse must be placed after the parse_path_as_expr to prevent the inf keyword from being parsed.
-    alt((
-        parse_star_as_expr,
-        math::parse,
-        float_number,
-        func::count,
-        parse_path_as_expr,
-    ))(input)
-}
-
-pub fn parse_proj<'a>(input: &'a str) -> IResult<&'a str, Proj> {
-    let (input, (expr, alias)) = tuple((
-        alt((
-            parse_expr,
-            preceded(
-                preceded(whitespace, char('(')),
-                cut(terminated(
-                    preceded(whitespace, parse_sql_as_expr),
-                    preceded(whitespace, char(')')),
-                )),
-            ),
-        )),
-        parse_alias_in_select_clause,
-    ))(input)?;
-    let res = Proj { expr, alias };
-    Ok((input, res))
-}
-
-pub fn parse_select_clause<'a>(input: &'a str) -> IResult<&'a str, Vec<Proj>> {
-    let (input, vec_proj) = preceded(
-        alt((tag("SELECT"), tag("select"))),
-        preceded(
-            whitespace,
-            separated_list0(char(','), preceded(whitespace, many1(parse_proj))),
-        ),
-    )(input)?;
-
-    let res = vec_proj.into_iter().flatten().collect::<Vec<_>>();
-    Ok((input, res))
 }
 
 pub fn parse_from_clause<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
@@ -217,55 +137,11 @@ pub fn parse_left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     Ok((input, fields))
 }
 
-pub fn string<'a>(input: &'a str) -> IResult<&'a str, &'a str> {
-    alt((
-        preceded(char('"'), cut(terminated(parse_str, char('"')))),
-        preceded(char('\''), cut(terminated(parse_str, char('\'')))),
-    ))(input)
-}
-
 pub fn parse_value(input: &str) -> IResult<&str, PqlValue> {
     alt((
-        map(string, |s| PqlValue::Str(s.to_string())),
+        map(elements::string, |s| PqlValue::Str(s.to_string())),
         map(double, |f| PqlValue::Float(OrderedFloat(f as f64))),
     ))(input)
-}
-
-pub fn parse_where_like(input: &str) -> IResult<&str, WhereCond> {
-    let (input, (expr, _, s)) = preceded(
-        whitespace,
-        tuple((
-            parse_expr,
-            preceded(whitespace, tag("LIKE")),
-            preceded(whitespace, string),
-        )),
-    )(input)?;
-
-    let res = WhereCond::Like {
-        expr,
-        right: s.to_string(),
-    };
-
-    Ok((input, res))
-}
-
-pub fn parse_where_eq(input: &str) -> IResult<&str, WhereCond> {
-    let (input, (expr, _, right)) = preceded(
-        whitespace,
-        tuple((
-            parse_expr,
-            preceded(whitespace, tag("=")),
-            preceded(whitespace, parse_value),
-        )),
-    )(input)?;
-
-    let res = WhereCond::Eq { expr, right };
-
-    Ok((input, res))
-}
-
-pub fn parse_where<'a>(input: &'a str) -> IResult<&'a str, WhereCond> {
-    preceded(tag("WHERE"), alt((parse_where_eq, parse_where_like)))(input)
 }
 
 pub fn array<'a>(input: &'a str) -> IResult<&'a str, Vec<u64>> {

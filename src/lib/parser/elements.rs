@@ -1,14 +1,28 @@
 use nom::branch::alt;
+use nom::bytes::complete::escaped;
 use nom::bytes::complete::tag;
 use nom::bytes::complete::take_while;
 use nom::character::complete::alphanumeric1;
+use nom::character::complete::char;
 use nom::character::complete::digit1;
+use nom::character::complete::one_of;
+use nom::character::complete::space1;
+use nom::combinator::cut;
 use nom::error::{ErrorKind, ParseError};
 use nom::multi::many1;
 use nom::number::complete::recognize_float;
-use nom::IResult;
+use nom::sequence::{preceded, terminated, tuple};
+use nom::{IResult, InputLength};
 
 use crate::sql::Expr;
+
+pub fn eof<I: Copy + InputLength, E: ParseError<I>>(input: I) -> IResult<I, I, E> {
+    if input.input_len() == 0 {
+        Ok((input, input))
+    } else {
+        Err(nom::Err::Error(E::from_error_kind(input, ErrorKind::Eof)))
+    }
+}
 
 pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
     let chars = " \t\r\n";
@@ -42,6 +56,21 @@ pub fn float_number<'a>(input: &'a str) -> IResult<&'a str, Expr> {
             ErrorKind::Float,
         ))),
     }
+}
+
+pub fn string<'a>(input: &'a str) -> IResult<&'a str, &'a str> {
+    alt((
+        preceded(char('"'), cut(terminated(parse_str, char('"')))),
+        preceded(char('\''), cut(terminated(parse_str, char('\'')))),
+    ))(input)
+}
+
+fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
+    escaped(
+        alt((alphanumeric1, space1, tag("%"))),
+        '\\',
+        one_of("\"n\\"),
+    )(i)
 }
 
 #[cfg(test)]

@@ -115,6 +115,12 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
             .collect::<Vec<_>>();
     }
 
+    if let Some(limit_clause) = &sql.limit {
+        let (_, values) = list.split_at(limit_clause.offset as usize);
+        let (values, _) = values.split_at(limit_clause.limit as usize);
+        list = values.to_owned();
+    }
+
     PqlValue::Array(list)
 }
 
