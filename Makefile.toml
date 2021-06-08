@@ -15,6 +15,12 @@ brew install fuyutarow/tap/version-make
 command = "cargo"
 args = ["build", "--bin", "pq"]
 
+[tasks."build:wasm"]
+script = '''
+cd partiql-rs
+wasm-pack build
+'''
+
 [tasks.release]
 command = "cargo"
 args = ["build", "--release"]
