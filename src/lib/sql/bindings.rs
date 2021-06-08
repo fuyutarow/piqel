@@ -89,7 +89,7 @@ mod tests {
     #[test]
     fn get_full_path() -> anyhow::Result<()> {
         let sql = Sql {
-            select_clause: parser::parse_select_clause(
+            select_clause: parser::clauses::select(
                 r#"SELECT e.name AS employeeName, p.name AS projectName"#,
             )?
             .1,
@@ -105,6 +105,8 @@ mod tests {
             ],
             left_join_clause: vec![],
             where_clause: None,
+            orderby: None,
+            limit: None,
         };
 
         let fields = sql

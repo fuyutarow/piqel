@@ -21,7 +21,7 @@ fn float() -> anyhow::Result<()> {
     let mut lang = Lang::from_str(input)?;
     lang.to = LangType::Json;
 
-    lang.print();
+    lang.print(false);
 
     Ok(())
 }

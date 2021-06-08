@@ -59,7 +59,7 @@ fn parse_op(tup: (char, Expr), expr1: Expr) -> Expr {
         '-' => Expr::Sub(Box::new(expr1), Box::new(expr2)),
         '*' => Expr::Mul(Box::new(expr1), Box::new(expr2)),
         '/' => Expr::Div(Box::new(expr1), Box::new(expr2)),
-        '%' => Expr::Mod(Box::new(expr1), Box::new(expr2)),
+        '%' => Expr::Rem(Box::new(expr1), Box::new(expr2)),
         '^' => Expr::Exp(Box::new(expr1), Box::new(expr2)),
         _ => unreachable!(),
     }
