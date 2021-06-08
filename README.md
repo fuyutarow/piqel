@@ -7,6 +7,18 @@ What's [PartiQL](https://partiql.org/)?
 
 # `pq` command
 ```
+pq samples/pokemon.json -q "$(cat<<EOF
+SELECT
+  no AS id,
+  name,
+  weight/height/height AS bmi
+ORDER BY bmi DESC
+LIMIT 10
+EOF
+)" -t csv
+```
+
+```
 curl -s https://api.github.com/users/fuyutarow/repos | pq -q "$(cat<<EOS
 SELECT
   owner.login AS user,
@@ -65,6 +77,16 @@ WHERE inet LIKE 'inet%'
 EOS
 )"
 ```
+
+- [x] SELECT
+- [x] FROM
+- [x] LEFT JOIN
+- [x] WHERE
+- [x] LIKE
+- [x] ORDER BY
+- [x] LIMIT
+
+[more examples](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make)
 
 
 ## For Development
