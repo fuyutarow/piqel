@@ -2,50 +2,35 @@ use std::io::{self, Read};
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use structopt::StructOpt;
-
-use partiql::dsql_parser as sql_parser;
 use partiql::lang::{Lang, LangType};
-use partiql::sql::run;
+use partiql::parser;
+use partiql::sql::evaluate;
 use partiql::value::JsonValue;
 
-use collect_mac::collect;
-
-use std::collections::HashMap as Map;
-
 fn main() -> anyhow::Result<()> {
-  let input = r#"
-{
-  "name": "partiql-pokemon",
-  "version": "0.202105.0",
-  "array": [
-    1,
-    3,
-    "ko"
-  ],
-  "private": true,
-  "scripts": {
-    "dev": "next",
-    "build": "next build",
-    "start": "next start",
-    "prod": "next build && next start",
-    "lint": "eslint . --fix -c .eslintrc.js --ext js,jsx,ts,tsx --ignore-pattern='!.*'",
-    "type-check": "tsc"
-  },
-  "license": "MIT"
-}
-"#;
+    let input = std::fs::read_to_string("samples/ip_addr.json").unwrap();
 
-  let r = serde_json::from_str::<JsonValue>(&input);
-  dbg!(&r);
+    let r = serde_json::from_str::<JsonValue>(&input);
+    dbg!(&r);
 
-  let mut lang = Lang::from_str(&input)?;
-  lang.to = LangType::Toml;
-  // lang.to = LangType::Yaml;
+    let sql = {
+        let input = "
+SELECT addr_info
+WHERE addr_info.family = 'inet6'
+        ";
+        parser::sql(&input)?
+    };
+    dbg!(&sql);
 
-  dbg!(&lang);
+    let mut lang = Lang::from_str(&input)?;
+    lang.to = LangType::Toml;
+    // lang.to = LangType::Yaml;
 
-  lang.print();
+    // dbg!(&lang);
+    let d = evaluate(&sql, &lang.data);
+    dbg!(d);
 
-  Ok(())
+    // lang.print();
+
+    Ok(())
 }

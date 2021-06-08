@@ -1,0 +1,59 @@
+[env]
+INPUT = '''
+{
+  "name": "Mew",
+  "id": 151,
+  "fleeRate": 0.1
+}
+'''
+
+[tests.to-json]
+script = '''
+echo $INPUT | ./target/debug/pq -t json
+'''
+tobe = '''
+{
+  "name": "Mew",
+  "id": 151,
+  "fleeRate": 0.1
+}
+'''
+
+[tests.to-json-compact]
+script = '''
+echo $INPUT | ./target/debug/pq -t json -c
+'''
+tobe = '''
+{"name":"Mew","id":151,"fleeRate":0.1}
+'''
+
+
+[tests.to-toml]
+script = '''
+echo $INPUT | ./target/debug/pq -t toml
+'''
+tobe = '''
+name = 'Mew'
+id = 151
+fleeRate = 0.1
+
+'''
+
+[tests.to-yaml]
+script = '''
+echo $INPUT | ./target/debug/pq -t yaml
+'''
+tobe = '''
+name: Mew
+id: 151
+fleeRate: 0.1
+
+'''
+
+[tests.to-xml]
+script = '''
+echo $INPUT | ./target/debug/pq -t xml
+'''
+tobe = '''
+<name>Mew</name><id>151</id><fleeRate>0.1</fleeRate>
+'''

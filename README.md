@@ -5,21 +5,67 @@ WIP
 What's [PartiQL](https://partiql.org/)?
 
 
-## `pq`
-### Installation
+# `pq` command
+```
+pq samples/pokemon.json -q "$(cat<<EOF
+SELECT
+  no AS id,
+  name,
+  weight/height/height AS bmi
+ORDER BY bmi DESC
+LIMIT 10
+EOF
+)" -t csv
+```
+
+```
+curl -s https://api.github.com/users/fuyutarow/repos | pq -q "$(cat<<EOS
+SELECT
+  owner.login AS user,
+  stargazers_count AS star,
+  svn_url AS url,
+EOS
+)" -t yaml
+```
+
+## Installation
 ```
 brew install fuyutarow/tap/pq
 ```
 
-### Sample Usage
+## Sample Usage
 
+### Convert JSON <--> TOML <--> YAML <--> ...
+Support
+- [x] JSON
+- [ ] JSON5
+- [x] TOML
+- [x] YAML
+- [x] XML
+
+```
+env | jo | pq
+env | jo | pq -t yaml
+env | jo | pq -t yaml | pq -t toml
+```
+
+sort keys of objects on output
+```
+env | jo | pq -S ;:
+```
+
+##### FYI
+- [jo](https://github.com/jpmens/jo) is a useful tool for creating json objects.
+  ```
+  brew install jo
+  ```
+
+### Convert data
 ```
 env | jo | pq "SELECT NAME AS name, USER AS user"
 ```
-FYI
-- [jo](https://github.com/jpmens/jo): `brew install jo`
 
-
+`ip` command is only available in Linux and WSL, not in Mac.
 ```
 ip -j -p | pq "$(cat<<EOS
 SELECT
@@ -32,90 +78,15 @@ EOS
 )"
 ```
 
+- [x] SELECT
+- [x] FROM
+- [x] LEFT JOIN
+- [x] WHERE
+- [x] LIKE
+- [x] ORDER BY
+- [x] LIMIT
 
-## `partiql-cli`
-
-### Installation
-```
-brew install fuyutarow/tap/partiql-cli
-```
-
-### Usage
-
-#### `partiql-cli sql`
-Using SQL to select data from JSON.
-```
-sql=$(cat << EOS
-SELECT e.id,
-       e.name AS employeeName,
-       e.title AS title
-FROM hr.employees e
-WHERE e.title = 'Dev Mgr'
-EOS
-)
-partiql-cli sql -q "$sql" -f samples/q1.json -t json | jq
-```
-```
-[
-  {
-    "id": 4,
-    "employeeName": "Susan Smith",
-    "title": "Dev Mgr"
-  }
-]
-```
-
-#### `partiql-cli from`
-Convert PartiQL-IR <--> JSON.
-
-This is a PartiQL-IR.
-```
-$ cat samples/q1.env
-{ 
-    'hr': { 
-        'employees': <<
-            -- a tuple is denoted by { ... } in the PartiQL data model
-            { 'id': 3, 'name': 'Bob Smith',   'title': null }, 
-            { 'id': 4, 'name': 'Susan Smith', 'title': 'Dev Mgr' },
-            { 'id': 6, 'name': 'Jane Smith',  'title': 'Software Eng 2'}
-        >>
-    }
-} 
-```
-
-
-PartiQL-IR --> JSON
-```sh
-cat samples/q1.env | partiql-cli from --to json | jq
-```
-```json
-{
-  "hr": {
-    "employees": [
-      {
-        "name": "Bob Smith",
-        "title": null,
-        "id": 3
-      },
-      {
-        "name": "Susan Smith",
-        "title": "Dev Mgr",
-        "id": 4
-      },
-      {
-        "name": "Jane Smith",
-        "id": 6,
-        "title": "Software Eng 2"
-      }
-    ]
-  }
-}
-```
-
-PartiQL-IR --> JSON --> PartiQL-IR
-```sh
-cat samples/q1.env | partiql-cli from --to json | partiql-cli from --to partiql
-```
+[more examples](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make)
 
 
 ## For Development

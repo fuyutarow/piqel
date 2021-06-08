@@ -7,7 +7,8 @@ zx tests/pq/poke.mjs
 [tasks.install-dev]
 script = '''
 brew install jq jo yj
-npm i -g zx
+brew install fuyutarow/tap/tests-make
+brew install fuyutarow/tap/version-make
 '''
 
 [tasks."build:pq"]
@@ -22,20 +23,32 @@ args = ["build", "--release"]
 command = "cargo"
 args = ["build", "--bin", "pq", "--release"]
 
-# not working
+
+[tasks.test]
+alias = "test:all"
+
 [tasks."test:all"]
-run_task = [{ name = "test:lib" }, { name = "test:pq" }]
+script = '''
+makers test:lib
+makers test:pq
+'''
 
 [tasks."test:lib"]
+dependencies = ["build"]
 command = "cargo"
 args = ["test"]
-dependencies = ["build"]
 
 [tasks."test:pq"]
-script = '''
-zx ./tests/pq/*.mjs
-'''
 dependencies = ["build:pq"]
+script = '''
+tests-make tests-make.toml
+'''
+
+[tasks.update-tap]
+script = '''
+cargo-distribute --tap ~/homebrew-tap/ --channel nightly --bin pq
+'''
+
 
 [tasks.up]
 script = '''
@@ -71,7 +84,5 @@ script = '''
 alias pc="./target/debug/partiql-cli"
 alias pq="./target/debug/pq"
 for i in $(seq 1 18)
-do
-    cat samples/q$i.env | pc from --to json | pq -S > samples/q$i.json
-done
+cat samples/q$i.env | pc from --to json | pq -S > samples/q$i.json
 '''

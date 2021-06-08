@@ -1,6 +1,7 @@
-pub mod dsql_parser;
+#![feature(box_patterns)]
 pub mod lang;
 pub mod models;
+pub mod parser;
 pub mod pqlir_parser;
 pub mod sql;
 pub mod utils;

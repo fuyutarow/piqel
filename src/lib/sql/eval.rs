@@ -1,117 +1,246 @@
+use std::collections::HashSet;
+use std::str::FromStr;
+
+use anyhow::Result;
 use indexmap::IndexMap as Map;
 use itertools::Itertools;
+use rayon::prelude::*;
+use serde_derive::{Deserialize, Serialize};
 
+use crate::parser;
+use crate::sql::restrict;
 use crate::sql::Bindings;
-use crate::sql::DSql as Sql;
+use crate::sql::Expr;
+use crate::sql::Field;
+use crate::sql::Proj;
+use crate::sql::Sql;
+use crate::sql::WhereCond;
+use crate::value::BPqlValue;
 use crate::value::PqlValue;
 
-pub fn run(sql: &Sql, data: &PqlValue) -> PqlValue {
+pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
     let fields = sql
-        .select_clause
+        .from_clause
         .iter()
-        .chain(sql.from_clause.iter())
         .chain(sql.left_join_clause.iter())
         .map(|e| e.to_owned())
         .collect::<Vec<_>>();
+
     let bindings = Bindings::from(fields.as_slice());
 
-    let select_fields = sql
-        .select_clause
-        .iter()
-        .map(|field| field.to_owned().full(&bindings))
-        .collect::<Vec<_>>();
-    let bindings_for_select = Bindings::from(select_fields.as_slice());
-
-    let value = data.select_by_fields(&select_fields).unwrap();
-    let list = to_list(value);
-
-    let filtered_list = list
-        .iter()
-        .filter_map(|value| match &sql.where_clause {
-            Some(cond) if cond.eval(&value.to_owned(), &bindings, &bindings_for_select) => {
-                Some(value.to_owned())
+    let data = match &sql.where_clause {
+        None => data.to_owned(),
+        Some(box WhereCond::Eq { expr, right }) => match expr {
+            Expr::Path(path) => {
+                let path = path.expand_fullpath(&bindings);
+                let cond = WhereCond::Eq {
+                    expr: expr.to_owned(),
+                    right: right.to_owned(),
+                };
+                restrict(Some(data.to_owned()), &path, &Some(cond)).expect("restricted value")
             }
-            Some(_) => None,
-            _ => Some(value.to_owned()),
-        })
-        .collect::<Vec<PqlValue>>();
+            _ => todo!(),
+        },
+        Some(box WhereCond::Like { expr, right }) => match expr {
+            Expr::Path(path) => {
+                let path = path.expand_fullpath(&bindings);
+                let cond = WhereCond::Like {
+                    expr: expr.to_owned(),
+                    right: right.to_owned(),
+                };
+                restrict(Some(data.to_owned()), &path, &Some(cond)).expect("restricted value")
+            }
+            _ => todo!(),
+        },
+        Some(_) => todo!(),
+    };
 
-    PqlValue::Array(filtered_list)
+    let projs = sql
+        .select_clause
+        .to_owned()
+        .into_iter()
+        .map(|proj| Proj {
+            expr: proj.expr.to_owned(),
+            alias: Some(proj.target_field_name()),
+        })
+        .collect::<Vec<_>>();
+
+    let source_field_name_list = projs
+        .iter()
+        .map(|proj| proj.source_field_name_set(&bindings))
+        .fold(HashSet::default(), |acc, x| {
+            acc.union(&x).map(String::from).collect::<HashSet<_>>()
+        });
+
+    let selected_source = data
+        .select_by_fields(
+            source_field_name_list
+                .into_iter()
+                .map(|s| {
+                    let mut field = parser::parse_field(&s).unwrap().1;
+                    field.alias = Some(field.path.to_string());
+                    field
+                })
+                .collect::<Vec<_>>()
+                .as_slice(),
+        )
+        .unwrap();
+    let mut book = FieldBook::from(selected_source.to_owned());
+    book.project_fields(&projs, &bindings);
+
+    let records = book.to_record();
+    let mut list = records.into_list();
+
+    if let Some(orderby) = &sql.orderby {
+        let mut list_with_key = list
+            .into_iter()
+            .filter_map(|record| {
+                record
+                    .to_owned()
+                    .get(&orderby.label)
+                    .map(|value| (BPqlValue::from(value), record))
+            })
+            .collect::<Vec<_>>();
+        list_with_key.sort_by(|x, y| {
+            if orderby.is_asc {
+                x.0.partial_cmp(&y.0).unwrap()
+            } else {
+                y.0.partial_cmp(&x.0).unwrap()
+            }
+        });
+        list = list_with_key
+            .into_iter()
+            .map(|(k, v)| v)
+            .collect::<Vec<_>>();
+    }
+
+    if let Some(limit_clause) = &sql.limit {
+        let (_, values) = list.split_at(limit_clause.offset as usize);
+        let (values, _) = values.split_at(limit_clause.limit as usize);
+        list = values.to_owned();
+    }
+
+    PqlValue::Array(list)
 }
 
-pub fn to_list(value_selected_by_fields: PqlValue) -> Vec<PqlValue> {
-    let (tables, n, keys) = {
-        let mut tables = Map::<String, Vec<PqlValue>>::new();
-        let mut n = 0;
-        let mut keys = vec![];
-        if let PqlValue::Object(map) = value_selected_by_fields {
-            keys = map
-                .keys()
-                .into_iter()
-                .map(|s| s.to_string())
-                .collect::<Vec<String>>();
-            for (key, value) in map {
-                match value {
-                    PqlValue::Array(array) => {
-                        if n == 0 {
-                            n = array.len();
-                        }
-                        tables.insert(key, array);
-                    }
-                    _ => {
-                        n = 1;
-                        tables.insert(key, vec![value]);
-                    }
-                }
-            }
-        }
-        (tables, n, keys)
-    };
+#[derive(Debug, Clone, PartialEq)]
+pub struct FieldBook {
+    pub source_fields: Map<String, Vec<PqlValue>>,
+    pub target_fields: Map<String, Vec<PqlValue>>,
+    pub column_size: usize,
+    pub source_keys: Vec<String>,
+    pub target_keys: Vec<String>,
+}
 
-    let records = {
-        let mut records = Vec::<Map<String, Vec<PqlValue>>>::new();
-        for i in 0..n {
-            let mut record = Map::<String, Vec<PqlValue>>::new();
-            for key in &keys {
-                let v = tables.get(key.as_str()).unwrap().get(i).unwrap();
-                match v {
-                    PqlValue::Array(array) => {
-                        record.insert(key.to_string(), array.to_owned());
-                    }
-                    _ => {
-                        record.insert(key.to_string(), vec![v.to_owned()]);
-                    }
-                }
-            }
-            records.push(record);
-        }
-        records
-    };
-
-    let list = records
-        .into_iter()
-        .map(|record| {
-            let record = record
-                .into_iter()
-                .filter_map(|(k, v)| if v.len() > 0 { Some((k, v)) } else { None })
-                .collect::<Map<String, Vec<PqlValue>>>();
-
-            let keys = record.keys();
-            let it = record.values().into_iter().multi_cartesian_product();
-            it.map(|prod| {
-                let map = keys
-                    .clone()
+impl From<PqlValue> for FieldBook {
+    fn from(pqlv_object: PqlValue) -> Self {
+        let (source_fields, size, source_keys) = {
+            let mut tables = Map::<String, Vec<PqlValue>>::new();
+            let mut n = 0;
+            let mut keys = vec![];
+            if let PqlValue::Object(map) = pqlv_object {
+                keys = map
+                    .keys()
                     .into_iter()
-                    .zip(prod.into_iter())
-                    .map(|(key, p)| (key.to_owned(), p.to_owned()))
-                    .collect::<Map<String, _>>();
-                let v = PqlValue::Object(map);
-                v
-            })
-            .collect::<Vec<PqlValue>>()
-        })
-        .flatten()
-        .collect::<Vec<PqlValue>>();
+                    .map(|s| s.to_string())
+                    .collect::<Vec<String>>();
+                for (key, value) in map {
+                    match value {
+                        PqlValue::Array(array) => {
+                            if n == 0 {
+                                n = array.len();
+                            }
+                            tables.insert(key, array);
+                        }
+                        _ => {
+                            n = 1;
+                            tables.insert(key, vec![value]);
+                        }
+                    }
+                }
+            }
+            (tables, n, keys)
+        };
 
-    list
+        Self {
+            column_size: size,
+            source_keys,
+            source_fields,
+            target_keys: Vec::default(),
+            target_fields: Map::default(),
+        }
+    }
+}
+
+impl FieldBook {
+    pub fn project_fields(&mut self, projs: &[Proj], bindings: &Bindings) {
+        projs.iter().for_each(|proj| {
+            let target_name = proj.to_owned().alias.unwrap();
+            let target_field = proj.to_owned().eval(&self, &bindings);
+            self.target_keys.push(target_name.to_owned());
+            self.target_fields.insert(target_name, target_field.0);
+        });
+    }
+
+    pub fn to_record(&self) -> Records {
+        let records = {
+            let mut records = Vec::<Map<String, Vec<PqlValue>>>::new();
+            for i in 0..self.column_size {
+                let mut record = Map::<String, Vec<PqlValue>>::new();
+                for key in &self.target_keys {
+                    let v = self
+                        .target_fields
+                        .get(key.as_str())
+                        .unwrap()
+                        .get(i)
+                        .unwrap();
+                    match v {
+                        PqlValue::Array(array) => {
+                            record.insert(key.to_string(), array.to_owned());
+                        }
+                        _ => {
+                            record.insert(key.to_string(), vec![v.to_owned()]);
+                        }
+                    }
+                }
+                records.push(record);
+            }
+            records
+        };
+        Records(records)
+    }
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct Records(pub Vec<Map<String, Vec<PqlValue>>>);
+
+impl Records {
+    pub fn into_list(self) -> Vec<PqlValue> {
+        let list = self
+            .0
+            .into_iter()
+            .map(|record| {
+                let record = record
+                    .into_iter()
+                    .filter_map(|(k, v)| if !v.is_empty() { Some((k, v)) } else { None })
+                    .collect::<Map<String, Vec<PqlValue>>>();
+
+                let keys = record.keys();
+                let it = record.values().into_iter().multi_cartesian_product();
+                it.map(|prod| {
+                    let map = keys
+                        .clone()
+                        .into_iter()
+                        .zip(prod.into_iter())
+                        .map(|(key, p)| (key.to_owned(), p.to_owned()))
+                        .collect::<Map<String, _>>();
+                    let v = PqlValue::Object(map);
+                    v
+                })
+                .collect::<Vec<PqlValue>>()
+            })
+            .flatten()
+            .collect::<Vec<PqlValue>>();
+        list
+    }
 }
