@@ -1,6 +1,6 @@
 [package]
 name = "partiql-js"
-version = "0.1.0"
+version = "0.202106.4"
 authors = ["fuyutarow <fuyutarow@gmail.com>"]
 edition = "2018"
 
