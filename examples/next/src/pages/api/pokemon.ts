@@ -1,18 +1,28 @@
+import fs from 'fs';
+import path from 'path'
+import getConfig from 'next/config'
 import type { NextApiRequest, NextApiResponse } from 'next'
+const { serverRuntimeConfig } = getConfig()
 
 import * as partiql from "partiql-js"
 
-
-
-const pokemon = `
-[{"name":"Bulbasaur"},{"name":"Ivysaur"},{"name":"Venusaur"},{"name":"Charmander"},{"name":"Charmeleon"},{"name":"Charizard"},{"name":"Squirtle"},{"name":"Wartortle"},{"name":"Blastoise"},{"name":"Caterpie"},{"name":"Metapod"},{"name":"Butterfree"},{"name":"Weedle"},{"name":"Kakuna"},{"name":"Beedrill"},{"name":"Pidgey"},{"name":"Pidgeotto"},{"name":"Pidgeot"},{"name":"Rattata"},{"name":"Raticate"}]
-`
+const pokemonJson = fs.readFileSync(
+  path.join(serverRuntimeConfig.PROJECT_ROOT, 'samples/pokemon.json'),
+  'utf8'
+)
 
 export default async (req: NextApiRequest, res: NextApiResponse<unknown>) => {
-  const query = req.query.q as string;
+  const query = req.query.q ?? ""
 
-  let s = await partiql.evaluate(query, pokemon, "json", "json") ?? "";
-  let data = JSON.parse(s);
-  res.status(200).json({ data });
-
+  if (query) {
+    try {
+      let result = await partiql.evaluate(query as string, pokemonJson, "json", "json") ?? "";
+      let data = JSON.parse(result);
+      res.status(200).json(data);
+    } catch (e) {
+      res.status(400).json({ "message": e });
+    }
+  } else {
+    res.status(400).json({ "message": "Require PartiQL for q query parameters" });
+  }
 }

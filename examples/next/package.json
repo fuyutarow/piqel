@@ -9,7 +9,8 @@
     "prod": "next build && next start",
     "lint": "eslint . --fix -c .eslintrc.js --ext js,jsx,ts,tsx --ignore-pattern='!.*'",
     "build:partiql": "cd partiql-js && wasm-pack build --release --target nodejs",
-    "add:partiql": "npm run build:partiql && npm add file:partiql-js/pkg",
+    "add:partiql": "npm add file:partiql-js/pkg",
+    "up:partiql": "npm run build:partiql && npm run add:partiql",
     "type-check": "tsc"
   },
   "dependencies": {

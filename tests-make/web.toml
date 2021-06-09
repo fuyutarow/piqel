@@ -1,0 +1,7 @@
+
+[tests.basic]
+script = '''
+curl localhost:3000/api/pokemon -G --data-urlencode 'q= SELECT name ORDER BY name LIMIT 10'
+'''
+tobe = '''
+[{"name":"Abra"},{"name":"Aerodactyl"},{"name":"Aerodactyl-1"},{"name":"Alakazam"},{"name":"Alakazam-1"},{"name":"Arbok"},{"name":"Arcanine"},{"name":"Articuno"},{"name":"Beedrill"},{"name":"Beedrill-1"}]'''
