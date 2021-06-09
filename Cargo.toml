@@ -18,6 +18,7 @@ path = "src/lib/mod.rs"
 [[bin]]
 name = "pq"
 path = "src/bin/pq.rs"
+required-features = ["cli"]
 
 [dependencies]
 anyhow = "1.0.40"

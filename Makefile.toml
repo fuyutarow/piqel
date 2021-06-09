@@ -13,7 +13,7 @@ brew install fuyutarow/tap/version-make
 
 [tasks."build:pq"]
 command = "cargo"
-args = ["build", "--bin", "pq"]
+args = ["build", "--bin", "pq", "--features", "cli"]
 
 [tasks."build:js"]
 script = '''
@@ -28,7 +28,7 @@ args = ["build", "--release"]
 
 [tasks."release:pq"]
 command = "cargo"
-args = ["build", "--bin", "pq", "--release"]
+args = ["build", "--bin", "pq", "--release", "--features", "cli"]
 
 [tasks."release:js"]
 script = '''
