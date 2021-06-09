@@ -8,12 +8,15 @@
     "start": "next start",
     "prod": "next build && next start",
     "lint": "eslint . --fix -c .eslintrc.js --ext js,jsx,ts,tsx --ignore-pattern='!.*'",
+    "build:partiql": "cd partiql-js && wasm-pack build --release --target nodejs",
+    "add:partiql": "npm run build:partiql && npm add file:partiql-js/pkg",
     "type-check": "tsc"
   },
   "dependencies": {
     "@material-ui/core": "^4.11.3",
     "@material-ui/icons": "^4.11.2",
     "next": "^9.4.4",
+    "partiql-js": "file:../../partiql-js/pkg",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"
   },
@@ -24,6 +27,7 @@
     "@types/use-persisted-state": "^0.3.0",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
+    "@wasm-tool/wasm-pack-plugin": "^1.4.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-react-hooks": "^4.2.0",
     "typescript": "^4.2.4"

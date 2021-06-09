@@ -9,11 +9,21 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-extern {
+extern "C" {
     fn alert(s: &str);
 }
 
 #[wasm_bindgen]
 pub fn greet() {
-    alert("Hello, partiql-js!");
+    alert("Hello, partiql!");
+}
+
+#[wasm_bindgen]
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+#[wasm_bindgen]
+pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> Option<String> {
+    partiql::engine::evaluate(sql, input, from, to).ok()
 }
