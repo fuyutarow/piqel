@@ -136,7 +136,7 @@ impl Lang {
         self.data = data;
     }
 
-    pub fn print(&self, compact: bool) -> anyhow::Result<()> {
+    pub fn to_string(&self, compact: bool) -> anyhow::Result<String> {
         let output = match (&self.to, &self.from == &self.to) {
             (LangType::Csv, _) => {
                 // To pad missing values with null, serialize them to json, deserialize them with polars, and write them to csv from there.
@@ -176,6 +176,12 @@ impl Lang {
             }
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
         };
+
+        Ok(output)
+    }
+
+    pub fn print(&self, compact: bool) -> anyhow::Result<()> {
+        let output = self.to_string(compact)?;
 
         if atty::is(atty::Stream::Stdout) {
             let bytes = output.as_bytes().to_vec();

@@ -15,9 +15,10 @@ brew install fuyutarow/tap/version-make
 command = "cargo"
 args = ["build", "--bin", "pq"]
 
-[tasks."build:wasm"]
+[tasks."build:js"]
 script = '''
-cd partiql-rs
+cd partiql-js
+wasm-pack build --release
 wasm-pack build
 '''
 
@@ -29,6 +30,30 @@ args = ["build", "--release"]
 command = "cargo"
 args = ["build", "--bin", "pq", "--release"]
 
+[tasks."release:js"]
+script = '''
+cd partiql-js
+wasm-pack build --release
+'''
+
+[tasks.publish]
+script = '''
+makers publish:rs
+makers publish:js
+'''
+
+[tasks."publish:rs"]
+dependencies = ["release"]
+script = '''
+cargo publish
+'''
+
+[tasks."publish:js"]
+dependencies = ["release:js"]
+script = '''
+cd partiql-js
+wasm-pack publish --tag fuyutarow
+'''
 
 [tasks.test]
 alias = "test:all"
@@ -55,7 +80,6 @@ script = '''
 cargo-distribute --tap ~/homebrew-tap/ --channel nightly --bin pq
 '''
 
-
 [tasks.up]
 script = '''
 git remote add upstream https://github.com/fuyutarow/partiql-rs
@@ -66,6 +90,7 @@ git merge upstream/alpha
 [tasks.version-up]
 script = '''
 version-make up -rz Cargo.toml
+version-make set partiql-js/Cargo.toml -v $(version-make show Cargo.toml)
 '''
 
 [tasks.version-tag]
@@ -82,7 +107,6 @@ git tag v$(version-make show Cargo.toml) -d
 script = '''
 cargo fix
 '''
-
 
 [tasks.generate-json]
 dependencies = ["build"]

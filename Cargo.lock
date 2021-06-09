@@ -75,11 +75,14 @@ checksum = "23b62fc65de8e4e7f52534fb52b0f3ed04746ae267519eef2a83941e8085068b"
 
 [[package]]
 name = "arrow"
-version = "5.0.0-SNAPSHOT"
-source = "git+https://github.com/apache/arrow-rs?rev=f26ffb3091ae355d246edc4a6fcc2c8e5b9bc570#f26ffb3091ae355d246edc4a6fcc2c8e5b9bc570"
+version = "4.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93811be1c0f60f4b29d80b34dad4e59fdc397a9e580f849df9e2635701498663"
 dependencies = [
+ "cfg_aliases",
  "chrono",
  "csv",
+ "flatbuffers",
  "hex",
  "indexmap",
  "lazy_static",
@@ -227,6 +230,12 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "cfg_aliases"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 
 [[package]]
 name = "chrono"
@@ -508,6 +517,17 @@ name = "fast-float"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95765f67b4b18863968b4a1bd5bb576f732b29a4a28c7cd84c09fa3e2875f33c"
+
+[[package]]
+name = "flatbuffers"
+version = "0.8.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3c502342b7d6d73beb1b8bab39dc01deba0c8ef66f4e6f1eba7c69ee6b38069"
+dependencies = [
+ "bitflags",
+ "smallvec",
+ "thiserror",
+]
 
 [[package]]
 name = "flate2"
@@ -1091,7 +1111,8 @@ dependencies = [
 [[package]]
 name = "polars"
 version = "0.13.4"
-source = "git+https://github.com/ritchie46/polars#05bb3c458365d5ab344720e3b01a8a73a26fcb32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c406ce46726b7d33b05a343d9c1317c0803a419d50bb45275de3f366410e9a80"
 dependencies = [
  "polars-core",
  "polars-io",
@@ -1101,7 +1122,8 @@ dependencies = [
 [[package]]
 name = "polars-arrow"
 version = "0.13.4"
-source = "git+https://github.com/ritchie46/polars#05bb3c458365d5ab344720e3b01a8a73a26fcb32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "53b2d5fb400345c7977e4e728a10be382476f2f9d2caf6b57cd60e97ea17d364"
 dependencies = [
  "arrow",
  "num",
@@ -1111,7 +1133,8 @@ dependencies = [
 [[package]]
 name = "polars-core"
 version = "0.13.4"
-source = "git+https://github.com/ritchie46/polars#05bb3c458365d5ab344720e3b01a8a73a26fcb32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88561e850748c507f0fc7835b35e795e770597ceecb14e0a8f7d8abf8346645d"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1133,7 +1156,8 @@ dependencies = [
 [[package]]
 name = "polars-io"
 version = "0.13.4"
-source = "git+https://github.com/ritchie46/polars#05bb3c458365d5ab344720e3b01a8a73a26fcb32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27388810ec5f3346838725aa0aa49343802c1344b96fe82229ae781c62c98bc7"
 dependencies = [
  "ahash",
  "anyhow",
@@ -1155,7 +1179,8 @@ dependencies = [
 [[package]]
 name = "polars-lazy"
 version = "0.13.4"
-source = "git+https://github.com/ritchie46/polars#05bb3c458365d5ab344720e3b01a8a73a26fcb32"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e7f83284970a9db7d0b6a56d6f944c3988587429c124c1d087188e9d2c7ad7c"
 dependencies = [
  "ahash",
  "itertools",
@@ -1540,6 +1565,12 @@ name = "shell-words"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6fa3938c99da4914afedd13bf3d79bcb6c277d1b2c398d23257a304d9e1b074"
+
+[[package]]
+name = "smallvec"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe0f37c9e8f3c5a4a66ad655a93c74daac4ad00c441533bf5c6e7990bb42604e"
 
 [[package]]
 name = "static_assertions"

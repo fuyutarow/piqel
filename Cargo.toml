@@ -29,7 +29,7 @@ itertools = "0.10.0"
 nom = "6.1.2"
 ordered-float = { version = "2.0", features = ["serde"] }
 parse-display = "0.5.0"
-polars = { version = "0.13.0", features = ["json"], git = "https://github.com/ritchie46/polars" }
+polars = { version = "0.13.0", features = ["json"] }
 quick-xml = { version = "0.22.0", features = ["serialize"] }
 regex = "1.5.4"
 serde = "1.0.126"
