@@ -1,8 +1,9 @@
-[tasks.install-dev]
+[tasks."install:dev"]
 script = '''
 brew install jq jo yj
 brew install fuyutarow/tap/tests-make
 brew install fuyutarow/tap/version-make
+cargo install cargo-distribute
 '''
 
 [tasks."build:pq"]
@@ -87,9 +88,9 @@ script = '''
 tests-make tests-make/web.toml
 '''
 
-[tasks.update-tap]
+[tasks."dist:up"]
 script = '''
-cargo-distribute --tap ~/homebrew-tap/ --channel nightly --bin pq
+cargo-distribute --tap ~/homebrew-tap/ --bin pq --features cli --channel nightly
 '''
 
 [tasks.up]
@@ -99,18 +100,18 @@ git fetch upstream
 git merge upstream/alpha
 '''
 
-[tasks.version-up]
+[tasks."version:up"]
 script = '''
 version-make up -rz Cargo.toml
 version-make set partiql-js/Cargo.toml -v $(version-make show Cargo.toml)
 '''
 
-[tasks.version-tag]
+[tasks."version:tag"]
 script = '''
 git tag v$(version-make show Cargo.toml)
 '''
 
-[tasks.version-untag]
+[tasks."version:untag"]
 script = '''
 git tag v$(version-make show Cargo.toml) -d
 '''
