@@ -1,19 +1,21 @@
-[tasks.hot]
-dependencies = ["build:pq"]
-script = '''
-zx tests/pq/poke.mjs
-'''
-
-[tasks.install-dev]
+[tasks."install:dev"]
 script = '''
 brew install jq jo yj
 brew install fuyutarow/tap/tests-make
 brew install fuyutarow/tap/version-make
+cargo install cargo-distribute
 '''
 
 [tasks."build:pq"]
 command = "cargo"
-args = ["build", "--bin", "pq"]
+args = ["build", "--bin", "pq", "--features", "cli"]
+
+[tasks."build:js"]
+script = '''
+cd partiql-js
+wasm-pack build --release
+wasm-pack build
+'''
 
 [tasks.release]
 command = "cargo"
@@ -21,8 +23,32 @@ args = ["build", "--release"]
 
 [tasks."release:pq"]
 command = "cargo"
-args = ["build", "--bin", "pq", "--release"]
+args = ["build", "--bin", "pq", "--release", "--features", "cli"]
 
+[tasks."release:js"]
+script = '''
+cd partiql-js
+wasm-pack build --release
+'''
+
+[tasks.publish]
+script = '''
+makers publish:rs
+makers publish:js
+'''
+
+[tasks."publish:rs"]
+dependencies = ["release"]
+script = '''
+cargo publish
+'''
+
+[tasks."publish:js"]
+dependencies = ["release:js"]
+script = '''
+cd partiql-js
+wasm-pack publish --tag fuyutarow
+'''
 
 [tasks.test]
 alias = "test:all"
@@ -41,14 +67,31 @@ args = ["test"]
 [tasks."test:pq"]
 dependencies = ["build:pq"]
 script = '''
-tests-make tests-make.toml
+tests-make tests-make/index.toml
 '''
 
-[tasks.update-tap]
+[tasks."web:dev"]
 script = '''
-cargo-distribute --tap ~/homebrew-tap/ --channel nightly --bin pq
+cd examples/next
+npm run dev
 '''
 
+[tasks."web:prod"]
+script = '''
+cd examples/next
+npm run up:partiql
+npm run prod
+'''
+
+[tasks."test:web"]
+script = '''
+tests-make tests-make/web.toml
+'''
+
+[tasks."dist:up"]
+script = '''
+cargo-distribute --tap ~/homebrew-tap/ --bin pq --features cli --channel nightly
+'''
 
 [tasks.up]
 script = '''
@@ -57,17 +100,18 @@ git fetch upstream
 git merge upstream/alpha
 '''
 
-[tasks.version-up]
+[tasks."version:up"]
 script = '''
 version-make up -rz Cargo.toml
+version-make set partiql-js/Cargo.toml -v $(version-make show Cargo.toml)
 '''
 
-[tasks.version-tag]
+[tasks."version:tag"]
 script = '''
 git tag v$(version-make show Cargo.toml)
 '''
 
-[tasks.version-untag]
+[tasks."version:untag"]
 script = '''
 git tag v$(version-make show Cargo.toml) -d
 '''
@@ -76,7 +120,6 @@ git tag v$(version-make show Cargo.toml) -d
 script = '''
 cargo fix
 '''
-
 
 [tasks.generate-json]
 dependencies = ["build"]

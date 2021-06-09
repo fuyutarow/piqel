@@ -2,9 +2,12 @@ use std::convert::TryFrom;
 use std::str::FromStr;
 
 use parse_display::{Display, FromStr};
-use polars::datatypes::AnyValue;
+
+#[cfg(feature = "cli")]
 use polars::prelude::CsvReader;
+#[cfg(feature = "cli")]
 use polars::prelude::*;
+
 use rayon::prelude::*;
 
 use crate::value::{BPqlValue, PqlValue, TomlValue};
@@ -13,6 +16,7 @@ use crate::value::{BPqlValue, PqlValue, TomlValue};
 #[display(style = "snake_case")]
 pub enum LangType {
     Toml,
+    #[cfg(feature = "cli")]
     Csv,
     Json,
     Yaml,
@@ -49,6 +53,7 @@ impl FromStr for Lang {
 impl Lang {
     pub fn from_as(input: &str, lnag_type: LangType) -> anyhow::Result<Self> {
         match lnag_type {
+            #[cfg(feature = "cli")]
             LangType::Csv => Self::from_as_csv(input),
             LangType::Json => Self::from_as_json(input),
             LangType::Toml => Self::from_as_toml(input),
@@ -57,6 +62,7 @@ impl Lang {
         }
     }
 
+    #[cfg(feature = "cli")]
     pub fn from_as_csv(input: &str) -> anyhow::Result<Self> {
         if let Ok(data) = csvstr_to_pqlv(input) {
             Ok(Self {
@@ -136,8 +142,9 @@ impl Lang {
         self.data = data;
     }
 
-    pub fn print(&self, compact: bool) -> anyhow::Result<()> {
+    pub fn to_string(&self, compact: bool) -> anyhow::Result<String> {
         let output = match (&self.to, &self.from == &self.to) {
+            #[cfg(feature = "cli")]
             (LangType::Csv, _) => {
                 // To pad missing values with null, serialize them to json, deserialize them with polars, and write them to csv from there.
                 let sss = match &self.data {
@@ -177,6 +184,13 @@ impl Lang {
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
         };
 
+        Ok(output)
+    }
+
+    #[cfg(feature = "cli")]
+    pub fn print(&self, compact: bool) -> anyhow::Result<()> {
+        let output = self.to_string(compact)?;
+
         if atty::is(atty::Stream::Stdout) {
             let bytes = output.as_bytes().to_vec();
             let lang_type = self.to.to_string();
@@ -193,6 +207,7 @@ impl Lang {
     }
 }
 
+#[cfg(feature = "cli")]
 fn csvstr_to_pqlv(input: &str) -> anyhow::Result<PqlValue> {
     let c = std::io::Cursor::new(input.to_owned());
     let df = CsvReader::new(c).infer_schema(Some(100)).finish()?;

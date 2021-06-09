@@ -3,4 +3,5 @@ includes = [
     "tests-make/package-json.toml",
     "tests-make/se_csv.toml",
     "tests-make/se_toml.toml",
+    "tests-make/pokemon.toml",
 ]
