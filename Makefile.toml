@@ -19,13 +19,14 @@ wasm-pack build
 
 [tasks."install:dev:py"]
 script = '''
-pipx install maturin
+cd partiql-py
+makers update:py
 '''
 
 [tasks."build:py"]
 script = '''
 cd partiql-py
-maturin build --manylinux=off
+makers build:py
 '''
 
 [tasks.release]
@@ -69,6 +70,7 @@ alias = "test:all"
 script = '''
 makers test:lib
 makers test:pq
+makers test:py
 '''
 
 [tasks."test:lib"]
@@ -80,6 +82,13 @@ args = ["test"]
 dependencies = ["build:pq"]
 script = '''
 tests-make tests-make/index.toml
+'''
+
+[tasks."test:py"]
+dependencies = ["build:pq"]
+script = '''
+cd partiql-py
+makers test:py
 '''
 
 [tasks."web:dev"]

@@ -1,21 +1,25 @@
 use pyo3::prelude::*;
-use pyo3::types::IntoPyDict;
-use pyo3::{wrap_pyfunction, wrap_pymodule};
 
-#[pyfunction]
-fn subfunction() -> String {
-    "Subfunction".to_string()
+#[pyclass]
+struct Point2 {
+    #[pyo3(get)]
+    x: f64,
+    #[pyo3(get)]
+    y: f64,
 }
 
-fn init_submodule(module: &PyModule) -> PyResult<()> {
-    module.add_function(wrap_pyfunction!(subfunction, module)?)?;
-    Ok(())
+#[pymethods]
+impl Point2 {
+    #[new]
+    pub fn new(x: f64, y: f64) -> Self {
+        Point2 { x, y }
+    }
 }
 
 #[pymodule]
-fn supermodule(py: Python, module: &PyModule) -> PyResult<()> {
-    let submod = PyModule::new(py, "submodule")?;
-    init_submodule(submod)?;
-    module.add_submodule(submod)?;
+fn partiql(_: Python, m: &PyModule) -> PyResult<()> {
+    m.add("__version__", env!("CARGO_PKG_VERSION"))?;
+    m.add_class::<Point2>()?;
+
     Ok(())
 }
