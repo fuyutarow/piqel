@@ -17,6 +17,17 @@ wasm-pack build --release
 wasm-pack build
 '''
 
+[tasks."install:dev:py"]
+script = '''
+pipx install maturin
+'''
+
+[tasks."build:py"]
+script = '''
+cd partiql-py
+maturin build --manylinux=off
+'''
+
 [tasks.release]
 command = "cargo"
 args = ["build", "--release"]
