@@ -1,0 +1,71 @@
+[env]
+DATABASE_URL = "postgres://user:password@localhost:8132/app"
+
+[tasks."add:submodules"]
+script = '''
+git submodule update --init
+'''
+
+[tasks."install:dev"]
+script = '''
+brew install libpq && brew link --force libpq
+brew install sqldef/sqldef/psqldef
+'''
+
+[tasks."db:migrate"]
+script = '''
+sqlx migrate run
+'''
+
+[tasks."db:create"]
+script = '''
+sqlx database create
+'''
+
+[tasks."db:drop"]
+script = '''
+sqlx database drop
+'''
+
+[tasks."install:sqldef"]
+script = '''
+wget -O - https://github.com/k0kubun/sqldef/releases/latest/download/psqldef_linux_amd64.tar.gz | tar xvz
+'''
+
+[tasks."_install:dev"]
+script = '''
+sudo apt install libpq-dev
+cargo install diesel_cli --no-default-features --features postgres
+sudo apt install libsqlite3-dev
+cargo install diesel_cli --no-default-features --features sqlite
+cargo install diesel_cli --no-default-features --features postgres --force
+brew install sqldef/sqldef/psqldef
+'''
+
+
+[tasks."psql"]
+script = '''
+DATABASE_URL=postgres://user:password@localhost:8132/app
+psql $DATABASE_URL
+'''
+
+[tasks."version:up"]
+script = '''
+version-make up -rz Cargo.toml
+version-make set partiql-js/Cargo.toml -v "$(version-make show Cargo.toml)" -r
+'''
+
+[tasks."version:tag"]
+script = '''
+git tag v$(version-make show Cargo.toml)
+'''
+
+[tasks."version:untag"]
+script = '''
+git tag v$(version-make show Cargo.toml) -d
+'''
+
+[tasks.dev]
+script = '''
+docker-compose -f docker-compose.dev.yml up -d
+'''
