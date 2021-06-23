@@ -210,7 +210,7 @@ packaging = [
     {file = "packaging-20.9.tar.gz", hash = "sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5"},
 ]
 partiql = [
-    {file = "partiql-0.1.0-cp39-cp39-linux_x86_64.whl", hash = "sha256:b4d73bccf81ae5cc58836d3ab1b19ce63fecb2ba0078d70418e2a0e6687a3d2b"},
+    {file = "partiql-0.1.0-cp39-cp39-linux_x86_64.whl", hash = "sha256:1485f6ecde15ad02c5a548e4d8660705629c10a33107dcf1cbf42b22e43696b9"},
 ]
 pluggy = [
     {file = "pluggy-0.13.1-py2.py3-none-any.whl", hash = "sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d"},

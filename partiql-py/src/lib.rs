@@ -21,5 +21,11 @@ fn partiql(_: Python, m: &PyModule) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add_class::<Point2>()?;
 
+    #[pyfn(m, "evaluate")]
+    fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> PyResult<String> {
+        let res = partiql::engine::evaluate(sql, input, from, to);
+        Ok(res.unwrap())
+    }
+
     Ok(())
 }

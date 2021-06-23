@@ -22,3 +22,14 @@ poetry run pytest
 script = '''
 poetry run python
 '''
+
+[tasks."release:py"]
+script = '''
+maturin build --release
+'''
+
+[tasks."publish:py"]
+dependencies = ["release:py"]
+script = '''
+maturin publish
+'''

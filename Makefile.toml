@@ -63,6 +63,17 @@ cd partiql-js
 wasm-pack publish
 '''
 
+[tasks."publish:py"]
+script = '''
+cd partiql-py
+makers publish:py
+'''
+
+[tasks.cov]
+script = '''
+cargo kcov
+'''
+
 [tasks.test]
 alias = "test:all"
 
