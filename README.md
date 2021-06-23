@@ -1,17 +1,66 @@
-# PartiQL-rs
+<div align="center">
+  <h1><code>partiql-rs</code></h1>
+  <strong>An implementation of PartiQL written in Rust</strong>
 
-WIP
+  <h3>
+    <a href="https://partiql.vercel.app">Document</a>
+  </h3>
+</div>
 
+
+```toml:tests-make/hello.toml
+[tests.hello]
+script = '''
+cat<<EOS | pq -q "SELECT NAME, LOGNAME" -t json
+{
+  "SHELL": "/bin/bash",
+  "NAME": "my machine name",
+  "PWD": "/home/fuyutarow/partiql-rs",
+  "LOGNAME": "fuyutarow",
+  "HOME": "/home/fuyutarow",
+  "LANG": "C.UTF-8",
+  "USER": "fuyutarow",
+  "HOSTTYPE": "x86_64",
+  "_": "/usr/bin/env"
+}
+EOS
+'''
+tobe = '''
+[
+  {
+    "NAME": "my machine name",
+    "LOGNAME": "fuyutarow"
+  }
+]
+'''
+```
+
+# Familiy
+| content | lang | package |
+| --- | --- | --- |
+| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs) | CLI(brew, scoop) | https://crates.io/crates/partiql-rs |
+| [partiql-rs](https://github.com/fuyutarow/partiql-rs) | Rust(cargo) | https://crates.io/crates/partiql-rs |
+| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | JavaScript(npm) | https://www.npmjs.com/package/partiql-js |
+| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | Python(pip) | https://pypi.org/project/partiql |
+
+# Table of Contants
+- [Features](#Features)
+- [Motivation](#Motivation)
+- [Usage](#Usage)
+- [Installation](#Installation)
+- [Test](#Test)
+- [LICNECE](#LICENCE)
+- [Appendix](#Appendix)
+
+
+# Features
+
+
+# Motivation
 What's [PartiQL](https://partiql.org/)?
 
-| lang | package |
-| --- | --- |
-| Rust | https://crates.io/crates/partiql-rs |
-| JavaScript | https://www.npmjs.com/package/partiql-js |
-| Python | https://pypi.org/project/partiql |
 
-
-# `pq` command
+# Usage
 ```
 pq samples/pokemon.json -q "$(cat<<EOF
 SELECT
@@ -35,8 +84,11 @@ EOS
 ```
 
 ## Installation
-```
+```sh:$
 brew install fuyutarow/tap/pq
+```
+```sh:$
+scoop install pq
 ```
 
 ## Sample Usage
@@ -60,6 +112,7 @@ sort keys of objects on output
 env | jo | pq -S ;:
 ```
 
+jo[^jo]
 ##### FYI
 - [jo](https://github.com/jpmens/jo) is a useful tool for creating json objects.
   ```
@@ -95,6 +148,34 @@ EOS
 [more examples](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make)
 
 
+# Test
+
+```sh:$
+brew install fuyutarow/tap/tests-make
+tests-make tests-make/index.toml
+makers test:pq
+```
+tests-make[^tests-maek]
+
+| content | test |
+| --- | --- |
+| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make) |
+| [partiql-rs](https://github.com/fuyutarow/partiql-rs) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests) |
+| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js/tests) |
+| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py/tests) |
+
+
+## code coverage
+```sh:
+cargo install cargo-kcov
+cargo kcov
+```
+or
+```sh:$
+makers cov
+```
+
+
 ## For Development
 Requirements
 - [cargo-make](https://github.com/sagiegurari/cargo-make) for `makers`
@@ -115,3 +196,9 @@ makers build:pq ;: for pq commnad
 makers test:lib
 makers test:pq ;: for pq commnad
 ```
+
+
+# Appendix
+
+[^jo]: https://github.com/jpmens/jo
+[^tests-make]: https://github.com/fuyutarow/tests-make
