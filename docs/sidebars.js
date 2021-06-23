@@ -18,5 +18,6 @@ module.exports = {
       'rs/02',
     ],
     "partiql.js (npm)": ['mdx'],
+    "partiql-py (pypi)": ['py/01'],
   },
 };

@@ -161,3 +161,10 @@ alias pq="./target/debug/pq"
 for i in $(seq 1 18)
 cat samples/q$i.env | pc from --to json | pq -S > samples/q$i.json
 '''
+
+[tasks."doc:start"]
+script = '''
+cd docs
+yarn
+yarn start
+'''

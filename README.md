@@ -4,6 +4,12 @@ WIP
 
 What's [PartiQL](https://partiql.org/)?
 
+| lang | package |
+| --- | --- |
+| Rust | https://crates.io/crates/partiql-rs |
+| JavaScript | https://www.npmjs.com/package/partiql-js |
+| Python | https://pypi.org/project/partiql |
+
 
 # `pq` command
 ```
