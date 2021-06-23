@@ -17,6 +17,18 @@ wasm-pack build --release
 wasm-pack build
 '''
 
+[tasks."install:dev:py"]
+script = '''
+cd partiql-py
+makers update:py
+'''
+
+[tasks."build:py"]
+script = '''
+cd partiql-py
+makers build:py
+'''
+
 [tasks.release]
 command = "cargo"
 args = ["build", "--release"]
@@ -51,6 +63,17 @@ cd partiql-js
 wasm-pack publish
 '''
 
+[tasks."publish:py"]
+script = '''
+cd partiql-py
+makers publish:py
+'''
+
+[tasks.cov]
+script = '''
+cargo kcov
+'''
+
 [tasks.test]
 alias = "test:all"
 
@@ -58,6 +81,7 @@ alias = "test:all"
 script = '''
 makers test:lib
 makers test:pq
+makers test:py
 '''
 
 [tasks."test:lib"]
@@ -69,6 +93,13 @@ args = ["test"]
 dependencies = ["build:pq"]
 script = '''
 tests-make tests-make/index.toml
+'''
+
+[tasks."test:py"]
+dependencies = ["build:pq"]
+script = '''
+cd partiql-py
+makers test:py
 '''
 
 [tasks."web:dev"]
@@ -129,4 +160,11 @@ alias pc="./target/debug/partiql-cli"
 alias pq="./target/debug/pq"
 for i in $(seq 1 18)
 cat samples/q$i.env | pc from --to json | pq -S > samples/q$i.json
+'''
+
+[tasks."doc:start"]
+script = '''
+cd docs
+yarn
+yarn start
 '''

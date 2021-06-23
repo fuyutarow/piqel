@@ -1,0 +1,35 @@
+[tasks."update:py"]
+dependencies = ["build:py"]
+script = '''
+wheel_path=$(ls -1 target/wheels/*.whl | tail -1)
+echo $wheel_path
+poetry remove partiql
+poetry add $wheel_path
+'''
+
+[tasks."build:py"]
+script = '''
+maturin build --manylinux=off
+'''
+
+[tasks."test:py"]
+dependencies = ["update:py"]
+script = '''
+poetry run pytest
+'''
+
+[tasks."shell:py"]
+script = '''
+poetry run python
+'''
+
+[tasks."release:py"]
+script = '''
+maturin build --release
+'''
+
+[tasks."publish:py"]
+dependencies = ["release:py"]
+script = '''
+maturin publish
+'''
