@@ -47,10 +47,11 @@ def test_evaluate():
 ```
 
 
-## Familiy
+# Familiy
+
 | content | lang | package |
 | --- | --- | --- |
-| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs) | CLI(brew, scoop) | https://crates.io/crates/partiql-rs |
-| [partiql-rs](https://github.com/fuyutarow/partiql-rs) | Rust(cargo) | https://crates.io/crates/partiql-rs |
-| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | JavaScript(npm) | https://www.npmjs.com/package/partiql-js |
-| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | Python(pip) | https://pypi.org/project/partiql |
+| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs) | CLI (brew, scoop) | |
+| [partiql-rs](https://github.com/fuyutarow/partiql-rs) | Rust (cargo) | https://crates.io/crates/partiql-rs |
+| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | JavaScript (npm) | https://www.npmjs.com/package/partiql-js |
+| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | Python (pip) | https://pypi.org/project/partiql |

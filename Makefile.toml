@@ -4,6 +4,13 @@ brew install jq jo yj
 brew install fuyutarow/tap/tests-make
 brew install fuyutarow/tap/version-make
 cargo install cargo-distribute
+npm i -g markdown-to-document ;: use mdtodoc for publish:README
+'''
+
+[tasks."publish:README"]
+# GitHub Flavored Markdown (GFM) does not support footnotes. So use `mdtodoc` to convert markdown to html.
+script = '''
+mdtodoc docs/README.md
 '''
 
 [tasks."build:pq"]
