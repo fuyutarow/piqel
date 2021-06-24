@@ -1,0 +1,6 @@
+[submodule "examples/with_actix/pokemon.json"]
+	path = examples/with_actix/pokemon.json
+	url = https://github.com/fuyutarow/pokemon.json
+[submodule "examples/partiql-pokemon"]
+	path = examples/partiql-pokemon
+	url = https://github.com/fuyutarow/partiql-pokemon
