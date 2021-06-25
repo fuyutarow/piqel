@@ -6,8 +6,6 @@ authors = ["fuyutarow <fuyutarow@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-requests = "^2.25.1"
-partiql = {path = "target/wheels/partiql-0.1.0-cp39-cp39-linux_x86_64.whl"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

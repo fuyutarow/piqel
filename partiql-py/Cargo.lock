@@ -149,6 +149,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "dict_derive"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0badda90b0a13ab90be340324d663f36d88ab5f689b7e5e8eea68304f736b815"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "dtoa"
 version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -439,6 +450,7 @@ dependencies = [
 name = "partiql"
 version = "0.202106.4"
 dependencies = [
+ "dict_derive",
  "partiql-rs",
  "pyo3",
 ]

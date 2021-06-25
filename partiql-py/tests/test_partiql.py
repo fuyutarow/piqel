@@ -1,7 +1,9 @@
+# %%
 from partiql import __version__
 import partiql
 
 
+# %%
 def test_version():
     assert __version__ == "0.1.0"
 
@@ -24,8 +26,8 @@ def test_evaluate():
     expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
     assert (
         partiql.evaluate(
-            sql,
             input,
+            sql,
             "json",
             "json",
         )
