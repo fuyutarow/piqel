@@ -5,7 +5,7 @@ import partiql
 
 # %%
 def test_version():
-    assert __version__ == "0.1.0"
+    assert __version__ == "0.202106.5"
 
 
 def test_evaluate():

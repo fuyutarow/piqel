@@ -20,7 +20,6 @@ poetry add partiql
 import partiql
 
 def test_evaluate():
-    sql = "SELECT NAME, LOGNAME"
     input = """
 {
   "SHELL": "/bin/bash",
@@ -37,13 +36,20 @@ def test_evaluate():
     expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
     assert (
         partiql.evaluate(
-            sql,
             input,
+            sql,
+            "SELECT NAME, LOGNAME",
             "json",
             "json",
         )
         == expected
     )
+```
+
+## Test
+
+```sh:$
+makers test:py
 ```
 
 

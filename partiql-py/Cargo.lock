@@ -448,7 +448,7 @@ dependencies = [
 
 [[package]]
 name = "partiql"
-version = "0.202106.4"
+version = "0.202106.5"
 dependencies = [
  "dict_derive",
  "partiql-rs",
@@ -458,8 +458,6 @@ dependencies = [
 [[package]]
 name = "partiql-rs"
 version = "0.202106.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa1c20d6fe4502ff6612dd3ccbbc2446c2c4a9dd28bb9cb131cd549ef8448c64"
 dependencies = [
  "anyhow",
  "atty",
