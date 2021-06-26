@@ -1,6 +1,6 @@
 [package]
-name = "partiql"
-version = "0.202106.5"
+name = "partiql-rs"
+version = "0.202106.7"
 edition = "2018"
 description = "A implementation of PartiQL"
 homepage = "https://github.com/fuyutarow/partiql-rs"
@@ -16,12 +16,5 @@ name = "partiql"
 crate-type = ["cdylib"]
 
 [dependencies]
-dict_derive = "0.3.1"
-partiql-rs = { path=".." }
+partiql-rs = { path="..", features=["table"] }
 pyo3 = { version="0.13.2", features=["extension-module"] }
-
-[target.x86_64-apple-darwin]
-rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]
-
-[target.aarch64-apple-darwin]
-rustflags = ["-C", "link-arg=-undefined", "-C", "link-arg=dynamic_lookup"]

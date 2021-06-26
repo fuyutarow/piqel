@@ -1,4 +1,3 @@
-use dict_derive::{FromPyObject, IntoPyObject};
 use pyo3::prelude::*;
 
 #[pyclass]
@@ -15,14 +14,6 @@ impl Point2 {
     pub fn new(x: f64, y: f64) -> Self {
         Point2 { x, y }
     }
-}
-
-#[derive(FromPyObject, IntoPyObject)]
-struct EvaluateArgs {
-    sql: String,
-    input: String,
-    from: String,
-    to: String,
 }
 
 #[pymodule]

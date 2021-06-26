@@ -1,18 +1,16 @@
-[tasks."update:py"]
+[tasks."add:py"]
 dependencies = ["build:py"]
 script = '''
-wheel_path=$(ls -1 target/wheels/*.whl | tail -1)
-echo $wheel_path
-poetry add -D $wheel_path
+poetry run maturin develop
 '''
 
 [tasks."build:py"]
 script = '''
-maturin build --manylinux=off
+poetry run maturin build
 '''
 
 [tasks."test:py"]
-dependencies = ["update:py"]
+dependencies = ["add:py"]
 script = '''
 poetry run pytest
 '''
@@ -24,11 +22,11 @@ poetry run python
 
 [tasks."release:py"]
 script = '''
-maturin build --release
+poetrun run maturin build --release
 '''
 
 [tasks."publish:py"]
 dependencies = ["release:py"]
 script = '''
-maturin publish
+poetrun run maturin publish
 '''

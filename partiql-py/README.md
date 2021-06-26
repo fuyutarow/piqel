@@ -38,7 +38,6 @@ def test_evaluate():
         partiql.evaluate(
             input,
             sql,
-            "SELECT NAME, LOGNAME",
             "json",
             "json",
         )
