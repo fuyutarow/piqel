@@ -1,8 +1,6 @@
 # %%
 from partiql import __version__
 import partiql as pq
-import pandas as pd
-import inspect
 import json
 
 # %%

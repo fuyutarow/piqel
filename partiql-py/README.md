@@ -17,10 +17,10 @@ poetry add partiql
 
 ## Usage
 ```py:test_partiql.py
-import partiql
+import partiql as pq
 
-def test_evaluate():
-    input = """
+data = json.loads(
+    """
 {
   "SHELL": "/bin/bash",
   "NAME": "my machine name",
@@ -33,16 +33,13 @@ def test_evaluate():
   "_": "/usr/bin/env"
 }
 """
-    expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
-    assert (
-        partiql.evaluate(
-            input,
-            sql,
-            "json",
-            "json",
-        )
-        == expected
-    )
+)
+dl = pq.DataLake()
+dl = dl.load(data)
+dl = dl.query("SELECT NAME, LOGNAME")
+output = dl.dumps("json")
+expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
+assert output == expected
 ```
 
 ## Test
