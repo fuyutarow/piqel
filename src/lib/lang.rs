@@ -15,15 +15,21 @@ use crate::value::{BPqlValue, PqlValue, TomlValue};
 #[derive(Display, FromStr, PartialEq, Clone, Debug)]
 #[display(style = "snake_case")]
 pub enum LangType {
-    Toml,
-    #[cfg(feature = "table")]
-    Csv,
     Json,
     Yaml,
+    Toml,
     Xml,
+    #[cfg(feature = "table")]
+    Csv,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+impl Default for LangType {
+    fn default() -> Self {
+        Self::Json
+    }
+}
+
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Lang {
     pub data: PqlValue,
     pub text: String,

@@ -18,6 +18,10 @@ indent_style = space
 insert_final_newline = false
 trim_trailing_whitespace = false
 
+[.py]
+indent_size = 4
+indent_style = space
+
 [*.{json,js,ts,jsx,tsx}]
 indent_size = 2
 indent_style = space
