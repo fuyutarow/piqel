@@ -1,34 +1,30 @@
 # %%
 from partiql import __version__
 import partiql as pq
-import json
+import pandas as pd
+
 
 # %%
 def test_version():
-    assert __version__ == "0.202106.8"
+    assert __version__ == "0.202106.9"
 
 
 # %%
-def test_load_json_and_query():
-    data = json.loads(
-        """
-{
-  "SHELL": "/bin/bash",
-  "NAME": "my machine name",
-  "PWD": "/home/fuyutarow/partiql-rs",
-  "LOGNAME": "fuyutarow",
-  "HOME": "/home/fuyutarow",
-  "LANG": "C.UTF-8",
-  "USER": "fuyutarow",
-  "HOSTTYPE": "x86_64",
-  "_": "/usr/bin/env"
-}
-    """
-    )
-    dl = pq.DataLake()
-    dl = dl.load(data)
+def test_query():
+    data = {
+        "SHELL": "/bin/bash",
+        "NAME": "my machine name",
+        "PWD": "/home/fuyutarow/partiql-rs",
+        "LOGNAME": "fuyutarow",
+        "HOME": "/home/fuyutarow",
+        "LANG": "C.UTF-8",
+        "USER": "fuyutarow",
+        "HOSTTYPE": "x86_64",
+        "_": "/usr/bin/env",
+    }
+    dl = pq.DataLake(data)
     dl = dl.query("SELECT NAME, LOGNAME")
-    output = dl.dumps("json")
+    output = dl.to("json")
     expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
     assert output == expected
 
@@ -49,20 +45,16 @@ def test_loads_json_and_query():
 }
     """
     output = (
-        pq.DataLake()
-        .loads(input)
+        pq.loads(input)
         .query(
             """
 SELECT NAME, LOGNAME
 """
         )
-        .dumps("json")
+        .to("json")
     )
     expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
     assert output == expected
-
-
-test_loads_json_and_query()
 
 
 # %%
@@ -75,14 +67,13 @@ def test_csv():
 
 """
     output = (
-        pq.DataLake()
-        .loads(input, "csv")
+        pq.loads(input, "csv")
         .query(
             """
 SELECT Open
 """
         )
-        .dumps("csv")
+        .to("csv")
     )
     expected = """Open
 197.8146237204083
@@ -91,3 +82,13 @@ SELECT Open
 201.19194661157007
 """
     assert output == expected
+
+
+# %%
+def test_dl2df2dl():
+    with open("../samples/boston.csv") as f:
+        csv_s = f.read()
+    dl = pq.loads(csv_s, "csv")
+    dl2 = pq.DataLake().from_df(dl.to_df())
+
+    assert dl.to_dict() == dl2.to_dict()

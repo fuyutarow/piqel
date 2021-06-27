@@ -307,17 +307,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dict_derive"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0badda90b0a13ab90be340324d663f36d88ab5f689b7e5e8eea68304f736b815"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "dirs"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -429,9 +418,9 @@ dependencies = [
 
 [[package]]
 name = "hermit-abi"
-version = "0.1.18"
+version = "0.1.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "322f4de77956e22ed0e5032c359a0f1273f1f7f0d79bfa3b8ffbc730d7fbcc5c"
+checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
 dependencies = [
  "libc",
 ]
@@ -830,6 +819,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "partiql"
+version = "0.202106.9"
+dependencies = [
+ "partiql-rs",
+ "pyo3",
+ "pyo3-built",
+ "pythonize",
+]
+
+[[package]]
 name = "partiql-rs"
 version = "0.202106.5"
 dependencies = [
@@ -855,17 +854,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "partiql-rs"
-version = "0.202106.8"
-dependencies = [
- "dict_derive",
- "partiql-rs 0.202106.5",
- "pyo3",
- "pyo3-built",
- "pythonize",
-]
-
-[[package]]
 name = "paste"
 version = "0.1.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -886,9 +874,9 @@ dependencies = [
 
 [[package]]
 name = "polars"
-version = "0.14.3"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c75fdaa4584b0c487ec2e366eb0290e184a734e786267c25e576074cfd0e4b50"
+checksum = "af30b18b22af2f44ff7af9aedceb84e73f91bafba51e7093264c0f35a1162d9d"
 dependencies = [
  "polars-core",
  "polars-io",
@@ -897,9 +885,9 @@ dependencies = [
 
 [[package]]
 name = "polars-arrow"
-version = "0.14.3"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e5c8fbc4ebc4bb14fe28fd5810dbe0cb8fefe151eecf4fa7f1f0f49e4e04a41"
+checksum = "7c058f9f4cde5ce9220ffb2cf1c20af3f936b2ca9e997b28a3409f1a54e86bec"
 dependencies = [
  "arrow",
  "num",
@@ -908,9 +896,9 @@ dependencies = [
 
 [[package]]
 name = "polars-core"
-version = "0.14.3"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef9891383e11a2e27e1753ddf5062042e807f45376e442855cb1218347e63251"
+checksum = "6fc8e1f7fe21a6118814d33e1badf1caaee860d8f712ae8bc2857c816ec7200f"
 dependencies = [
  "ahash",
  "anyhow",
@@ -935,9 +923,9 @@ dependencies = [
 
 [[package]]
 name = "polars-io"
-version = "0.14.3"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdf89f51c70a360da2d4b0899a62866cf872a5a4aaf6aaab396e03069a7fa59b"
+checksum = "42a2ba5f0d8f756ee99feb5e244ffedaf6848287726979c00745e6f32236705d"
 dependencies = [
  "ahash",
  "anyhow",
@@ -958,9 +946,9 @@ dependencies = [
 
 [[package]]
 name = "polars-lazy"
-version = "0.14.3"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad790a8b7e2d0725f180d223944f5f04136048ac09c3304be033d724c88aefe9"
+checksum = "438fdf1e6edfad871d70ce1c2ed8c7ec5bc780753ce93dced455fc87ee68453f"
 dependencies = [
  "ahash",
  "itertools",

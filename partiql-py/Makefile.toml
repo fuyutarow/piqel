@@ -15,6 +15,11 @@ script = '''
 poetry run pytest
 '''
 
+[tasks.pytest]
+script = '''
+poetry run pytest
+'''
+
 [tasks."shell:py"]
 script = '''
 poetry run python

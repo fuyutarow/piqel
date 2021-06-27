@@ -19,25 +19,20 @@ poetry add partiql
 ```py:test_partiql.py
 import partiql as pq
 
-data = json.loads(
-    """
-{
-  "SHELL": "/bin/bash",
-  "NAME": "my machine name",
-  "PWD": "/home/fuyutarow/partiql-rs",
-  "LOGNAME": "fuyutarow",
-  "HOME": "/home/fuyutarow",
-  "LANG": "C.UTF-8",
-  "USER": "fuyutarow",
-  "HOSTTYPE": "x86_64",
-  "_": "/usr/bin/env"
+data = {
+    "SHELL": "/bin/bash",
+    "NAME": "my machine name",
+    "PWD": "/home/fuyutarow/partiql-rs",
+    "LOGNAME": "fuyutarow",
+    "HOME": "/home/fuyutarow",
+    "LANG": "C.UTF-8",
+    "USER": "fuyutarow",
+    "HOSTTYPE": "x86_64",
+    "_": "/usr/bin/env",
 }
-"""
-)
-dl = pq.DataLake()
-dl = dl.load(data)
+dl = pq.DataLake(data)
 dl = dl.query("SELECT NAME, LOGNAME")
-output = dl.dumps("json")
+output = dl.to("json")
 expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
 assert output == expected
 ```
