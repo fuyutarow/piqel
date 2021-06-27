@@ -307,6 +307,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "dict_derive"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0badda90b0a13ab90be340324d663f36d88ab5f689b7e5e8eea68304f736b815"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "dirs"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -820,7 +831,7 @@ dependencies = [
 
 [[package]]
 name = "partiql-rs"
-version = "0.202106.4"
+version = "0.202106.5"
 dependencies = [
  "anyhow",
  "atty",
@@ -845,10 +856,13 @@ dependencies = [
 
 [[package]]
 name = "partiql-rs"
-version = "0.202106.7"
+version = "0.202106.8"
 dependencies = [
- "partiql-rs 0.202106.4",
+ "dict_derive",
+ "partiql-rs 0.202106.5",
  "pyo3",
+ "pyo3-built",
+ "pythonize",
 ]
 
 [[package]]
@@ -1033,6 +1047,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyo3-built"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b01f9a39798d591d2ae7552886de8e0205a74782ab6b26f9224f190b3766d9cb"
+
+[[package]]
 name = "pyo3-macros"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1052,6 +1072,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "pythonize"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d04d0a8d9bfc9a2fd5122b7e22e36a02e3e94c323212ab132ac541a064393247"
+dependencies = [
+ "pyo3",
+ "serde",
 ]
 
 [[package]]

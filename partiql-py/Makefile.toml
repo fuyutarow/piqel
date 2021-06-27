@@ -1,4 +1,4 @@
-[tasks."add:py"]
+[tasks."install:py"]
 dependencies = ["build:py"]
 script = '''
 poetry run maturin develop
@@ -10,7 +10,7 @@ poetry run maturin build
 '''
 
 [tasks."test:py"]
-dependencies = ["add:py"]
+dependencies = ["install:py"]
 script = '''
 poetry run pytest
 '''
@@ -22,11 +22,11 @@ poetry run python
 
 [tasks."release:py"]
 script = '''
-poetrun run maturin build --release
+poetry run maturin build --release
 '''
 
 [tasks."publish:py"]
 dependencies = ["release:py"]
 script = '''
-poetrun run maturin publish
+poetry run maturin publish
 '''

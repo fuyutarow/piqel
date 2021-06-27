@@ -1,30 +1,31 @@
 use pyo3::prelude::*;
-
-#[pyclass]
-struct Point2 {
-    #[pyo3(get)]
-    x: f64,
-    #[pyo3(get)]
-    y: f64,
-}
-
-#[pymethods]
-impl Point2 {
-    #[new]
-    pub fn new(x: f64, y: f64) -> Self {
-        Point2 { x, y }
-    }
-}
+use pyo3::types::*;
+use pythonize::{depythonize, pythonize};
 
 #[pymodule]
-fn partiql(_: Python, m: &PyModule) -> PyResult<()> {
+fn partiql(py: Python, m: &PyModule) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-    m.add_class::<Point2>()?;
 
-    #[pyfn(m, "evaluate")]
-    fn evaluate(input: &str, sql: &str, from: &str, to: &str) -> PyResult<String> {
-        let res = partiql::engine::evaluate(sql, input, from, to);
-        Ok(res.unwrap())
+    #[pyfn(m, "loads")]
+    fn loads(py: Python, input: &str, from: &str) -> PyResult<Py<PyAny>> {
+        let data = partiql::engine::loads(input, from).expect("load");
+        let obj = pythonize(py, &data).unwrap();
+        Ok(obj)
+    }
+
+    #[pyfn(m, "dumps")]
+    fn dumps(py: Python, obj: Py<PyAny>, to: &str) -> PyResult<String> {
+        let data = depythonize(obj.as_ref(py)).unwrap();
+        let output = partiql::engine::dumps(data, to).expect("dump");
+        Ok(output)
+    }
+
+    #[pyfn(m, "query_evaluate")]
+    fn query_evaluate(py: Python, obj: Py<PyAny>, q: &str) -> PyResult<Py<PyAny>> {
+        let data = depythonize(obj.as_ref(py)).unwrap();
+        let data = partiql::engine::query_evaluate(data, q).expect("query evaluate");
+        let obj = pythonize(py, &data).unwrap();
+        Ok(obj)
     }
 
     Ok(())
