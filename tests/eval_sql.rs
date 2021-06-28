@@ -1,10 +1,5 @@
-use indexmap::IndexMap;
-
-use itertools::Itertools;
-
 use partiql::parser;
 use partiql::pqlir_parser;
-use partiql::sql;
 use partiql::sql::evaluate;
 use partiql::sql::Sql;
 use partiql::value::PqlValue;

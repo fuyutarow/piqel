@@ -1,19 +1,9 @@
 use nom::branch::alt;
 use nom::bytes::complete::{tag, tag_no_case};
-use nom::character::complete::char;
-use nom::character::complete::digit1;
 use nom::character::complete::multispace0;
-use nom::character::complete::multispace1;
-use nom::combinator::cut;
 use nom::combinator::opt;
-use nom::combinator::peek;
 use nom::error::context;
-use nom::error::ParseError;
-use nom::multi::many1;
-use nom::multi::separated_list0;
 use nom::multi::separated_list1;
-use nom::sequence::delimited;
-use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 

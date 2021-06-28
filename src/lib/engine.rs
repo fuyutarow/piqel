@@ -1,10 +1,8 @@
-use std::any;
 use std::str::FromStr;
 
 use crate::lang::{Lang, LangType};
 use crate::parser;
 use crate::sql;
-use crate::value::JsonValue;
 use crate::value::PqlValue;
 
 pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> anyhow::Result<String> {
@@ -24,7 +22,7 @@ pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> anyhow::Result<
 
 pub fn loads(input: &str, from: &str) -> anyhow::Result<PqlValue> {
     let from_lang_type = LangType::from_str(&from)?;
-    let mut lang = Lang::from_as(&input, from_lang_type)?;
+    let lang = Lang::from_as(&input, from_lang_type)?;
     let value = lang.data;
     Ok(value)
 }

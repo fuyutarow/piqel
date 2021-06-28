@@ -5,16 +5,15 @@ pub use nom::error::convert_error;
 pub use nom::error::VerboseError;
 use nom::{
     branch::alt,
-    bytes::complete::{escaped, tag, take_till, take_while, take_while_m_n},
+    bytes::complete::{escaped, tag, take_while},
     character::complete::{
-        alphanumeric1, char, digit0, digit1, multispace0, multispace1, one_of, space1,
+        alphanumeric1, char, one_of, space1,
     },
-    character::is_alphabetic,
-    combinator::{cut, map, map_res, opt, value},
+    combinator::{cut, map, opt, value},
     error::{context, ContextError, ParseError},
-    multi::{many0, many_m_n, separated_list0},
-    number::complete::{double, float, i64 as parse_i64},
-    sequence::{delimited, preceded, separated_pair, terminated, tuple},
+    multi::{separated_list0},
+    number::complete::{double},
+    sequence::{delimited, preceded, separated_pair, terminated},
     IResult, Parser,
 };
 
@@ -130,7 +129,7 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     preceded(
         whitespace,
         alt((
-            map(null, |s| PqlValue::Null),
+            map(null, |_s| PqlValue::Null),
             map(hash, PqlValue::Object),
             map(array, PqlValue::Array),
             map(bag, PqlValue::Array),
@@ -154,7 +153,7 @@ pub fn pql_model(input: &str) -> anyhow::Result<PqlValue> {
 
     match root::<VerboseError<&str>>(&input) {
         Ok((_, r)) => Ok(r),
-        Err(err) => {
+        Err(_err) => {
             anyhow::bail!("failed")
         }
     }

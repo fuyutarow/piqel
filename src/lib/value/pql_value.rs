@@ -113,7 +113,7 @@ impl PqlValue {
 
     pub fn select_by_path(&self, path: &DPath) -> Option<Self> {
         match self {
-            Self::Object(map) => {
+            Self::Object(_map) => {
                 if let Some((key, tail_path)) = path.to_vec().split_first() {
                     if let Some(obj) = self.clone().get(key) {
                         obj.select_by_path(&DPath::from(tail_path))

@@ -6,7 +6,7 @@ fn main() {
 }
 
 fn parse() -> anyhow::Result<()> {
-    let input = r#"
+    let _input = r#"
 {
    'hr': {
        'employeesNest': <<

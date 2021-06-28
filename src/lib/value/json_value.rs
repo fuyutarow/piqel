@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fmt;
+
 
 use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;

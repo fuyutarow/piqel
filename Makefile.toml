@@ -157,7 +157,7 @@ git tag v$(version-make show Cargo.toml) -d
 
 [tasks.fix]
 script = '''
-cargo fix
+cargo fix --allow-dirty
 '''
 
 [tasks.generate-json]

@@ -1,13 +1,13 @@
 use std::collections::HashSet;
 
-use ordered_float::OrderedFloat;
+
 
 use crate::sql::Bindings;
 use crate::sql::Expr;
 use crate::sql::Field;
 use crate::sql::FieldBook;
-use crate::value::json_value::to_pqlvalue;
-use crate::value::PqlValue;
+
+
 use crate::value::PqlVector;
 
 #[derive(Debug, Default, Clone, PartialEq)]

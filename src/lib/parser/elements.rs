@@ -13,7 +13,7 @@ use nom::error::{ErrorKind, ParseError};
 use nom::multi::many1;
 use nom::number::complete::recognize_float;
 use nom::sequence::delimited;
-use nom::sequence::{preceded, terminated, tuple};
+use nom::sequence::{preceded, terminated};
 use nom::{IResult, InputLength};
 
 use crate::sql::Expr;
@@ -87,7 +87,7 @@ mod tests {
     fn float(input: &str) -> anyhow::Result<Expr> {
         match float_number(input) {
             Ok((_, f)) => Ok(f),
-            Err(err) => anyhow::bail!("fail"),
+            Err(_err) => anyhow::bail!("fail"),
         }
     }
 

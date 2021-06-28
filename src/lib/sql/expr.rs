@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use collect_mac::collect;
 use ordered_float::OrderedFloat;
-use rayon::vec;
+
 
 use crate::sql::Bindings;
 use crate::sql::DPath;

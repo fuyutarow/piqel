@@ -1,18 +1,12 @@
 use nom::branch::alt;
-use nom::bytes::complete::take_while;
 use nom::bytes::complete::{tag, tag_no_case};
-use nom::character::complete::alphanumeric1;
 use nom::character::complete::char;
-use nom::character::complete::digit1;
-use nom::combinator::cut;
 use nom::combinator::map;
 use nom::combinator::opt;
-use nom::error::{ErrorKind, ParseError};
 use nom::multi::separated_list1;
-use nom::number::complete::recognize_float;
 use nom::sequence::delimited;
-use nom::sequence::{preceded, terminated, tuple};
-use nom::{IResult, InputLength};
+use nom::sequence::{preceded, tuple};
+use nom::{IResult};
 
 use crate::sql::DPath;
 use crate::sql::Expr;
@@ -22,6 +16,7 @@ use crate::sql::Proj;
 pub use crate::parser;
 pub use crate::parser::elements;
 pub use crate::parser::elements::string_allowed_in_field;
+use crate::parser::select_statement::parse_sql;
 pub use crate::parser::whitespace;
 pub use crate::sql::clause;
 
@@ -70,7 +65,7 @@ pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
 }
 
 pub fn parse_sql_as_expr(input: &str) -> IResult<&str, Expr> {
-    map(parser::parse_sql, |sql| Expr::Sql(sql))(input)
+    map(parse_sql, |sql| Expr::Sql(sql))(input)
 }
 
 pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {

@@ -1,17 +1,17 @@
 use std::collections::HashSet;
-use std::str::FromStr;
 
-use anyhow::Result;
+
+
 use indexmap::IndexMap as Map;
 use itertools::Itertools;
 use rayon::prelude::*;
-use serde_derive::{Deserialize, Serialize};
+
 
 use crate::parser;
 use crate::sql::restrict;
 use crate::sql::Bindings;
 use crate::sql::Expr;
-use crate::sql::Field;
+
 use crate::sql::Proj;
 use crate::sql::Sql;
 use crate::sql::WhereCond;
@@ -110,7 +110,7 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
         });
         list = list_with_key
             .into_iter()
-            .map(|(k, v)| v)
+            .map(|(_k, v)| v)
             .collect::<Vec<_>>();
     }
 

@@ -1,10 +1,10 @@
 use crate::sql::re_from_str;
-use crate::sql::Bindings;
+
 use crate::sql::DPath;
-use crate::sql::Expr;
+
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
-use indexmap::IndexMap as Map;
+
 
 pub fn restrict(
     value: Option<PqlValue>,
@@ -18,10 +18,10 @@ pub fn restrict(
         Some(PqlValue::Null) => None,
         Some(PqlValue::Str(string)) => {
             let is_match = match cond {
-                Some(WhereCond::Eq { expr, right }) => {
+                Some(WhereCond::Eq { expr: _, right }) => {
                     PqlValue::Str(string.clone()) == right.to_owned()
                 }
-                Some(WhereCond::Like { expr, right }) => re_from_str(&right).is_match(&string),
+                Some(WhereCond::Like { expr: _, right }) => re_from_str(&right).is_match(&string),
 
                 _ => unreachable!(),
             };
@@ -57,7 +57,7 @@ pub fn restrict(
                             *it = v.to_owned();
                             Some(PqlValue::Object(object))
                         }
-                        Some(v) => Some(PqlValue::Object(object.to_owned())),
+                        Some(_v) => Some(PqlValue::Object(object.to_owned())),
                         _ => None,
                     }
                 } else {

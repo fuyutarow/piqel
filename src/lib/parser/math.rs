@@ -1,13 +1,13 @@
 use nom::branch::alt;
-use nom::character::complete::{alpha1, alphanumeric1, char, digit1, space0};
+use nom::character::complete::{char, space0};
 use nom::combinator::map;
 use nom::multi::many0;
 use nom::number::complete::double;
-use nom::sequence::{delimited, preceded, tuple};
+use nom::sequence::{delimited, tuple};
 use nom::IResult;
 
 use crate::sql::Expr;
-use crate::sql::Field;
+
 
 use crate::parser;
 

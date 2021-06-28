@@ -1,7 +1,7 @@
 use partiql::parser;
 
 fn main() -> anyhow::Result<()> {
-    let input = r#"
+    let _input = r#"
 SELECT t.id AS id,
        x AS even
 FROM matrices AS t,

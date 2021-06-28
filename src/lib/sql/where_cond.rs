@@ -38,10 +38,10 @@ impl WhereCond {
         &self,
         left: &PqlValue,
         bindings: &Bindings,
-        bindings_for_select: &Bindings,
+        _bindings_for_select: &Bindings,
     ) -> bool {
         match self {
-            Self::Eq { expr, right } => {
+            Self::Eq { expr: _, right: _ } => {
                 todo!();
             }
             Self::Like { expr, right } => {

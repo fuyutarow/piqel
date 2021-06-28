@@ -21,7 +21,7 @@ fn get_sql(qi: &str) -> anyhow::Result<Sql> {
 fn array123() {
     let input = "[1,2,3]";
 
-    let (input, res) = parser::array(input).unwrap();
+    let (_input, res) = parser::values::array(input).unwrap();
     assert_eq!(vec![1, 2, 3], res);
 }
 
@@ -333,7 +333,7 @@ FROM matrices AS t,
      y AS x
 WHERE x / 2 = 0
     "#;
-    let sql = parser::parse_sql(&input);
+    let sql = parser::sql(&input);
     dbg!(&sql);
 
     if sql.is_ok() {
