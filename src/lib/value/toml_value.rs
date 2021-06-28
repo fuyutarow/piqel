@@ -1,3 +1,5 @@
+use chrono::prelude::*;
+use chrono::serde::ts_seconds;
 use indexmap::IndexMap as Map;
 use serde_derive::{Deserialize, Serialize};
 
@@ -12,6 +14,8 @@ pub enum TomlValue {
     Boolean(bool),
     Float(f64),
     Int(i64),
+    #[serde(with = "ts_seconds")]
+    DateTime(DateTime<Utc>),
     Array(Vec<Self>),
     Object(Map<String, Self>),
 }
@@ -24,6 +28,7 @@ impl From<PqlValue> for TomlValue {
             PqlValue::Boolean(boolean) => Self::Boolean(boolean),
             PqlValue::Float(float) => Self::Float(float.into_inner()),
             PqlValue::Int(int) => Self::Int(int),
+            PqlValue::DateTime(datetime) => Self::DateTime(datetime),
             PqlValue::Array(array) => Self::Array(
                 array
                     .into_iter()

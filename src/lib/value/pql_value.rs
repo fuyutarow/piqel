@@ -2,6 +2,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::convert::TryFrom;
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
+use chrono::prelude::*;
+use chrono::serde::ts_seconds;
+// pub use datetime::{Datetime, DatetimeParseError};
+// use chrono::DateTime;
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 use rayon::prelude::*;
@@ -18,6 +22,8 @@ pub enum BPqlValue {
     Boolean(bool),
     Float(OrderedFloat<f64>),
     Int(i64),
+    #[serde(with = "ts_seconds")]
+    DateTime(DateTime<Utc>),
     Array(BTreeSet<Self>),
     Object(BTreeMap<String, Self>),
 }
@@ -30,6 +36,7 @@ impl From<PqlValue> for BPqlValue {
             PqlValue::Boolean(b) => Self::Boolean(b),
             PqlValue::Int(i) => Self::Int(i),
             PqlValue::Float(f) => Self::Float(f),
+            PqlValue::DateTime(t) => Self::DateTime(t),
             PqlValue::Array(_) => todo!(),
             PqlValue::Object(_) => todo!(),
         }
@@ -44,6 +51,8 @@ pub enum PqlValue {
     Boolean(bool),
     Int(i64),
     Float(OrderedFloat<f64>),
+    #[serde(with = "ts_seconds")]
+    DateTime(DateTime<Utc>),
     Array(Vec<Self>),
     Object(IndexMap<String, Self>),
 }

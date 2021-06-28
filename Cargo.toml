@@ -41,6 +41,8 @@ serde_partiql = "1.1.64"
 structopt = "0.3.21"
 toml = "0.5.8"
 rayon = "1.5"
+datetime = "0.5.2"
+chrono = { version = "0.4.19", features = ["serde"] }
 
 [dependencies.polars]
 version = "0.14.2"

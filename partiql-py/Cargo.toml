@@ -19,4 +19,5 @@ crate-type = ["cdylib"]
 partiql-rs = { path="..", features=["table"] }
 pyo3 = { version="0.13.2", features=["extension-module"] }
 pyo3-built = "0.4.5"
+pyo3-chrono = "0.1.0"
 pythonize = "0.13.0"
