@@ -8,7 +8,7 @@ use nom::sequence::delimited;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 
-use crate::sql::DPath;
+use crate::sql::Selector;
 use crate::sql::Expr;
 use crate::sql::Field;
 use crate::sql::Proj;
@@ -61,7 +61,7 @@ pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
 }
 
 pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
-    // // map(tag("*"), |_| Expr::Path(DPath::from("*")))(input)
+    // // map(tag("*"), |_| Expr::Path(Selector::from("*")))(input)
     map(tag("*"), |_| Expr::Star)(input)
 }
 
@@ -85,9 +85,9 @@ pub fn parse_alias_in_from_clause(input: &str) -> IResult<&str, Option<String>> 
     Ok((input, alias))
 }
 
-pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, DPath> {
+pub fn parse_path<'a>(input: &'a str) -> IResult<&'a str, Selector> {
     let (input, vec_path) = separated_list1(char('.'), string_allowed_in_field)(input)?;
-    let res = DPath::from(vec_path.join(".").as_str());
+    let res = Selector::from(vec_path.join(".").as_str());
     Ok((input, res))
 }
 

@@ -3,18 +3,18 @@ use std::collections::VecDeque;
 use crate::sql::Bindings;
 
 #[derive(Debug, Default, Clone, PartialEq)]
-pub struct DPath {
+pub struct Selector {
     pub data: VecDeque<String>,
 }
 
-impl From<&[&str]> for DPath {
+impl From<&[&str]> for Selector {
     fn from(ss: &[&str]) -> Self {
         let data = ss.iter().map(|s| s.to_string()).collect::<VecDeque<_>>();
         Self { data }
     }
 }
 
-impl From<&str> for DPath {
+impl From<&str> for Selector {
     fn from(s: &str) -> Self {
         let data = s
             .to_string()
@@ -25,7 +25,7 @@ impl From<&str> for DPath {
     }
 }
 
-impl DPath {
+impl Selector {
     pub fn last(&self) -> Option<String> {
         if let Some(last) = self.to_vec().last() {
             Some(last.to_string())

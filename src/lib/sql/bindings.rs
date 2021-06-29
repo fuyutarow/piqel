@@ -2,12 +2,12 @@ use std::collections::VecDeque;
 
 use indexmap::IndexMap as Map;
 
-use crate::sql::DPath;
+use crate::sql::Selector;
 use crate::sql::Field;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bindings {
-    locals: Map<String, DPath>,
+    locals: Map<String, Selector>,
     locals_rev: Map<String, String>,
 }
 
@@ -22,7 +22,7 @@ impl From<&[Field]> for Bindings {
                     None
                 }
             })
-            .collect::<Map<String, DPath>>();
+            .collect::<Map<String, Selector>>();
 
         let locals_rev = fields
             .iter()
@@ -48,11 +48,11 @@ impl Bindings {
     //         }
     //     }
 
-    pub fn from_alias(&self, alias: &str) -> Option<DPath> {
+    pub fn from_alias(&self, alias: &str) -> Option<Selector> {
         self.locals.get(alias).map(|e| e.to_owned())
     }
 
-    fn rec_get_full_path(&self, path: &DPath, trace_path: &mut DPath) {
+    fn rec_get_full_path(&self, path: &Selector, trace_path: &mut Selector) {
         if let Some((first, tail)) = path.to_vec().split_first() {
             if let Some(alias_path) = self.from_alias(first) {
                 self.rec_get_full_path(&alias_path, trace_path)
@@ -60,7 +60,7 @@ impl Bindings {
                 (*trace_path).data.push_back(first.to_string());
             }
             if tail.len() > 0 {
-                let tail_path = DPath::from(tail);
+                let tail_path = Selector::from(tail);
                 // for p in tail_path.to_vec()
                 let mut vec_path = tail_path
                     .to_vec()
@@ -72,8 +72,8 @@ impl Bindings {
         }
     }
 
-    pub fn get_full_path(&self, path: &DPath) -> DPath {
-        let mut trace_path = DPath::default();
+    pub fn get_full_path(&self, path: &Selector) -> Selector {
+        let mut trace_path = Selector::default();
 
         self.rec_get_full_path(path, &mut trace_path);
         trace_path
@@ -84,7 +84,7 @@ impl Bindings {
 mod tests {
     use super::Bindings;
     use crate::parser;
-    use crate::sql::{DPath, Field, Sql};
+    use crate::sql::{Selector, Field, Sql};
 
     #[test]
     fn get_full_path() -> anyhow::Result<()> {
@@ -95,11 +95,11 @@ mod tests {
             .1,
             from_clause: vec![
                 Field {
-                    path: DPath::from("hr.employeesNest"),
+                    path: Selector::from("hr.employeesNest"),
                     alias: Some("e".to_owned()),
                 },
                 Field {
-                    path: DPath::from("e.projects"),
+                    path: Selector::from("e.projects"),
                     alias: Some("p".to_owned()),
                 },
             ],
@@ -119,7 +119,7 @@ mod tests {
         let bindings = Bindings::from(fields.as_slice());
 
         let field = Field {
-            path: DPath::from("e.name"),
+            path: Selector::from("e.name"),
             alias: Some("employeetName".to_owned()),
         };
         assert_eq!(
@@ -128,7 +128,7 @@ mod tests {
         );
 
         let field = Field {
-            path: DPath::from("p.name"),
+            path: Selector::from("p.name"),
             alias: Some("projectName".to_owned()),
         };
         assert_eq!(

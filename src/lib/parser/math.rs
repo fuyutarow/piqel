@@ -85,7 +85,7 @@ fn parse_number(input: &str) -> IResult<&str, Expr> {
 #[cfg(test)]
 mod tests {
     use super::parse;
-    use crate::sql::{DPath, Expr};
+    use crate::sql::{Selector, Expr};
 
     #[test]
     fn parse_sub_sub_path() {
@@ -96,10 +96,10 @@ mod tests {
                 "",
                 Expr::Sub(
                     Box::new(Expr::Sub(
-                        Box::new(Expr::Path(DPath::from("a"))),
-                        Box::new(Expr::Path(DPath::from("b"))),
+                        Box::new(Expr::Path(Selector::from("a"))),
+                        Box::new(Expr::Path(Selector::from("b"))),
                     )),
-                    Box::new(Expr::Path(DPath::from("c"))),
+                    Box::new(Expr::Path(Selector::from("c"))),
                 )
             ))
         );

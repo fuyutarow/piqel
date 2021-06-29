@@ -1,6 +1,6 @@
 use crate::sql::re_from_str;
 
-use crate::sql::DPath;
+use crate::sql::Selector;
 
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
@@ -8,7 +8,7 @@ use crate::value::PqlValue;
 
 pub fn restrict(
     value: Option<PqlValue>,
-    path: &DPath,
+    path: &Selector,
     cond: &Option<WhereCond>,
 ) -> Option<PqlValue> {
     match value {
@@ -77,7 +77,7 @@ pub fn restrict(
 mod tests {
     use super::restrict;
     use crate::pqlir_parser;
-    use crate::sql::DPath;
+    use crate::sql::Selector;
     use crate::sql::Expr;
     use crate::sql::WhereCond;
     use crate::value::PqlValue;
@@ -90,7 +90,7 @@ mod tests {
    ",
         )?;
 
-        let res = restrict(Some(data), &DPath::default(), &None);
+        let res = restrict(Some(data), &Selector::default(), &None);
         assert_eq!(res, Some(PqlValue::Array(vec![PqlValue::Boolean(true)])));
         Ok(())
     }
@@ -108,7 +108,7 @@ mod tests {
 }
    ",
         )?;
-        let res = restrict(Some(data), &DPath::from("top.b"), &None);
+        let res = restrict(Some(data), &Selector::from("top.b"), &None);
         let expected = pqlir_parser::pql_value(
             "
 {
@@ -156,7 +156,7 @@ mod tests {
 }
    ",
         )?;
-        let path = DPath::from("hr.employeesNest.projects.name");
+        let path = Selector::from("hr.employeesNest.projects.name");
         let cond = WhereCond::Like {
             expr: Expr::default(),
             right: "%security%".to_owned(),

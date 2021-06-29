@@ -6,7 +6,7 @@ use partiql::sql::Field;
 use partiql::sql::Func;
 use partiql::sql::Proj;
 use partiql::sql::WhereCond;
-use partiql::sql::{DPath, Sql};
+use partiql::sql::{Selector, Sql};
 use partiql::value::PqlValue;
 
 fn get_sql(qi: &str) -> anyhow::Result<Sql> {
@@ -32,7 +32,7 @@ fn field() -> anyhow::Result<()> {
     assert_eq!(
         field,
         Field {
-            path: DPath::from("a.b.c"),
+            path: Selector::from("a.b.c"),
             alias: None
         }
     );
@@ -57,20 +57,20 @@ FROM hr
         Sql {
             select_clause: vec![
                 Proj {
-                    expr: Expr::Path(DPath::from("hr.employees.id")),
+                    expr: Expr::Path(Selector::from("hr.employees.id")),
                     alias: None
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("hr.employees.name")),
+                    expr: Expr::Path(Selector::from("hr.employees.name")),
                     alias: Some("employeeName".to_owned()),
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("hr.employees.title")),
+                    expr: Expr::Path(Selector::from("hr.employees.title")),
                     alias: Some("title".to_owned()),
                 },
             ],
             from_clause: vec![Field {
-                path: DPath::from("hr"),
+                path: Selector::from("hr"),
                 alias: None,
             }],
             left_join_clause: vec![],
@@ -92,25 +92,25 @@ fn q1() -> anyhow::Result<()> {
         Sql {
             select_clause: vec![
                 Proj {
-                    expr: Expr::Path(DPath::from("e.id")),
+                    expr: Expr::Path(Selector::from("e.id")),
                     alias: None
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("e.name")),
+                    expr: Expr::Path(Selector::from("e.name")),
                     alias: Some("employeeName".to_owned()),
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("e.title")),
+                    expr: Expr::Path(Selector::from("e.title")),
                     alias: Some("title".to_owned()),
                 },
             ],
             from_clause: vec![Field {
-                path: DPath::from("hr.employees"),
+                path: Selector::from("hr.employees"),
                 alias: Some("e".to_owned()),
             }],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Eq {
-                expr: Expr::Path(DPath::from("e.title"),),
+                expr: Expr::Path(Selector::from("e.title"),),
                 right: PqlValue::Str("Dev Mgr".to_owned()),
             })),
             orderby: None,
@@ -129,27 +129,27 @@ fn q2() -> anyhow::Result<()> {
         Sql {
             select_clause: vec![
                 Proj {
-                    expr: Expr::Path(DPath::from("e.name")),
+                    expr: Expr::Path(Selector::from("e.name")),
                     alias: Some("employeeName".to_owned()),
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("p.name")),
+                    expr: Expr::Path(Selector::from("p.name")),
                     alias: Some("projectName".to_owned()),
                 },
             ],
             from_clause: vec![
                 Field {
-                    path: DPath::from("hr.employeesNest"),
+                    path: Selector::from("hr.employeesNest"),
                     alias: Some("e".to_owned()),
                 },
                 Field {
-                    path: DPath::from("e.projects"),
+                    path: Selector::from("e.projects"),
                     alias: Some("p".to_owned()),
                 },
             ],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Like {
-                expr: Expr::Path(DPath::from("p.name")),
+                expr: Expr::Path(Selector::from("p.name")),
                 right: "%security%".to_owned()
             })),
             orderby: None,
@@ -168,28 +168,28 @@ fn q3() -> anyhow::Result<()> {
         Sql {
             select_clause: vec![
                 Proj {
-                    expr: Expr::Path(DPath::from("e.id")),
+                    expr: Expr::Path(Selector::from("e.id")),
                     alias: Some("id".to_owned()),
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("e.name")),
+                    expr: Expr::Path(Selector::from("e.name")),
                     alias: Some("employeeName".to_owned()),
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("e.title")),
+                    expr: Expr::Path(Selector::from("e.title")),
                     alias: Some("title".to_owned()),
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("p.name")),
+                    expr: Expr::Path(Selector::from("p.name")),
                     alias: Some("projectName".to_owned()),
                 },
             ],
             from_clause: vec![Field {
-                path: DPath::from("hr.employeesNest"),
+                path: Selector::from("hr.employeesNest"),
                 alias: Some("e".to_owned()),
             },],
             left_join_clause: vec![Field {
-                path: DPath::from("e.projects"),
+                path: Selector::from("e.projects"),
                 alias: Some("p".to_owned()),
             },],
             where_clause: None,
@@ -218,22 +218,22 @@ FROM hr.employeesNest AS e
         Sql {
             select_clause: vec![
                 Proj {
-                    expr: Expr::Path(DPath::from("e.name")),
+                    expr: Expr::Path(Selector::from("e.name")),
                     alias: Some("employeeName".to_owned()),
                 },
                 Proj {
                     expr: Expr::Sql(Sql {
                         select_clause: vec![Proj {
-                            expr: Expr::Path(DPath::from("p")),
+                            expr: Expr::Path(Selector::from("p")),
                             alias: None
                         }],
                         from_clause: vec![Field {
-                            path: DPath::from("e.projects"),
+                            path: Selector::from("e.projects"),
                             alias: Some("p".to_owned()),
                         }],
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
-                            expr: Expr::Path(DPath::from("p.name"),),
+                            expr: Expr::Path(Selector::from("p.name"),),
                             right: "%querying%".to_owned()
                         })),
                         orderby: None,
@@ -243,7 +243,7 @@ FROM hr.employeesNest AS e
                 },
             ],
             from_clause: vec![Field {
-                path: DPath::from("hr.employeesNest"),
+                path: Selector::from("hr.employeesNest"),
                 alias: Some("e".to_owned()),
             },],
             left_join_clause: vec![],
@@ -264,7 +264,7 @@ fn q4() -> anyhow::Result<()> {
         Sql {
             select_clause: vec![
                 Proj {
-                    expr: Expr::Path(DPath::from("e.name")),
+                    expr: Expr::Path(Selector::from("e.name")),
                     alias: Some("employeeName".to_owned()),
                 },
                 Proj {
@@ -274,12 +274,12 @@ fn q4() -> anyhow::Result<()> {
                             alias: None
                         }],
                         from_clause: vec![Field {
-                            path: DPath::from("e.projects"),
+                            path: Selector::from("e.projects"),
                             alias: Some("p".to_owned()),
                         }],
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
-                            expr: Expr::Path(DPath::from("p.name"),),
+                            expr: Expr::Path(Selector::from("p.name"),),
                             right: "%querying%".to_owned()
                         })),
                         orderby: None,
@@ -289,7 +289,7 @@ fn q4() -> anyhow::Result<()> {
                 },
             ],
             from_clause: vec![Field {
-                path: DPath::from("hr.employeesNest"),
+                path: Selector::from("hr.employeesNest"),
                 alias: Some("e".to_owned()),
             },],
             left_join_clause: vec![],
@@ -352,32 +352,32 @@ fn q7() -> anyhow::Result<()> {
         Sql {
             select_clause: vec![
                 Proj {
-                    expr: Expr::Path(DPath::from("t.id")),
+                    expr: Expr::Path(Selector::from("t.id")),
                     alias: Some("id".to_owned()),
                 },
                 Proj {
-                    expr: Expr::Path(DPath::from("x")),
+                    expr: Expr::Path(Selector::from("x")),
                     alias: Some("even".to_owned()),
                 },
             ],
             from_clause: vec![
                 Field {
-                    path: DPath::from("matrices"),
+                    path: Selector::from("matrices"),
                     alias: Some("t".to_owned()),
                 },
                 Field {
-                    path: DPath::from("t.matrix"),
+                    path: Selector::from("t.matrix"),
                     alias: Some("y".to_owned()),
                 },
                 Field {
-                    path: DPath::from("y"),
+                    path: Selector::from("y"),
                     alias: Some("x".to_owned()),
                 },
             ],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Eq {
                 expr: Expr::Rem(
-                    Box::new(Expr::Path(DPath::from("x"))),
+                    Box::new(Expr::Path(Selector::from("x"))),
                     Box::new(Expr::Num(2.))
                 ),
                 right: PqlValue::Float(OrderedFloat(0.))

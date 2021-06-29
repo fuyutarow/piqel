@@ -14,7 +14,7 @@ pub use eval::FieldBook;
 pub use expr::{Expr, Func};
 pub use field::Field;
 pub use filter::restrict;
-pub use path::DPath;
+pub use path::Selector;
 pub use proj::Proj;
 pub use where_cond::re_from_str;
 pub use where_cond::WhereCond;

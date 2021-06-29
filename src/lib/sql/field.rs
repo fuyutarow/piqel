@@ -1,9 +1,9 @@
 use crate::sql::Bindings;
-use crate::sql::DPath;
+use crate::sql::Selector;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Field {
-    pub path: DPath,
+    pub path: Selector,
     pub alias: Option<String>,
 }
 

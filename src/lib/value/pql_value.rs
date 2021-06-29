@@ -9,7 +9,7 @@ use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::sql::DPath;
+use crate::sql::Selector;
 use crate::sql::Field;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
@@ -109,12 +109,12 @@ impl PqlValue {
         }
     }
 
-    pub fn select_by_path(&self, path: &DPath) -> Option<Self> {
+    pub fn select_by_path(&self, path: &Selector) -> Option<Self> {
         match self {
             Self::Object(map) => {
                 if let Some((key, tail_path)) = path.to_vec().split_first() {
                     if let Some(obj) = self.clone().get(key) {
-                        obj.select_by_path(&DPath::from(tail_path))
+                        obj.select_by_path(&Selector::from(tail_path))
                     } else {
                         None
                     }
@@ -134,13 +134,13 @@ impl PqlValue {
         }
     }
 
-    // pub fn select_by_paths(&self, path: &[DPath]) -> Vec<Self> {
+    // pub fn select_by_paths(&self, path: &[Selector]) -> Vec<Self> {
 
     //     match self {
     //         Self::Object(map) => {
     //             if let Some((key, tail_path)) = path.to_vec().split_first() {
     //                 if let Some(obj) = self.clone().get(key) {
-    //                     obj.select_by_path(&DPath::from(tail_path))
+    //                     obj.select_by_path(&Selector::from(tail_path))
     //                 } else {
     //                     None
     //                 }

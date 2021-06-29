@@ -4,7 +4,7 @@ use collect_mac::collect;
 use ordered_float::OrderedFloat;
 
 use crate::sql::Bindings;
-use crate::sql::DPath;
+use crate::sql::Selector;
 use crate::sql::FieldBook;
 use crate::sql::Sql;
 use crate::value::PqlValue;
@@ -13,7 +13,7 @@ use crate::value::PqlVector;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Star,
-    Path(DPath),
+    Path(Selector),
     Num(f64),
     Func(Box<Func>),
     Add(Box<Expr>, Box<Expr>),
@@ -32,7 +32,7 @@ impl Default for Expr {
 }
 
 impl Expr {
-    pub fn as_path(&self) -> Option<DPath> {
+    pub fn as_path(&self) -> Option<Selector> {
         match self {
             Expr::Path(path) => Some(path.to_owned()),
             _ => None,

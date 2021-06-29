@@ -3,7 +3,7 @@ use partiql::pqlir_parser;
 use partiql::parser::clauses::from_pql_value;
 use partiql::parser::select_statement::parse_sql3;
 
-use partiql::sql::DPath;
+use partiql::sql::Selector;
 use partiql::sql::Proj;
 use partiql::value::PqlValue;
 
@@ -31,7 +31,7 @@ fn main() -> anyhow::Result<()> {
         source: plan.from,
         project: plan.select,
     };
-    let r = evaluator.source.select_by_path(&DPath::from("arr"));
+    let r = evaluator.source.select_by_path(&Selector::from("arr"));
 
     dbg!(r);
 
