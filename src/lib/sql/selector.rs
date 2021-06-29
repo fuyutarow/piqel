@@ -1,5 +1,9 @@
 use std::collections::VecDeque;
+use std::str::FromStr;
 
+use itertools::any;
+
+use crate::parser;
 use crate::sql::Bindings;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -44,6 +48,17 @@ impl SelectorNode {
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Selector {
     pub data: VecDeque<SelectorNode>,
+}
+
+impl FromStr for Selector {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match parser::expressions::parse_selector(s) {
+            Ok((_, r)) => Ok(r),
+            Err(_err) => anyhow::bail!("failed"),
+        }
+    }
 }
 
 impl From<&[&str]> for Selector {

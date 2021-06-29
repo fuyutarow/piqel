@@ -8,6 +8,7 @@ mod selector;
 mod utils;
 mod where_cond;
 
+use crate::value::PqlValue;
 pub use bindings::Bindings;
 pub use eval::evaluate;
 pub use eval::FieldBook;
@@ -51,4 +52,10 @@ pub mod clause {
         pub limit: u64,
         pub offset: u64,
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum SourceField {
+    Value(PqlValue),
+    Selector((Selector, Option<String>)),
 }
