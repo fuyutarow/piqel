@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::str::FromStr;
 
+use partiql::parser;
 use partiql::parser::clauses::from_pql_value;
 use partiql::parser::select_statement::parse_sql3;
 use partiql::pqlir_parser;
@@ -17,12 +18,9 @@ pub struct Evaluator {
 fn main() -> anyhow::Result<()> {
     dbg!("hello");
 
-    let (_, value) = from_pql_value(
-        r#"FROM { "arr": [1,2,3] }
-    "#,
-    )?;
+    let r = parser::expressions::parse_selector("x.ys[2].z")?;
+    dbg!((r));
 
-    // -- SELECT arr FROM { "arr": [1,2,3] }
     let (_, plan) = parse_sql3(
         r#"
     SELECT * FROM { "arr": [1,2,3] }
@@ -33,18 +31,6 @@ fn main() -> anyhow::Result<()> {
         source: plan.from,
         project: plan.select,
     };
-
-    dbg!((&evaluator.source));
-    let r = evaluator.source.select_by_selector(&Selector {
-        data: vec![
-            SelectorNode::String(String::from("arr")),
-            SelectorNode::Number(1),
-        ]
-        .into_iter()
-        .collect::<VecDeque<SelectorNode>>(),
-    });
-
-    dbg!(r);
 
     let value = PqlValue::from_str(r#"{ "arr" : [1,2,4] }"#)?;
 

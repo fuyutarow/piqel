@@ -8,6 +8,24 @@ pub enum SelectorNode {
     Number(i64),
 }
 
+impl Default for SelectorNode {
+    fn default() -> Self {
+        Self::String(String::default())
+    }
+}
+
+impl From<&str> for SelectorNode {
+    fn from(s: &str) -> Self {
+        Self::String(s.to_string())
+    }
+}
+
+impl From<i64> for SelectorNode {
+    fn from(i: i64) -> Self {
+        Self::Number(i)
+    }
+}
+
 impl From<SelectorNode> for String {
     fn from(node: SelectorNode) -> Self {
         match node {
@@ -56,6 +74,17 @@ impl From<&str> for Selector {
             .map(|s| SelectorNode::String(s.to_string()))
             .collect::<VecDeque<_>>();
         Self { data }
+    }
+}
+
+impl From<&[SelectorNode]> for Selector {
+    fn from(nodes: &[SelectorNode]) -> Self {
+        Self {
+            data: nodes
+                .into_iter()
+                .map(|n| n.to_owned())
+                .collect::<VecDeque<_>>(),
+        }
     }
 }
 

@@ -8,7 +8,6 @@ use nom::IResult;
 
 use crate::sql::Expr;
 
-
 use crate::parser;
 
 pub fn parse(input: &str) -> IResult<&str, Expr> {
@@ -85,7 +84,7 @@ fn parse_number(input: &str) -> IResult<&str, Expr> {
 #[cfg(test)]
 mod tests {
     use super::parse;
-    use crate::sql::{Selector, Expr};
+    use crate::sql::{Expr, Selector};
 
     #[test]
     fn parse_sub_sub_path() {
