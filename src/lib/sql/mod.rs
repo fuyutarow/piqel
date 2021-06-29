@@ -3,8 +3,8 @@ mod eval;
 mod expr;
 mod field;
 mod filter;
-mod path;
 mod proj;
+mod selector;
 mod utils;
 mod where_cond;
 
@@ -14,8 +14,9 @@ pub use eval::FieldBook;
 pub use expr::{Expr, Func};
 pub use field::Field;
 pub use filter::restrict;
-pub use path::Selector;
 pub use proj::Proj;
+pub use selector::Selector;
+pub use selector::SelectorNode;
 pub use where_cond::re_from_str;
 pub use where_cond::WhereCond;
 

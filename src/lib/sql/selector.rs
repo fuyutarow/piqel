@@ -2,14 +2,48 @@ use std::collections::VecDeque;
 
 use crate::sql::Bindings;
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum SelectorNode {
+    String(String),
+    Number(i64),
+}
+
+impl From<SelectorNode> for String {
+    fn from(node: SelectorNode) -> Self {
+        match node {
+            SelectorNode::String(s) => s,
+            SelectorNode::Number(i) => format!("{}", i),
+        }
+    }
+}
+
+impl SelectorNode {
+    pub fn to_string(&self) -> String {
+        String::from(self.to_owned())
+    }
+}
+
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Selector {
-    pub data: VecDeque<String>,
+    pub data: VecDeque<SelectorNode>,
 }
 
 impl From<&[&str]> for Selector {
     fn from(ss: &[&str]) -> Self {
-        let data = ss.iter().map(|s| s.to_string()).collect::<VecDeque<_>>();
+        let data = ss
+            .iter()
+            .map(|s| SelectorNode::String(s.to_string()))
+            .collect::<VecDeque<_>>();
+        Self { data }
+    }
+}
+
+impl From<&[String]> for Selector {
+    fn from(ss: &[String]) -> Self {
+        let data = ss
+            .iter()
+            .map(|s| SelectorNode::String(s.to_string()))
+            .collect::<VecDeque<_>>();
         Self { data }
     }
 }
@@ -19,7 +53,7 @@ impl From<&str> for Selector {
         let data = s
             .to_string()
             .split(".")
-            .map(|s| s.to_string())
+            .map(|s| SelectorNode::String(s.to_string()))
             .collect::<VecDeque<_>>();
         Self { data }
     }
@@ -47,15 +81,15 @@ impl Selector {
     }
 
     pub fn to_string(&self) -> String {
+        self.to_vec().join(".")
+    }
+
+    pub fn to_vec(&self) -> Vec<String> {
         self.data
             .clone()
             .into_iter()
+            .map(String::from)
             .collect::<Vec<String>>()
-            .join(".")
-    }
-
-    pub fn to_vec(&self) -> Vec<&str> {
-        self.data.iter().map(|s| s.as_str()).collect::<Vec<_>>()
     }
 
     pub fn expand_fullpath(&self, bidings: &Bindings) -> Self {

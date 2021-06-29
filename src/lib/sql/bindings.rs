@@ -2,8 +2,9 @@ use std::collections::VecDeque;
 
 use indexmap::IndexMap as Map;
 
-use crate::sql::Selector;
 use crate::sql::Field;
+use crate::sql::Selector;
+use crate::sql::SelectorNode;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bindings {
@@ -57,7 +58,9 @@ impl Bindings {
             if let Some(alias_path) = self.from_alias(first) {
                 self.rec_get_full_path(&alias_path, trace_path)
             } else {
-                (*trace_path).data.push_back(first.to_string());
+                (*trace_path)
+                    .data
+                    .push_back(SelectorNode::String(first.to_string()));
             }
             if tail.len() > 0 {
                 let tail_path = Selector::from(tail);
@@ -65,7 +68,7 @@ impl Bindings {
                 let mut vec_path = tail_path
                     .to_vec()
                     .into_iter()
-                    .map(|s| s.to_string())
+                    .map(|s| SelectorNode::String(s.to_string()))
                     .collect::<VecDeque<_>>();
                 (*trace_path).data.append(&mut vec_path);
             }
@@ -84,7 +87,7 @@ impl Bindings {
 mod tests {
     use super::Bindings;
     use crate::parser;
-    use crate::sql::{Selector, Field, Sql};
+    use crate::sql::{Field, Selector, Sql};
 
     #[test]
     fn get_full_path() -> anyhow::Result<()> {

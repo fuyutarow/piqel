@@ -9,8 +9,8 @@ use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::sql::Selector;
 use crate::sql::Field;
+use crate::sql::Selector;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -133,32 +133,6 @@ impl PqlValue {
             _ => Some(self.clone()),
         }
     }
-
-    // pub fn select_by_paths(&self, path: &[Selector]) -> Vec<Self> {
-
-    //     match self {
-    //         Self::Object(map) => {
-    //             if let Some((key, tail_path)) = path.to_vec().split_first() {
-    //                 if let Some(obj) = self.clone().get(key) {
-    //                     obj.select_by_path(&Selector::from(tail_path))
-    //                 } else {
-    //                     None
-    //                 }
-    //             } else {
-    //                 Some(self.to_owned())
-    //             }
-    //         }
-    //         Self::Array(array) => {
-    //             let new_array = array
-    //                 .into_iter()
-    //                 .filter_map(|value| value.select_by_path(&path))
-    //                 .collect::<Vec<_>>();
-
-    //             Some(Self::Array(new_array))
-    //         }
-    //         _ => Some(self.clone()),
-    //     }
-    // }
 
     pub fn select_by_fields(&self, field_list: &[Field]) -> Option<Self> {
         let mut new_map = IndexMap::<String, Self>::new();

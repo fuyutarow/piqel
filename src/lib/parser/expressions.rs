@@ -8,10 +8,10 @@ use nom::sequence::delimited;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 
-use crate::sql::Selector;
 use crate::sql::Expr;
 use crate::sql::Field;
 use crate::sql::Proj;
+use crate::sql::Selector;
 
 pub use crate::parser;
 pub use crate::parser::elements;
