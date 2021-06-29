@@ -1,7 +1,9 @@
 use std::collections::VecDeque;
+use std::str::FromStr;
 
 use partiql::parser::clauses::from_pql_value;
 use partiql::parser::select_statement::parse_sql3;
+use partiql::pqlir_parser;
 use partiql::sql::Proj;
 use partiql::sql::Selector;
 use partiql::sql::SelectorNode;
@@ -32,13 +34,30 @@ fn main() -> anyhow::Result<()> {
         project: plan.select,
     };
 
+    dbg!((&evaluator.source));
     let r = evaluator.source.select_by_selector(&Selector {
-        data: vec![SelectorNode::Number(1)]
-            .into_iter()
-            .collect::<VecDeque<SelectorNode>>(),
+        data: vec![
+            SelectorNode::String(String::from("arr")),
+            SelectorNode::Number(1),
+        ]
+        .into_iter()
+        .collect::<VecDeque<SelectorNode>>(),
     });
 
     dbg!(r);
+
+    let value = PqlValue::from_str(r#"{ "arr" : [1,2,4] }"#)?;
+
+    let selected_value = value.select_by_selector(&Selector {
+        data: vec![
+            SelectorNode::String(String::from("arr")),
+            SelectorNode::Number(1),
+        ]
+        .into_iter()
+        .collect::<VecDeque<SelectorNode>>(),
+    });
+
+    dbg!(selected_value);
 
     Ok(())
 }

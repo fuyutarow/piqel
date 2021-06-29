@@ -152,3 +152,7 @@ pub fn pql_value(input: &str) -> anyhow::Result<PqlValue> {
         }
     }
 }
+
+pub fn from_str(input: &str) -> anyhow::Result<PqlValue> {
+    pql_value(input)
+}

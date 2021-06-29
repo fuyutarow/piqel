@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::convert::TryFrom;
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::str::FromStr;
 
 use chrono::prelude::*;
 use chrono::serde::ts_seconds;
@@ -54,6 +55,14 @@ pub enum PqlValue {
     DateTime(DateTime<Utc>),
     Array(Vec<Self>),
     Object(IndexMap<String, Self>),
+}
+
+impl FromStr for PqlValue {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        crate::pqlir_parser::from_str(s)
+    }
 }
 
 impl Default for PqlValue {
@@ -115,14 +124,6 @@ impl PqlValue {
             (Self::Object(map), SelectorNode::String(key_s)) => {
                 map.get(&key_s).map(|v| v.to_owned())
             }
-            (Self::Array(array), SelectorNode::Number(key_i)) => {
-                if key_i < 0 {
-                    todo!()
-                } else {
-                    let key_u = key_i as usize;
-                    array.get(key_u).map(|v| v.to_owned())
-                }
-            }
             _ => None,
         }
     }
@@ -141,12 +142,31 @@ impl PqlValue {
                 }
             }
             Self::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|value| value.select_by_selector(&selector))
-                    .collect::<Vec<_>>();
-
-                Some(Self::Array(new_array))
+                if let Some((key, tail)) = selector.split_first() {
+                    match key {
+                        SelectorNode::Number(key_i) => {
+                            if key_i < 0 {
+                                todo!()
+                            } else {
+                                let key_u = key_i as usize;
+                                array.get(key_u).map(|v| v.to_owned())
+                            }
+                        }
+                        _ => {
+                            let new_array = array
+                                .into_iter()
+                                .filter_map(|value| value.select_by_selector(&selector))
+                                .collect::<Vec<_>>();
+                            Some(Self::Array(new_array))
+                        }
+                    }
+                } else {
+                    let new_array = array
+                        .into_iter()
+                        .filter_map(|value| value.select_by_selector(&selector))
+                        .collect::<Vec<_>>();
+                    Some(Self::Array(new_array))
+                }
             }
             _ => Some(self.clone()),
         }
@@ -290,8 +310,15 @@ impl TryFrom<PqlValue> for i64 {
 
 #[cfg(test)]
 mod tests {
-    use super::PqlValue;
+    use std::collections::VecDeque;
+    use std::str::FromStr;
+
     use ordered_float::OrderedFloat;
+
+    use super::PqlValue;
+    use crate::pqlir_parser;
+    use crate::sql::Selector;
+    use crate::sql::SelectorNode;
 
     #[test]
     fn add_sub_mul_div() {
@@ -303,5 +330,22 @@ mod tests {
             PqlValue::Float(OrderedFloat(1.)) / PqlValue::Float(OrderedFloat(0.)),
             PqlValue::Float(OrderedFloat(f64::INFINITY))
         );
+    }
+
+    #[test]
+    fn select_at_arr_1() -> anyhow::Result<()> {
+        let value = PqlValue::from_str(r#"{ "arr" : [1,2,4] }"#)?;
+
+        let selected_value = value.select_by_selector(&Selector {
+            data: vec![
+                SelectorNode::String(String::from("arr")),
+                SelectorNode::Number(1),
+            ]
+            .into_iter()
+            .collect::<VecDeque<SelectorNode>>(),
+        });
+
+        assert_eq!(selected_value, Some(pqlir_parser::from_str("2")?));
+        Ok(())
     }
 }
