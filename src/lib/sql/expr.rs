@@ -3,7 +3,6 @@ use std::collections::HashSet;
 use collect_mac::collect;
 use ordered_float::OrderedFloat;
 
-
 use crate::sql::Bindings;
 use crate::sql::DPath;
 use crate::sql::FieldBook;
@@ -13,6 +12,7 @@ use crate::value::PqlVector;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
+    Star,
     Path(DPath),
     Num(f64),
     Func(Box<Func>),
@@ -27,7 +27,7 @@ pub enum Expr {
 
 impl Default for Expr {
     fn default() -> Self {
-        Self::Num(0.)
+        Self::Star
     }
 }
 
@@ -104,18 +104,17 @@ impl Expr {
 
     pub fn eval(self) -> PqlValue {
         match self.to_owned() {
+            Self::Star => todo!(),
+            Self::Path(_) => todo!(),
             Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
+            Self::Func(_) => todo!(),
+            Self::Sql(_) => todo!(),
             Self::Add(box expr1, box expr2) => (expr1).eval() + (expr2).eval(),
             Self::Sub(box expr1, box expr2) => (expr1).eval() - (expr2).eval(),
             Self::Mul(box expr1, box expr2) => (expr1).eval() * (expr2).eval(),
             Self::Div(box expr1, box expr2) => (expr1).eval() / (expr2).eval(),
             Self::Rem(box expr1, box expr2) => (expr1).eval() % (expr2).eval(),
             Self::Exp(box expr1, box expr2) => (expr1).eval().powf((expr2).eval()),
-            _ => {
-                dbg!(&self);
-
-                todo!()
-            }
         }
     }
 

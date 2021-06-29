@@ -1,10 +1,9 @@
-
-
 mod bindings;
 mod eval;
 mod expr;
 mod field;
 mod filter;
+mod path;
 mod proj;
 mod utils;
 mod where_cond;
@@ -13,8 +12,9 @@ pub use bindings::Bindings;
 pub use eval::evaluate;
 pub use eval::FieldBook;
 pub use expr::{Expr, Func};
-pub use field::{DPath, Field};
+pub use field::Field;
 pub use filter::restrict;
+pub use path::DPath;
 pub use proj::Proj;
 pub use where_cond::re_from_str;
 pub use where_cond::WhereCond;

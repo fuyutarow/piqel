@@ -1,17 +1,13 @@
 use std::collections::HashSet;
 
-
-
 use indexmap::IndexMap as Map;
 use itertools::Itertools;
 use rayon::prelude::*;
-
 
 use crate::parser;
 use crate::sql::restrict;
 use crate::sql::Bindings;
 use crate::sql::Expr;
-
 use crate::sql::Proj;
 use crate::sql::Sql;
 use crate::sql::WhereCond;
@@ -39,7 +35,10 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
                 };
                 restrict(Some(data.to_owned()), &path, &Some(cond)).expect("restricted value")
             }
-            _ => todo!(),
+            _ => {
+                dbg!(&sql.where_clause);
+                todo!();
+            }
         },
         Some(box WhereCond::Like { expr, right }) => match expr {
             Expr::Path(path) => {
@@ -50,7 +49,10 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
                 };
                 restrict(Some(data.to_owned()), &path, &Some(cond)).expect("restricted value")
             }
-            _ => todo!(),
+            _ => {
+                dbg!(&sql.where_clause);
+                todo!();
+            }
         },
         Some(_) => todo!(),
     };
@@ -58,7 +60,7 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
     let projs = sql
         .select_clause
         .to_owned()
-        .into_iter()
+        .into_par_iter()
         .map(|proj| Proj {
             expr: proj.expr.to_owned(),
             alias: Some(proj.target_field_name()),
@@ -75,7 +77,7 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
     let selected_source = data
         .select_by_fields(
             source_field_name_list
-                .into_iter()
+                .into_par_iter()
                 .map(|s| {
                     let mut field = parser::parse_field(&s).unwrap().1;
                     field.alias = Some(field.path.to_string());

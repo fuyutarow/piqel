@@ -6,7 +6,7 @@ use nom::combinator::opt;
 use nom::multi::separated_list1;
 use nom::sequence::delimited;
 use nom::sequence::{preceded, tuple};
-use nom::{IResult};
+use nom::IResult;
 
 use crate::sql::DPath;
 use crate::sql::Expr;
@@ -61,7 +61,8 @@ pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
 }
 
 pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
-    map(tag("*"), |_| Expr::Path(DPath::from("*")))(input)
+    // // map(tag("*"), |_| Expr::Path(DPath::from("*")))(input)
+    map(tag("*"), |_| Expr::Star)(input)
 }
 
 pub fn parse_sql_as_expr(input: &str) -> IResult<&str, Expr> {

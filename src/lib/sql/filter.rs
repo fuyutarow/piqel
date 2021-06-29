@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn boolean() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_model(
+        let data = pqlir_parser::pql_value(
             "
     <<true, false, null>>
    ",
@@ -97,7 +97,7 @@ mod tests {
 
     #[test]
     fn missing() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_model(
+        let data = pqlir_parser::pql_value(
             "
 {
     'top': <<
@@ -109,7 +109,7 @@ mod tests {
    ",
         )?;
         let res = restrict(Some(data), &DPath::from("top.b"), &None);
-        let expected = pqlir_parser::pql_model(
+        let expected = pqlir_parser::pql_value(
             "
 {
     'top': <<
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn pattern_string() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_model(
+        let data = pqlir_parser::pql_value(
             "
 {
     'hr': {
@@ -162,7 +162,7 @@ mod tests {
             right: "%security%".to_owned(),
         };
         let res = restrict(Some(data), &path, &Some(cond));
-        let expected = pqlir_parser::pql_model(
+        let expected = pqlir_parser::pql_value(
             "
 {
     'hr': {

@@ -4,8 +4,6 @@ use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
 
 use chrono::prelude::*;
 use chrono::serde::ts_seconds;
-// pub use datetime::{Datetime, DatetimeParseError};
-// use chrono::DateTime;
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 use rayon::prelude::*;
@@ -57,6 +55,12 @@ pub enum PqlValue {
     Object(IndexMap<String, Self>),
 }
 
+impl Default for PqlValue {
+    fn default() -> Self {
+        Self::Null
+    }
+}
+
 impl From<&str> for PqlValue {
     fn from(s: &str) -> Self {
         Self::Str(s.to_owned())
@@ -78,12 +82,6 @@ impl From<i64> for PqlValue {
 impl From<f64> for PqlValue {
     fn from(f: f64) -> Self {
         Self::Float(OrderedFloat(f))
-    }
-}
-
-impl Default for PqlValue {
-    fn default() -> Self {
-        Self::Null
     }
 }
 
@@ -113,7 +111,7 @@ impl PqlValue {
 
     pub fn select_by_path(&self, path: &DPath) -> Option<Self> {
         match self {
-            Self::Object(_map) => {
+            Self::Object(map) => {
                 if let Some((key, tail_path)) = path.to_vec().split_first() {
                     if let Some(obj) = self.clone().get(key) {
                         obj.select_by_path(&DPath::from(tail_path))

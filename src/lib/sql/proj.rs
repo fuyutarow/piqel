@@ -1,12 +1,9 @@
 use std::collections::HashSet;
 
-
-
 use crate::sql::Bindings;
 use crate::sql::Expr;
 use crate::sql::Field;
 use crate::sql::FieldBook;
-
 
 use crate::value::PqlVector;
 

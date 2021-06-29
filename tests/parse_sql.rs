@@ -270,7 +270,7 @@ fn q4() -> anyhow::Result<()> {
                 Proj {
                     expr: Expr::Sql(Sql {
                         select_clause: vec![Proj {
-                            expr: Expr::Func(Box::new(Func::Count(Expr::Path(DPath::from("*"))))),
+                            expr: Expr::Func(Box::new(Func::Count(Expr::Star))),
                             alias: None
                         }],
                         from_clause: vec![Field {

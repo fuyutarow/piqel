@@ -10,6 +10,7 @@ use nom::IResult;
 use crate::sql::Field;
 use crate::sql::Proj;
 use crate::sql::WhereCond;
+use crate::value::PqlValue;
 
 pub use crate::parser::elements;
 pub use crate::parser::elements::comma;
@@ -29,6 +30,36 @@ pub fn select(input: &str) -> IResult<&str, Vec<Proj>> {
         ),
     )(input)?;
     Ok((input, vec))
+}
+
+pub fn select_statement_pql_value(input: &str) -> IResult<&str, Vec<Proj>> {
+    let (input, vec) = context(
+        "select claues",
+        preceded(
+            tag_no_case("SELECT"),
+            preceded(multispace0, separated_list1(comma, expressions::parse_proj)),
+        ),
+    )(input)?;
+    Ok((input, vec))
+}
+
+/// # Example
+///
+/// ```
+/// use partiql::parser::clauses::from_pql_value;
+/// fn main() -> anyhow::Result<()> {
+///   from_pql_value(r#"FROM [1,2,3]"#)?;
+///    Ok(())
+/// }
+/// ```
+pub fn from_pql_value(input: &str) -> IResult<&str, PqlValue> {
+    context(
+        "from clause",
+        preceded(
+            tag_no_case("FROM"),
+            preceded(multispace0, crate::pqlir_parser::json_value),
+        ),
+    )(input)
 }
 
 pub fn from<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {

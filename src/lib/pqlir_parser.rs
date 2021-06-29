@@ -1,28 +1,22 @@
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 
+use nom::character::complete::multispace0;
 pub use nom::error::convert_error;
 pub use nom::error::VerboseError;
 use nom::{
     branch::alt,
     bytes::complete::{escaped, tag, take_while},
-    character::complete::{
-        alphanumeric1, char, one_of, space1,
-    },
+    character::complete::{alphanumeric1, char, one_of, space1},
     combinator::{cut, map, opt, value},
     error::{context, ContextError, ParseError},
-    multi::{separated_list0},
-    number::complete::{double},
+    multi::separated_list0,
+    number::complete::double,
     sequence::{delimited, preceded, separated_pair, terminated},
     IResult, Parser,
 };
 
 use crate::value::PqlValue;
-
-pub fn whitespace<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, &'a str, E> {
-    let chars = " \t\r\n";
-    take_while(move |c| chars.contains(c))(input)
-}
 
 fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str, E> {
     escaped(alt((alphanumeric1, space1)), '\\', one_of("\"n\\"))(i)
@@ -68,8 +62,8 @@ fn bag<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
         preceded(
             tag("<<"),
             cut(terminated(
-                separated_list0(preceded(whitespace, char(',')), json_value),
-                preceded(whitespace, tag(">>")),
+                separated_list0(preceded(multispace0, char(',')), json_value),
+                preceded(multispace0, tag(">>")),
             )),
         ),
     )(i)
@@ -83,8 +77,8 @@ fn array<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
         preceded(
             tag("["),
             cut(terminated(
-                separated_list0(preceded(whitespace, char(',')), json_value),
-                preceded(whitespace, tag("]")),
+                separated_list0(preceded(multispace0, char(',')), json_value),
+                preceded(multispace0, tag("]")),
             )),
         ),
     )(i)
@@ -94,8 +88,8 @@ fn key_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, (&'a str, PqlValue), E> {
     separated_pair(
-        preceded(whitespace, string),
-        cut(preceded(whitespace, char(':'))),
+        preceded(multispace0, string),
+        cut(preceded(multispace0, char(':'))),
         json_value,
     )(i)
 }
@@ -109,7 +103,7 @@ fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
             char('{'),
             cut(terminated(
                 map(
-                    separated_list0(preceded(whitespace, char(',')), key_value),
+                    separated_list0(preceded(multispace0, char(',')), key_value),
                     |tuple_vec| {
                         tuple_vec
                             .into_iter()
@@ -117,17 +111,17 @@ fn hash<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
                             .collect()
                     },
                 ),
-                preceded(whitespace, char('}')),
+                preceded(multispace0, char('}')),
             )),
         ),
     )(i)
 }
 
-fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+pub fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, PqlValue, E> {
     preceded(
-        whitespace,
+        multispace0,
         alt((
             map(null, |_s| PqlValue::Null),
             map(hash, PqlValue::Object),
@@ -143,10 +137,10 @@ fn json_value<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
 pub fn root<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
     i: &'a str,
 ) -> IResult<&'a str, PqlValue, E> {
-    delimited(whitespace, json_value, opt(whitespace))(i)
+    delimited(multispace0, json_value, opt(multispace0))(i)
 }
 
-pub fn pql_model(input: &str) -> anyhow::Result<PqlValue> {
+pub fn pql_value(input: &str) -> anyhow::Result<PqlValue> {
     // let re = regex::Regex::new(r"(^|\n)\s*--[\w\s\.{}]*?\n").unwrap();
     let re = regex::Regex::new(r"--[\w\s\.{}]*?\n").unwrap();
     let input = re.replace_all(input, "");

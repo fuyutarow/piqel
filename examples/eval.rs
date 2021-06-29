@@ -28,7 +28,7 @@ WHERE inet LIKE 'inet%'
 
     let data = {
         let input = std::fs::read_to_string("samples/ip_addr.json").unwrap();
-        let model = pqlir_parser::pql_model(&input)?;
+        let model = pqlir_parser::pql_value(&input)?;
         model
     };
     dbg!(&data);

@@ -49,11 +49,11 @@ fn parse() -> anyhow::Result<()> {
     'projectName': 'AWS Redshift security'
   }
 >>"#;
-    // let model = pqlir_parser::pql_model(input)?;
+    // let model = pqlir_parser::pql_value(input)?;
     // dbg!(model);
     // let input = std::fs::read_to_string("samples/q1.env").unwrap();
     // println!("..{}", &input);
-    let model = pqlir_parser::pql_model(&input)?;
+    let model = pqlir_parser::pql_value(&input)?;
     dbg!(model);
 
     let right = "%hello";

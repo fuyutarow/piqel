@@ -13,7 +13,7 @@ fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {
 
     let data = {
         let input = std::fs::read_to_string(format!("samples/{}.env", qi)).unwrap();
-        let model = pqlir_parser::pql_model(&input)?;
+        let model = pqlir_parser::pql_value(&input)?;
         model
     };
 
@@ -21,7 +21,7 @@ fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {
         let input = std::fs::read_to_string(format!("samples/{}.output", qi)).unwrap();
         let v = input.split("---").collect::<Vec<_>>();
         let input = v.first().unwrap();
-        let model = pqlir_parser::pql_model(&input)?;
+        let model = pqlir_parser::pql_value(&input)?;
         model
     };
 

@@ -94,3 +94,25 @@ pub fn parse_sql2(input: &str) -> IResult<&str, Sql> {
     };
     Ok((input, sql))
 }
+
+use crate::sql::Proj;
+use crate::value::PqlValue;
+
+#[derive(Debug, Default)]
+pub struct LogicalPlan {
+    pub select: Vec<Proj>,
+    pub from: PqlValue,
+}
+
+pub fn parse_sql3(input: &str) -> IResult<&str, LogicalPlan> {
+    let (input, (select_clause, opt_from_clause)) = tuple((
+        preceded(multispace0, clauses::select),
+        opt(preceded(multispace0, clauses::from_pql_value)),
+    ))(input)?;
+
+    let sql = LogicalPlan {
+        select: select_clause,
+        from: opt_from_clause.unwrap_or_default(),
+    };
+    Ok((input, sql))
+}
