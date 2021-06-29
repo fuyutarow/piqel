@@ -1,10 +1,10 @@
-use partiql::pqlir_parser;
+use std::collections::VecDeque;
 
 use partiql::parser::clauses::from_pql_value;
 use partiql::parser::select_statement::parse_sql3;
-
-use partiql::sql::Selector;
 use partiql::sql::Proj;
+use partiql::sql::Selector;
+use partiql::sql::SelectorNode;
 use partiql::value::PqlValue;
 
 pub struct Evaluator {
@@ -31,7 +31,12 @@ fn main() -> anyhow::Result<()> {
         source: plan.from,
         project: plan.select,
     };
-    let r = evaluator.source.select_by_path(&Selector::from("arr"));
+
+    let r = evaluator.source.select_by_selector(&Selector {
+        data: vec![SelectorNode::Number(1)]
+            .into_iter()
+            .collect::<VecDeque<SelectorNode>>(),
+    });
 
     dbg!(r);
 

@@ -61,7 +61,7 @@ impl WhereCond {
                         // let access_path = bindings_for_select
                         //     .to_alias(&where_arg_path)
                         //     .unwrap_or(where_arg_path.to_owned());
-                        match left.select_by_path(&access_path) {
+                        match left.select_by_selector(&access_path) {
                             Some(PqlValue::Str(s)) if re.is_match(&s) => true,
                             _ => false,
                         }

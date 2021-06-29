@@ -68,28 +68,27 @@ impl Selector {
         }
     }
 
-    pub fn split_first(&self) -> Option<(Self, Self)> {
-        let mut data = self.data.clone();
+    pub fn split_first(&self) -> Option<(SelectorNode, Self)> {
+        let mut data = self.data.to_owned();
 
         if let Some(first) = data.pop_front() {
-            let mut vec = VecDeque::new();
-            vec.push_back(first);
-            Some((Self { data: vec }, Self { data }))
+            Some((first, Self { data }))
         } else {
             None
         }
     }
 
     pub fn to_string(&self) -> String {
-        self.to_vec().join(".")
-    }
-
-    pub fn to_vec(&self) -> Vec<String> {
         self.data
             .clone()
             .into_iter()
-            .map(String::from)
+            .map(|node| node.to_string())
             .collect::<Vec<String>>()
+            .join(".")
+    }
+
+    pub fn to_vec(&self) -> Vec<SelectorNode> {
+        self.data.clone().into_iter().collect::<Vec<SelectorNode>>()
     }
 
     pub fn expand_fullpath(&self, bidings: &Bindings) -> Self {

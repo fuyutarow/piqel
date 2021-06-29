@@ -11,6 +11,7 @@ use serde_derive::{Deserialize, Serialize};
 
 use crate::sql::Field;
 use crate::sql::Selector;
+use crate::sql::SelectorNode;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -109,12 +110,29 @@ impl PqlValue {
         }
     }
 
-    pub fn select_by_path(&self, path: &Selector) -> Option<Self> {
+    pub fn select_by_key(&self, key: &SelectorNode) -> Option<Self> {
+        match (self, key.to_owned()) {
+            (Self::Object(map), SelectorNode::String(key_s)) => {
+                map.get(&key_s).map(|v| v.to_owned())
+            }
+            (Self::Array(array), SelectorNode::Number(key_i)) => {
+                if key_i < 0 {
+                    todo!()
+                } else {
+                    let key_u = key_i as usize;
+                    array.get(key_u).map(|v| v.to_owned())
+                }
+            }
+            _ => None,
+        }
+    }
+
+    pub fn select_by_selector(&self, selector: &Selector) -> Option<Self> {
         match self {
             Self::Object(map) => {
-                if let Some((key, tail_path)) = path.to_vec().split_first() {
-                    if let Some(obj) = self.clone().get(key) {
-                        obj.select_by_path(&Selector::from(tail_path))
+                if let Some((key, tail)) = selector.split_first() {
+                    if let Some(obj) = self.select_by_key(&key) {
+                        obj.select_by_selector(&tail)
                     } else {
                         None
                     }
@@ -125,7 +143,7 @@ impl PqlValue {
             Self::Array(array) => {
                 let new_array = array
                     .into_iter()
-                    .filter_map(|value| value.select_by_path(&path))
+                    .filter_map(|value| value.select_by_selector(&selector))
                     .collect::<Vec<_>>();
 
                 Some(Self::Array(new_array))
@@ -138,7 +156,7 @@ impl PqlValue {
         let mut new_map = IndexMap::<String, Self>::new();
 
         for field in field_list {
-            if let Some(value) = self.select_by_path(&field.path) {
+            if let Some(value) = self.select_by_selector(&field.path) {
                 let key = field.alias.clone().unwrap_or({
                     let last = field.path.to_vec().last().unwrap().to_string();
                     last

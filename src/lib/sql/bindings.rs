@@ -53,16 +53,16 @@ impl Bindings {
         self.locals.get(alias).map(|e| e.to_owned())
     }
 
-    fn rec_get_full_path(&self, path: &Selector, trace_path: &mut Selector) {
-        if let Some((first, tail)) = path.to_vec().split_first() {
-            if let Some(alias_path) = self.from_alias(first) {
+    fn rec_get_full_path(&self, selector: &Selector, trace_path: &mut Selector) {
+        if let Some((first, tail)) = selector.split_first() {
+            if let Some(alias_path) = self.from_alias(&first.to_string()) {
                 self.rec_get_full_path(&alias_path, trace_path)
             } else {
                 (*trace_path)
                     .data
                     .push_back(SelectorNode::String(first.to_string()));
             }
-            if tail.len() > 0 {
+            if tail.data.len() > 0 {
                 let tail_path = Selector::from(tail);
                 // for p in tail_path.to_vec()
                 let mut vec_path = tail_path
