@@ -59,3 +59,12 @@ pub enum SourceField {
     Value(PqlValue),
     Selector((Selector, Option<String>)),
 }
+
+impl SourceField {
+    pub fn select_by_selector(&self, selector: Selector) -> Option<PqlValue> {
+        match &self {
+            Self::Value(value) => value.select_by_selector(&selector),
+            Self::Selector((selector, opt_alias)) => todo!(),
+        }
+    }
+}

@@ -47,6 +47,7 @@ pub fn pqlvalue_with_alias(input: &str) -> IResult<&str, PqlValue> {
     };
     Ok((input, val))
 }
+
 pub fn pqlvalue_with_alias_as_souceField(input: &str) -> IResult<&str, SourceField> {
     let (input, val) = pqlvalue_with_alias(input)?;
     Ok((input, SourceField::Value(val)))
@@ -69,8 +70,18 @@ pub fn selector_with_alias(input: &str) -> IResult<&str, SourceField> {
 }
 
 pub fn parse_sourcefield(input: &str) -> IResult<&str, SourceField> {
-    dbg!("#1");
     alt((pqlvalue_with_alias_as_souceField, selector_with_alias))(input)
+}
+
+pub fn projection(input: &str) -> IResult<&str, (Selector, Option<String>)> {
+    let (input, (selector, opt_alias)) = tuple((
+        parse_selector,
+        opt(preceded(
+            opt(preceded(multispace0, tag_no_case("AS"))),
+            preceded(multispace0, alphanumeric1),
+        )),
+    ))(input)?;
+    Ok((input, (selector, opt_alias.map(String::from))))
 }
 
 pub fn parse_proj<'a>(input: &'a str) -> IResult<&'a str, Proj> {

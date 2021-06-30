@@ -1,18 +1,8 @@
 #![feature(box_patterns)]
 
-
-
 use partiql::parser;
 use partiql::pqlir_parser;
 use partiql::sql::evaluate;
-
-
-
-
-
-
-
-
 
 fn main() -> anyhow::Result<()> {
     let input = "

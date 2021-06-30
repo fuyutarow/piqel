@@ -7,11 +7,6 @@ use nom::multi::separated_list1;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
 
-use crate::sql::Field;
-use crate::sql::Proj;
-use crate::sql::WhereCond;
-use crate::value::PqlValue;
-
 pub use crate::parser::elements;
 pub use crate::parser::elements::comma;
 pub use crate::parser::expressions;
@@ -20,6 +15,12 @@ pub use crate::parser::parse_expr;
 pub use crate::parser::parse_value;
 pub use crate::parser::string_allowed_in_field;
 pub use crate::sql::clause;
+use crate::sql::Field;
+use crate::sql::Proj;
+use crate::sql::Selector;
+use crate::sql::SourceField;
+use crate::sql::WhereCond;
+use crate::value::PqlValue;
 
 pub fn select(input: &str) -> IResult<&str, Vec<Proj>> {
     let (input, vec) = context(
@@ -43,6 +44,20 @@ pub fn select_statement_pql_value(input: &str) -> IResult<&str, Vec<Proj>> {
     Ok((input, vec))
 }
 
+pub fn select2(input: &str) -> IResult<&str, Vec<SourceField>> {
+    let (input, vec) = context(
+        "select claues",
+        preceded(
+            tag_no_case("SELECT"),
+            preceded(
+                multispace0,
+                separated_list1(comma, expressions::parse_sourcefield),
+            ),
+        ),
+    )(input)?;
+    Ok((input, vec))
+}
+
 /// # Example
 ///
 /// ```
@@ -58,6 +73,29 @@ pub fn from_pql_value(input: &str) -> IResult<&str, PqlValue> {
         preceded(
             tag_no_case("FROM"),
             preceded(multispace0, crate::pqlir_parser::json_value),
+        ),
+    )(input)
+}
+
+pub fn from2(input: &str) -> IResult<&str, SourceField> {
+    context(
+        "from clause",
+        preceded(
+            tag_no_case("FROM"),
+            preceded(multispace0, expressions::parse_sourcefield),
+        ),
+    )(input)
+}
+
+pub fn from3(input: &str) -> IResult<&str, Vec<SourceField>> {
+    context(
+        "from clause",
+        preceded(
+            tag_no_case("FROM"),
+            preceded(
+                multispace0,
+                separated_list1(comma, expressions::parse_sourcefield),
+            ),
         ),
     )(input)
 }

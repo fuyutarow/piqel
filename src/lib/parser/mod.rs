@@ -5,6 +5,7 @@ pub mod func;
 pub mod keywords;
 pub mod math;
 pub mod select_statement;
+pub mod uri;
 pub mod values;
 
 use nom::branch::alt;
@@ -19,6 +20,7 @@ pub use expressions::parse_expr;
 pub use expressions::parse_field;
 pub use expressions::parse_path_as_expr;
 pub use select_statement::sql;
+pub use uri::uri;
 
 pub fn parse_value(input: &str) -> IResult<&str, PqlValue> {
     alt((
