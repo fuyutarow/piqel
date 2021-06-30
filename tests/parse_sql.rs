@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use ordered_float::OrderedFloat;
 
 use partiql::parser;
@@ -15,29 +17,6 @@ fn get_sql(qi: &str) -> anyhow::Result<Sql> {
     println!("{}", input);
     let sql = parser::sql(&input)?;
     Ok(sql)
-}
-
-#[test]
-fn array123() {
-    let input = "[1,2,3]";
-
-    let (_input, res) = parser::values::array(input).unwrap();
-    assert_eq!(vec![1, 2, 3], res);
-}
-
-#[test]
-fn field() -> anyhow::Result<()> {
-    let (_, field) = parser::parse_field("a.b.c")?;
-
-    assert_eq!(
-        field,
-        Field {
-            path: Selector::from("a.b.c"),
-            alias: None
-        }
-    );
-
-    Ok(())
 }
 
 #[test]
@@ -69,10 +48,7 @@ FROM hr
                     alias: Some("title".to_owned()),
                 },
             ],
-            from_clause: vec![Field {
-                path: Selector::from("hr"),
-                alias: None,
-            }],
+            from_clause: vec![Field::from_str("hr")?],
             left_join_clause: vec![],
             where_clause: None,
             orderby: None,
@@ -104,10 +80,7 @@ fn q1() -> anyhow::Result<()> {
                     alias: Some("title".to_owned()),
                 },
             ],
-            from_clause: vec![Field {
-                path: Selector::from("hr.employees"),
-                alias: Some("e".to_owned()),
-            }],
+            from_clause: vec![Field::from_str("hr.employees AS e",)?],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Eq {
                 expr: Expr::Path(Selector::from("e.title"),),
@@ -138,14 +111,8 @@ fn q2() -> anyhow::Result<()> {
                 },
             ],
             from_clause: vec![
-                Field {
-                    path: Selector::from("hr.employeesNest"),
-                    alias: Some("e".to_owned()),
-                },
-                Field {
-                    path: Selector::from("e.projects"),
-                    alias: Some("p".to_owned()),
-                },
+                Field::from_str("hr.employeesNest AS e")?,
+                Field::from_str("e.projects AS p")?,
             ],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Like {
@@ -184,14 +151,8 @@ fn q3() -> anyhow::Result<()> {
                     alias: Some("projectName".to_owned()),
                 },
             ],
-            from_clause: vec![Field {
-                path: Selector::from("hr.employeesNest"),
-                alias: Some("e".to_owned()),
-            },],
-            left_join_clause: vec![Field {
-                path: Selector::from("e.projects"),
-                alias: Some("p".to_owned()),
-            },],
+            from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
+            left_join_clause: vec![Field::from_str("e.projects AS p")?],
             where_clause: None,
             orderby: None,
             limit: None,
@@ -227,10 +188,7 @@ FROM hr.employeesNest AS e
                             expr: Expr::Path(Selector::from("p")),
                             alias: None
                         }],
-                        from_clause: vec![Field {
-                            path: Selector::from("e.projects"),
-                            alias: Some("p".to_owned()),
-                        }],
+                        from_clause: vec![Field::from_str("e.projects")?],
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
                             expr: Expr::Path(Selector::from("p.name"),),
@@ -242,10 +200,7 @@ FROM hr.employeesNest AS e
                     alias: Some("queryProjectsNum".to_owned()),
                 },
             ],
-            from_clause: vec![Field {
-                path: Selector::from("hr.employeesNest"),
-                alias: Some("e".to_owned()),
-            },],
+            from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
             left_join_clause: vec![],
             where_clause: None,
             orderby: None,
@@ -273,10 +228,7 @@ fn q4() -> anyhow::Result<()> {
                             expr: Expr::Func(Box::new(Func::Count(Expr::Star))),
                             alias: None
                         }],
-                        from_clause: vec![Field {
-                            path: Selector::from("e.projects"),
-                            alias: Some("p".to_owned()),
-                        }],
+                        from_clause: vec![Field::from_str("e.projects AS p")?],
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
                             expr: Expr::Path(Selector::from("p.name"),),
@@ -288,10 +240,7 @@ fn q4() -> anyhow::Result<()> {
                     alias: Some("queryProjectsNum".to_owned()),
                 },
             ],
-            from_clause: vec![Field {
-                path: Selector::from("hr.employeesNest"),
-                alias: Some("e".to_owned()),
-            },],
+            from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
             left_join_clause: vec![],
             where_clause: None,
             orderby: None,
@@ -361,18 +310,9 @@ fn q7() -> anyhow::Result<()> {
                 },
             ],
             from_clause: vec![
-                Field {
-                    path: Selector::from("matrices"),
-                    alias: Some("t".to_owned()),
-                },
-                Field {
-                    path: Selector::from("t.matrix"),
-                    alias: Some("y".to_owned()),
-                },
-                Field {
-                    path: Selector::from("y"),
-                    alias: Some("x".to_owned()),
-                },
+                Field::from_str("matrices AS t")?,
+                Field::from_str("t.matrix AS y")?,
+                Field::from_str("y AS x")?,
             ],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Eq {

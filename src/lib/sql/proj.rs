@@ -4,6 +4,7 @@ use crate::sql::Bindings;
 use crate::sql::Expr;
 use crate::sql::Field;
 use crate::sql::FieldBook;
+use crate::sql::SourceValue;
 
 use crate::value::PqlVector;
 
@@ -21,8 +22,8 @@ impl Proj {
     pub fn to_field(&self, bindings: &Bindings) -> Field {
         let expr = self.expr.expand_fullpath(&bindings);
         match expr {
-            Expr::Path(path) => Field {
-                path,
+            Expr::Path(selector) => Field {
+                value: SourceValue::Selector(selector),
                 alias: self.alias.to_owned(),
             },
             _ => {

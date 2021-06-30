@@ -12,6 +12,7 @@ use nom::sequence::delimited;
 use nom::sequence::preceded;
 use nom::sequence::tuple;
 use nom::IResult;
+use quick_xml::se;
 
 pub use crate::parser;
 pub use crate::parser::elements;
@@ -25,7 +26,7 @@ use crate::sql::Field;
 use crate::sql::Proj;
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
-use crate::sql::SourceField;
+use crate::sql::SourceValue;
 use crate::value::PqlValue;
 
 pub fn pqlvalue_with_alias(input: &str) -> IResult<&str, PqlValue> {
@@ -48,13 +49,13 @@ pub fn pqlvalue_with_alias(input: &str) -> IResult<&str, PqlValue> {
     Ok((input, val))
 }
 
-pub fn pqlvalue_with_alias_as_souceField(input: &str) -> IResult<&str, SourceField> {
+pub fn pqlvalue_with_alias_as_souceField(input: &str) -> IResult<&str, SourceValue> {
     let (input, val) = pqlvalue_with_alias(input)?;
-    Ok((input, SourceField::Value(val)))
+    Ok((input, SourceValue::Value(val)))
 }
 
-pub fn selector_with_alias(input: &str) -> IResult<&str, SourceField> {
-    let (input, (selector, opt_alias)) = tuple((
+pub fn parse_field(input: &str) -> IResult<&str, Field> {
+    let (input, (selector, alias)) = tuple((
         parse_selector,
         opt(preceded(
             opt(preceded(multispace0, tag_no_case("AS"))),
@@ -62,15 +63,12 @@ pub fn selector_with_alias(input: &str) -> IResult<&str, SourceField> {
         )),
     ))(input)?;
 
-    dbg!(&selector, opt_alias);
-
-    let source = SourceField::Selector((selector, opt_alias.map(|e| e.to_owned())));
-
-    Ok((input, source))
-}
-
-pub fn parse_sourcefield(input: &str) -> IResult<&str, SourceField> {
-    alt((pqlvalue_with_alias_as_souceField, selector_with_alias))(input)
+    let value = SourceValue::Selector(selector);
+    let field = Field {
+        value,
+        alias: alias.map(String::from),
+    };
+    Ok((input, field))
 }
 
 pub fn projection(input: &str) -> IResult<&str, (Selector, Option<String>)> {
@@ -132,9 +130,11 @@ pub fn parse_sql_as_expr(input: &str) -> IResult<&str, Expr> {
     map(parse_sql, |sql| Expr::Sql(sql))(input)
 }
 
-pub fn parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
-    let (input, (path, alias)) = tuple((parse_selector, opt(parse_alias_in_from_clause)))(input)?;
-    let res = Field { path, alias };
+pub fn _parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
+    let (input, (selector, alias)) =
+        tuple((parse_selector, opt(parse_alias_in_from_clause)))(input)?;
+    let value = SourceValue::Selector(selector);
+    let res = Field { value, alias };
     Ok((input, res))
 }
 

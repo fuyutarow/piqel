@@ -13,6 +13,7 @@ use serde_derive::{Deserialize, Serialize};
 use crate::sql::Field;
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
+use crate::sql::SourceValue;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -176,13 +177,19 @@ impl PqlValue {
         let mut new_map = IndexMap::<String, Self>::new();
 
         for field in field_list {
-            if let Some(value) = self.select_by_selector(&field.path) {
-                let key = field.alias.clone().unwrap_or({
-                    let last = field.path.to_vec().last().unwrap().to_string();
-                    last
-                });
-                new_map.insert(key, value);
-            } else {
+            match &field.value {
+                SourceValue::Selector(selector) => {
+                    if let Some(value) = self.select_by_selector(&selector) {
+                        let key = field.alias.clone().unwrap_or({
+                            let last = selector.to_vec().last().unwrap().to_string();
+                            last
+                        });
+                        new_map.insert(key, value);
+                    } else {
+                        todo!()
+                    }
+                }
+                _ => todo!(),
             }
         }
 

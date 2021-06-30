@@ -18,7 +18,7 @@ pub use crate::sql::clause;
 use crate::sql::Field;
 use crate::sql::Proj;
 use crate::sql::Selector;
-use crate::sql::SourceField;
+use crate::sql::SourceValue;
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
 
@@ -44,60 +44,18 @@ pub fn select_statement_pql_value(input: &str) -> IResult<&str, Vec<Proj>> {
     Ok((input, vec))
 }
 
-pub fn select2(input: &str) -> IResult<&str, Vec<SourceField>> {
+pub fn select2(input: &str) -> IResult<&str, Vec<Field>> {
     let (input, vec) = context(
         "select claues",
         preceded(
             tag_no_case("SELECT"),
             preceded(
                 multispace0,
-                separated_list1(comma, expressions::parse_sourcefield),
+                separated_list1(comma, expressions::parse_field),
             ),
         ),
     )(input)?;
     Ok((input, vec))
-}
-
-/// # Example
-///
-/// ```
-/// use partiql::parser::clauses::from_pql_value;
-/// fn main() -> anyhow::Result<()> {
-///   from_pql_value(r#"FROM [1,2,3]"#)?;
-///    Ok(())
-/// }
-/// ```
-pub fn from_pql_value(input: &str) -> IResult<&str, PqlValue> {
-    context(
-        "from clause",
-        preceded(
-            tag_no_case("FROM"),
-            preceded(multispace0, crate::pqlir_parser::json_value),
-        ),
-    )(input)
-}
-
-pub fn from2(input: &str) -> IResult<&str, SourceField> {
-    context(
-        "from clause",
-        preceded(
-            tag_no_case("FROM"),
-            preceded(multispace0, expressions::parse_sourcefield),
-        ),
-    )(input)
-}
-
-pub fn from3(input: &str) -> IResult<&str, Vec<SourceField>> {
-    context(
-        "from clause",
-        preceded(
-            tag_no_case("FROM"),
-            preceded(
-                multispace0,
-                separated_list1(comma, expressions::parse_sourcefield),
-            ),
-        ),
-    )(input)
 }
 
 pub fn from<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
@@ -208,4 +166,30 @@ pub fn offset(input: &str) -> IResult<&str, u64> {
         tag_no_case("OFFSET"),
         preceded(multispace0, elements::integer),
     )(input)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::from;
+    use crate::sql::Field;
+    use crate::sql::Selector;
+    use crate::sql::SourceValue;
+    use crate::value::PqlValue;
+
+    #[test]
+    fn parse_from() -> anyhow::Result<()> {
+        assert_eq!(from("FROM [1,2,3]")?.1, vec![Field::from_str("[1,2,3]")?],);
+        assert_eq!(
+            from("FROM [1,2,3] AS arr")?.1,
+            vec![Field::from_str("[1,2,3] AS arr")?],
+        );
+        assert_eq!(
+            from("FROM x.y.z AS xyz")?.1,
+            vec![Field::from_str("x.y.z AS xyz")?],
+        );
+
+        Ok(())
+    }
 }

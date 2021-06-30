@@ -6,6 +6,7 @@ use nom::{
     IResult,
 };
 
+use crate::sql::Field;
 use crate::sql::Sql;
 
 use crate::parser::clauses;
@@ -101,13 +102,13 @@ use crate::value::PqlValue;
 #[derive(Debug, Default)]
 pub struct LogicalPlan {
     pub select: Vec<Proj>,
-    pub from: PqlValue,
+    pub from: Vec<Field>,
 }
 
 pub fn parse_sql3(input: &str) -> IResult<&str, LogicalPlan> {
     let (input, (select_clause, opt_from_clause)) = tuple((
         preceded(multispace0, clauses::select),
-        opt(preceded(multispace0, clauses::from_pql_value)),
+        opt(preceded(multispace0, clauses::from)),
     ))(input)?;
 
     let sql = LogicalPlan {

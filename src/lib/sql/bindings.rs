@@ -5,6 +5,7 @@ use indexmap::IndexMap as Map;
 use crate::sql::Field;
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
+use crate::sql::SourceValue;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Bindings {
@@ -15,12 +16,12 @@ impl From<&[Field]> for Bindings {
     fn from(fields: &[Field]) -> Self {
         let locals = fields
             .iter()
-            .filter_map(|field| {
-                if let Some(alias) = &field.alias {
-                    Some((alias.to_string(), field.path.to_owned()))
-                } else {
-                    None
-                }
+            .filter_map(|field| match field {
+                Field {
+                    value: SourceValue::Selector(selector),
+                    alias: Some(alias),
+                } => Some((alias.to_string(), selector.to_owned())),
+                _ => todo!(),
             })
             .collect::<Map<String, Selector>>();
 
@@ -55,16 +56,23 @@ impl Bindings {
         }
     }
 
-    pub fn get_full_path(&self, path: &Selector) -> Selector {
-        let mut trace_path = Selector::default();
+    pub fn get_full_path(&self, value: &SourceValue) -> Selector {
+        match &value {
+            SourceValue::Selector(selector) => {
+                let mut trace_path = Selector::default();
 
-        self.rec_get_full_path(path, &mut trace_path);
-        trace_path
+                self.rec_get_full_path(selector, &mut trace_path);
+                trace_path
+            }
+            SourceValue::Value(_) => todo!(),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::Bindings;
     use crate::parser;
     use crate::sql::{Field, Selector, Sql};
@@ -77,14 +85,8 @@ mod tests {
             )?
             .1,
             from_clause: vec![
-                Field {
-                    path: Selector::from("hr.employeesNest"),
-                    alias: Some("e".to_owned()),
-                },
-                Field {
-                    path: Selector::from("e.projects"),
-                    alias: Some("p".to_owned()),
-                },
+                Field::from_str("hr.employeesNest AS e")?,
+                Field::from_str("e.projects AS p")?,
             ],
             left_join_clause: vec![],
             where_clause: None,
@@ -101,21 +103,17 @@ mod tests {
 
         let bindings = Bindings::from(fields.as_slice());
 
-        let field = Field {
-            path: Selector::from("e.name"),
-            alias: Some("employeetName".to_owned()),
-        };
         assert_eq!(
-            bindings.get_full_path(&field.path).to_string(),
+            bindings
+                .get_full_path(&Field::from_str("e.name AS employeeName")?.value)
+                .to_string(),
             "hr.employeesNest.name",
         );
 
-        let field = Field {
-            path: Selector::from("p.name"),
-            alias: Some("projectName".to_owned()),
-        };
         assert_eq!(
-            bindings.get_full_path(&field.path).to_string(),
+            bindings
+                .get_full_path(&Field::from_str("p.name AS projectName")?.value)
+                .to_string(),
             "hr.employeesNest.projects.name",
         );
 

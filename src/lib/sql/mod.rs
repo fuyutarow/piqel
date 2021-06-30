@@ -8,12 +8,12 @@ mod selector;
 mod utils;
 mod where_cond;
 
-use crate::value::PqlValue;
 pub use bindings::Bindings;
 pub use eval::evaluate;
 pub use eval::FieldBook;
 pub use expr::{Expr, Func};
 pub use field::Field;
+pub use field::SourceValue;
 pub use filter::restrict;
 pub use proj::Proj;
 pub use selector::Selector;
@@ -51,20 +51,5 @@ pub mod clause {
     pub struct Limit {
         pub limit: u64,
         pub offset: u64,
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum SourceField {
-    Value(PqlValue),
-    Selector((Selector, Option<String>)),
-}
-
-impl SourceField {
-    pub fn select_by_selector(&self, selector: Selector) -> Option<PqlValue> {
-        match &self {
-            Self::Value(value) => value.select_by_selector(&selector),
-            Self::Selector((selector, opt_alias)) => todo!(),
-        }
     }
 }

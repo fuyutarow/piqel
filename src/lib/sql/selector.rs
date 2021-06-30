@@ -5,6 +5,7 @@ use itertools::any;
 
 use crate::parser;
 use crate::sql::Bindings;
+use crate::sql::SourceValue;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SelectorNode {
@@ -136,6 +137,7 @@ impl Selector {
     }
 
     pub fn expand_fullpath(&self, bidings: &Bindings) -> Self {
-        bidings.get_full_path(&self)
+        let value = SourceValue::Selector(self.to_owned());
+        bidings.get_full_path(&value)
     }
 }

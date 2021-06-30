@@ -9,6 +9,7 @@ use crate::sql::restrict;
 use crate::sql::Bindings;
 use crate::sql::Expr;
 use crate::sql::Proj;
+use crate::sql::SourceValue;
 use crate::sql::Sql;
 use crate::sql::WhereCond;
 use crate::value::BPqlValue;
@@ -80,7 +81,12 @@ pub fn evaluate<'a>(sql: &Sql, data: &'a PqlValue) -> PqlValue {
                 .into_par_iter()
                 .map(|s| {
                     let mut field = parser::parse_field(&s).unwrap().1;
-                    field.alias = Some(field.path.to_string());
+                    match &field.value {
+                        SourceValue::Selector(selector) => {
+                            field.alias = Some(selector.to_string());
+                        }
+                        _ => todo!(),
+                    }
                     field
                 })
                 .collect::<Vec<_>>()
