@@ -1,4 +1,5 @@
 mod bindings;
+mod env;
 mod eval;
 mod expr;
 mod field;
@@ -9,6 +10,7 @@ mod utils;
 mod where_cond;
 
 pub use bindings::Bindings;
+pub use env::Env;
 pub use eval::evaluate;
 pub use eval::FieldBook;
 pub use expr::{Expr, Func};

@@ -75,7 +75,7 @@ mod tests {
 
     use super::Bindings;
     use crate::parser;
-    use crate::sql::{Field, Selector, Sql};
+    use crate::sql::{Field, Sql};
 
     #[test]
     fn get_full_path() -> anyhow::Result<()> {

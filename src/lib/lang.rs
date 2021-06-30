@@ -1,4 +1,3 @@
-
 use std::str::FromStr;
 
 use parse_display::{Display, FromStr};
@@ -7,8 +6,6 @@ use parse_display::{Display, FromStr};
 use polars::prelude::CsvReader;
 #[cfg(feature = "table")]
 use polars::prelude::*;
-
-
 
 use crate::value::{BPqlValue, PqlValue, TomlValue};
 

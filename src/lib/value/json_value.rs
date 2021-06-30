@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-
 use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;
 use serde_derive::{Deserialize, Serialize};

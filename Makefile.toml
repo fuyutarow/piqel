@@ -81,6 +81,12 @@ script = '''
 cargo kcov
 '''
 
+[tasks.lint]
+script = '''
+cargo fix --allow-dirty
+cargo fmt
+'''
+
 [tasks.test]
 alias = "test:all"
 
@@ -161,11 +167,6 @@ git tag v$(version-make show Cargo.toml)
 [tasks."version:untag"]
 script = '''
 git tag v$(version-make show Cargo.toml) -d
-'''
-
-[tasks.fix]
-script = '''
-cargo fix --allow-dirty
 '''
 
 [tasks.generate-json]

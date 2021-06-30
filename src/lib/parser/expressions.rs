@@ -3,9 +3,9 @@ use indexmap::IndexMap as Map;
 
 use nom::branch::alt;
 use nom::bytes::complete::{tag, tag_no_case};
+use nom::character::complete::alphanumeric1;
 use nom::character::complete::char;
 use nom::character::complete::multispace0;
-use nom::character::complete::{alphanumeric0, alphanumeric1};
 use nom::combinator::map;
 use nom::combinator::opt;
 use nom::multi::separated_list1;
@@ -13,7 +13,6 @@ use nom::sequence::delimited;
 use nom::sequence::preceded;
 use nom::sequence::tuple;
 use nom::IResult;
-use quick_xml::se;
 
 pub use crate::parser;
 pub use crate::parser::elements;

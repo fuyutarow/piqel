@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use crate::parser;
-use crate::sql::Bindings;
+
+use crate::sql::Env;
 use crate::sql::Selector;
 use crate::value::PqlValue;
 
@@ -27,15 +28,9 @@ impl FromStr for Field {
 }
 
 impl Field {
-    pub fn expand_fullpath(&self, bindings: &Bindings) -> Self {
-        let value = match &self.value {
-            SourceValue::Selector(selector) => {
-                SourceValue::Selector(selector.expand_fullpath(&bindings))
-            }
-            SourceValue::Value(value) => self.value.to_owned(),
-        };
+    pub fn expand_fullpath(&self, env: &Env) -> Self {
         Self {
-            value,
+            value: env.expand_fullpath(&self.value),
             alias: self.alias.to_owned(),
         }
     }

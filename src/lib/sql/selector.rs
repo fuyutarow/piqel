@@ -1,8 +1,6 @@
 use std::collections::VecDeque;
 use std::str::FromStr;
 
-use itertools::any;
-
 use crate::parser;
 use crate::sql::Bindings;
 use crate::sql::SourceValue;

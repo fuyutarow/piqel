@@ -5,7 +5,6 @@ use crate::sql::Selector;
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
 
-
 pub fn restrict(
     value: Option<PqlValue>,
     path: &Selector,
@@ -77,8 +76,8 @@ pub fn restrict(
 mod tests {
     use super::restrict;
     use crate::pqlir_parser;
-    use crate::sql::Selector;
     use crate::sql::Expr;
+    use crate::sql::Selector;
     use crate::sql::WhereCond;
     use crate::value::PqlValue;
 

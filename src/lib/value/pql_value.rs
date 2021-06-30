@@ -131,7 +131,7 @@ impl PqlValue {
 
     pub fn select_by_selector(&self, selector: &Selector) -> Option<Self> {
         match self {
-            Self::Object(map) => {
+            Self::Object(_map) => {
                 if let Some((key, tail)) = selector.split_first() {
                     if let Some(obj) = self.select_by_key(&key) {
                         obj.select_by_selector(&tail)
@@ -143,7 +143,7 @@ impl PqlValue {
                 }
             }
             Self::Array(array) => {
-                if let Some((key, tail)) = selector.split_first() {
+                if let Some((key, _tail)) = selector.split_first() {
                     match key {
                         SelectorNode::Number(key_i) => {
                             if key_i < 0 {
@@ -186,6 +186,7 @@ impl PqlValue {
                         });
                         new_map.insert(key, value);
                     } else {
+                        dbg!(&selector);
                         todo!()
                     }
                 }

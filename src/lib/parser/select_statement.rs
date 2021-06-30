@@ -97,7 +97,6 @@ pub fn parse_sql2(input: &str) -> IResult<&str, Sql> {
 }
 
 use crate::sql::Proj;
-use crate::value::PqlValue;
 
 #[derive(Debug, Default)]
 pub struct LogicalPlan {

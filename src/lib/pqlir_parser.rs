@@ -6,7 +6,7 @@ pub use nom::error::convert_error;
 pub use nom::error::VerboseError;
 use nom::{
     branch::alt,
-    bytes::complete::{escaped, tag, take_while},
+    bytes::complete::{escaped, tag},
     character::complete::{alphanumeric1, char, one_of, space1},
     combinator::{cut, map, opt, value},
     error::{context, ContextError, ParseError},

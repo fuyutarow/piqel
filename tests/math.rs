@@ -1,6 +1,5 @@
 use std::convert::TryFrom;
 
-
 use partiql::parser;
 use partiql::value::PqlValue;
 

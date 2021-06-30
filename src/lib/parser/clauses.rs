@@ -17,10 +17,8 @@ pub use crate::parser::string_allowed_in_field;
 pub use crate::sql::clause;
 use crate::sql::Field;
 use crate::sql::Proj;
-use crate::sql::Selector;
-use crate::sql::SourceValue;
+
 use crate::sql::WhereCond;
-use crate::value::PqlValue;
 
 pub fn select(input: &str) -> IResult<&str, Vec<Proj>> {
     let (input, vec) = context(
@@ -174,9 +172,6 @@ mod tests {
 
     use super::from;
     use crate::sql::Field;
-    use crate::sql::Selector;
-    use crate::sql::SourceValue;
-    use crate::value::PqlValue;
 
     #[test]
     fn parse_from() -> anyhow::Result<()> {

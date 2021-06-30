@@ -4,8 +4,8 @@ use collect_mac::collect;
 use ordered_float::OrderedFloat;
 
 use crate::sql::Bindings;
-use crate::sql::Selector;
 use crate::sql::FieldBook;
+use crate::sql::Selector;
 use crate::sql::Sql;
 use crate::value::PqlValue;
 use crate::value::PqlVector;
