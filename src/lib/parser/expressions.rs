@@ -1,5 +1,6 @@
 use collect_mac::collect;
 use indexmap::IndexMap as Map;
+
 use nom::branch::alt;
 use nom::bytes::complete::{tag, tag_no_case};
 use nom::character::complete::char;
@@ -29,8 +30,8 @@ use crate::sql::SelectorNode;
 use crate::sql::SourceValue;
 use crate::value::PqlValue;
 
-pub fn pqlvalue_with_alias(input: &str) -> IResult<&str, PqlValue> {
-    let (input, (value, opt_alias)) = tuple((
+pub fn pqlvalue_as_field(input: &str) -> IResult<&str, Field> {
+    let (input, (value, alias)) = tuple((
         pqlir_parser::root,
         opt(preceded(
             opt(preceded(multispace0, tag_no_case("AS"))),
@@ -38,23 +39,45 @@ pub fn pqlvalue_with_alias(input: &str) -> IResult<&str, PqlValue> {
         )),
     ))(input)?;
 
-    let val = if let Some(alias) = opt_alias {
-        PqlValue::Object(collect! {
-            as Map::<String , PqlValue>:
-            alias.to_string() => value
-        })
-    } else {
-        value
+    let value = SourceValue::Value(value);
+    let field = Field {
+        value,
+        alias: alias.map(String::from),
     };
-    Ok((input, val))
-}
-
-pub fn pqlvalue_with_alias_as_souceField(input: &str) -> IResult<&str, SourceValue> {
-    let (input, val) = pqlvalue_with_alias(input)?;
-    Ok((input, SourceValue::Value(val)))
+    Ok((input, field))
 }
 
 pub fn parse_field(input: &str) -> IResult<&str, Field> {
+    alt((pqlvalue_as_field, selector_as_field))(input)
+}
+
+/// ```
+/// use std::str::FromStr;
+/// use partiql::parser;
+/// use partiql::value::PqlValue;
+/// fn main() -> anyhow::Result<()> {
+///   let value = parser::expressions::pqlvalue_with_alias_to_pql_value(r#"[1,2,3] AS arr"#)?.1;
+///   let expected = PqlValue::from_str(r#"{ "arr" : [1,2,3] }"#)?;
+///   assert_eq!(value, expected);
+///   Ok(())
+/// }
+/// ```
+pub fn pqlvalue_with_alias_to_pql_value(input: &str) -> IResult<&str, PqlValue> {
+    let (input, field) = pqlvalue_as_field(input)?;
+    let value = match field {
+        Field {
+            value: SourceValue::Value(value),
+            alias: Some(alias),
+        } => PqlValue::Object(collect! {
+            as Map::<String , PqlValue>:
+            alias.to_string() => value
+        }),
+        _ => todo!(),
+    };
+    Ok((input, value))
+}
+
+pub fn selector_as_field(input: &str) -> IResult<&str, Field> {
     let (input, (selector, alias)) = tuple((
         parse_selector,
         opt(preceded(
@@ -218,7 +241,7 @@ mod tests {
 
     #[test]
     fn alias_pql_vlaue_to_pql_value() -> anyhow::Result<()> {
-        let value = parser::expressions::pqlvalue_with_alias(r#"[1,2,3] AS arr"#)?.1;
+        let value = parser::expressions::pqlvalue_with_alias_to_pql_value(r#"[1,2,3] AS arr"#)?.1;
         let expected = PqlValue::from_str(r#"{ "arr" : [1,2,3] }"#)?;
         assert_eq!(value, expected);
         Ok(())

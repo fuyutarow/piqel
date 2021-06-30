@@ -188,7 +188,7 @@ FROM hr.employeesNest AS e
                             expr: Expr::Path(Selector::from("p")),
                             alias: None
                         }],
-                        from_clause: vec![Field::from_str("e.projects")?],
+                        from_clause: vec![Field::from_str("e.projects AS p")?],
                         left_join_clause: vec![],
                         where_clause: Some(Box::new(WhereCond::Like {
                             expr: Expr::Path(Selector::from("p.name"),),
