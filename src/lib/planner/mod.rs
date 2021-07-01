@@ -1,8 +1,15 @@
 mod drain;
 mod filter;
-mod project;
+pub mod project;
 
+use std::str::FromStr;
+
+use crate::parser;
+pub use crate::sql::clause::Limit;
+pub use crate::sql::clause::OrderBy;
 use crate::sql::Env;
+use crate::sql::Field;
+pub use crate::sql::WhereCond;
 use crate::value::PqlValue;
 pub use drain::Drain;
 pub use filter::Filter;
@@ -13,18 +20,58 @@ pub struct LogicalPlan {
     pub drains: Vec<Drain>,
     pub filter: Filter,
     pub project: Projection,
+    pub order_by: Option<OrderBy>,
+    pub limit: Option<Limit>,
+}
+
+impl From<Sql> for LogicalPlan {
+    fn from(sql: Sql) -> Self {
+        Self {
+            drains: vec![Drain(sql.from_clause), Drain(sql.left_join_clause)],
+            filter: Filter(sql.where_clause),
+            project: Projection(sql.select_clause),
+            order_by: None,
+            limit: None,
+        }
+    }
 }
 
 impl LogicalPlan {
-    fn excute(self, data: PqlValue, env: &mut Env) -> PqlValue {
+    pub fn excute(self, data: PqlValue, env: &mut Env) -> PqlValue {
         for drain in self.drains {
             drain.excute(env);
         }
-
         let data = self.filter.execute(data, &env);
-
-        let list = self.project.execute(data);
-
+        dbg!(&data);
+        let list = self.project.execute(data, &env);
         PqlValue::Array(list)
     }
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct Sql {
+    pub select_clause: Vec<Field>,
+    pub from_clause: Vec<Field>,
+    pub left_join_clause: Vec<Field>,
+    pub where_clause: Option<Box<WhereCond>>,
+    pub orderby: Option<OrderBy>,
+    pub limit: Option<Limit>,
+}
+
+impl FromStr for Sql {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        parser::select_statement::from_str(s)
+    }
+}
+
+pub fn evaluate<'a>(sql: Sql, data: PqlValue) -> PqlValue {
+    let mut env = Env::default();
+    dbg!("#1");
+    let plan = LogicalPlan::from(sql);
+    dbg!("#2");
+    let result = plan.excute(data, &mut env);
+    dbg!("#3");
+    result
 }

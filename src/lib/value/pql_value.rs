@@ -58,17 +58,17 @@ pub enum PqlValue {
     Object(IndexMap<String, Self>),
 }
 
+impl Default for PqlValue {
+    fn default() -> Self {
+        Self::Null
+    }
+}
+
 impl FromStr for PqlValue {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> anyhow::Result<Self> {
         crate::pqlir_parser::from_str(s)
-    }
-}
-
-impl Default for PqlValue {
-    fn default() -> Self {
-        Self::Null
     }
 }
 
@@ -93,6 +93,12 @@ impl From<i64> for PqlValue {
 impl From<f64> for PqlValue {
     fn from(f: f64) -> Self {
         Self::Float(OrderedFloat(f))
+    }
+}
+
+impl From<Vec<PqlValue>> for PqlValue {
+    fn from(v: Vec<PqlValue>) -> Self {
+        Self::Array(v)
     }
 }
 
@@ -209,6 +215,18 @@ impl PqlValue {
             }
             _ => None,
         }
+    }
+
+    pub fn to_json(&self) -> serde_json::Result<String> {
+        self.to_jsonp()
+    }
+
+    pub fn to_jsonp(&self) -> serde_json::Result<String> {
+        serde_json::to_string_pretty(self)
+    }
+
+    pub fn to_jsonc(&self) -> serde_json::Result<String> {
+        serde_json::to_string(self)
     }
 }
 

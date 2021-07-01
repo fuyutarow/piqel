@@ -1,28 +1,27 @@
+use std::str::FromStr;
+
 use partiql::parser;
+use partiql::planner::evaluate;
+use partiql::planner::Sql;
 use partiql::pqlir_parser;
-use partiql::sql::evaluate;
-use partiql::sql::Sql;
 use partiql::value::PqlValue;
 
 fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {
     let sql = {
         let input = std::fs::read_to_string(format!("samples/{}.sql", qi)).unwrap();
-        let sql = parser::sql(&input)?;
-        sql
+        Sql::from_str(&input)?
     };
 
     let data = {
         let input = std::fs::read_to_string(format!("samples/{}.env", qi)).unwrap();
-        let model = pqlir_parser::pql_value(&input)?;
-        model
+        PqlValue::from_str(&input)?
     };
 
     let output = {
         let input = std::fs::read_to_string(format!("samples/{}.output", qi)).unwrap();
         let v = input.split("---").collect::<Vec<_>>();
         let input = v.first().unwrap();
-        let model = pqlir_parser::pql_value(&input)?;
-        model
+        PqlValue::from_str(&input)?
     };
 
     Ok((sql, data, output))
@@ -31,7 +30,7 @@ fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {
 #[test]
 fn q1() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q1")?;
-    let res = evaluate(&sql, &data);
+    let res = evaluate(sql, data);
     assert_eq!(res, output);
     Ok(())
 }
@@ -39,7 +38,7 @@ fn q1() -> anyhow::Result<()> {
 #[test]
 fn q2() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q2")?;
-    let res = evaluate(&sql, &data);
+    let res = evaluate(sql, data);
     assert_eq!(res, output);
     Ok(())
 }
@@ -47,7 +46,7 @@ fn q2() -> anyhow::Result<()> {
 #[test]
 fn q3() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q3")?;
-    let res = evaluate(&sql, &data);
+    let res = evaluate(sql, data);
     assert_eq!(res, output);
     Ok(())
 }
@@ -63,7 +62,7 @@ fn q3() -> anyhow::Result<()> {
 #[test]
 fn q5() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q5")?;
-    let res = evaluate(&sql, &data);
+    let res = evaluate(sql, data);
     assert_eq!(res, output);
     Ok(())
 }
