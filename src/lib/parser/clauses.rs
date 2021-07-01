@@ -16,31 +16,8 @@ pub use crate::parser::parse_value;
 pub use crate::parser::string_allowed_in_field;
 pub use crate::sql::clause;
 use crate::sql::Field;
-use crate::sql::Proj;
 
 use crate::sql::WhereCond;
-
-pub fn select(input: &str) -> IResult<&str, Vec<Proj>> {
-    let (input, vec) = context(
-        "select claues",
-        preceded(
-            tag_no_case("SELECT"),
-            preceded(multispace0, separated_list1(comma, expressions::parse_proj)),
-        ),
-    )(input)?;
-    Ok((input, vec))
-}
-
-pub fn select_statement_pql_value(input: &str) -> IResult<&str, Vec<Proj>> {
-    let (input, vec) = context(
-        "select claues",
-        preceded(
-            tag_no_case("SELECT"),
-            preceded(multispace0, separated_list1(comma, expressions::parse_proj)),
-        ),
-    )(input)?;
-    Ok((input, vec))
-}
 
 pub fn select2(input: &str) -> IResult<&str, Vec<Field>> {
     let (input, vec) = context(

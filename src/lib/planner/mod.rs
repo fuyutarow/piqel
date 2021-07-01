@@ -10,6 +10,7 @@ pub use crate::sql::clause::OrderBy;
 use crate::sql::Env;
 use crate::sql::Field;
 pub use crate::sql::WhereCond;
+use crate::value::BPqlValue;
 use crate::value::PqlValue;
 pub use drain::Drain;
 pub use filter::Filter;
@@ -43,12 +44,42 @@ impl LogicalPlan {
         }
         let data = self.filter.execute(data, &env);
         dbg!(&data);
-        let list = self.project.execute(data, &env);
+        let mut list = self.project.execute(data, &env);
+
+        if let Some(orderby) = &self.order_by {
+            let mut list_with_key = list
+                .into_iter()
+                .filter_map(|record| {
+                    record
+                        .to_owned()
+                        .get(&orderby.label)
+                        .map(|value| (BPqlValue::from(value), record))
+                })
+                .collect::<Vec<_>>();
+            list_with_key.sort_by(|x, y| {
+                if orderby.is_asc {
+                    x.0.partial_cmp(&y.0).unwrap()
+                } else {
+                    y.0.partial_cmp(&x.0).unwrap()
+                }
+            });
+            list = list_with_key
+                .into_iter()
+                .map(|(_k, v)| v)
+                .collect::<Vec<_>>();
+        }
+
+        if let Some(limit_clause) = &self.limit {
+            let (_, values) = list.split_at(limit_clause.offset as usize);
+            let (values, _) = values.split_at(limit_clause.limit as usize);
+            list = values.to_owned();
+        }
+
         PqlValue::Array(list)
     }
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Sql {
     pub select_clause: Vec<Field>,
     pub from_clause: Vec<Field>,
@@ -68,10 +99,7 @@ impl FromStr for Sql {
 
 pub fn evaluate<'a>(sql: Sql, data: PqlValue) -> PqlValue {
     let mut env = Env::default();
-    dbg!("#1");
     let plan = LogicalPlan::from(sql);
-    dbg!("#2");
     let result = plan.excute(data, &mut env);
-    dbg!("#3");
     result
 }

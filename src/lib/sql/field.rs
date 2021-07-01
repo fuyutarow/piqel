@@ -3,6 +3,7 @@ use std::str::FromStr;
 use crate::parser;
 
 use crate::sql::Env;
+use crate::sql::Expr;
 use crate::sql::Selector;
 use crate::value::PqlValue;
 
@@ -40,10 +41,21 @@ impl Field {
 pub enum SourceValue {
     Selector(Selector),
     Value(PqlValue),
+    Expr(Expr),
 }
 
 impl Default for SourceValue {
     fn default() -> Self {
         Self::Value(PqlValue::default())
+    }
+}
+
+impl SourceValue {
+    pub fn to_string(self) -> String {
+        match self {
+            Self::Selector(selector) => selector.to_string(),
+            Self::Value(value) => value.to_json().expect("to json"),
+            _ => todo!(),
+        }
     }
 }

@@ -3,10 +3,10 @@ use std::collections::HashSet;
 use collect_mac::collect;
 use ordered_float::OrderedFloat;
 
-use crate::sql::Bindings;
-use crate::sql::FieldBook;
+use crate::planner::Sql;
+use crate::sql::env;
+use crate::sql::Env;
 use crate::sql::Selector;
-use crate::sql::Sql;
 use crate::value::PqlValue;
 use crate::value::PqlVector;
 
@@ -39,64 +39,68 @@ impl Expr {
         }
     }
 
-    pub fn expand_fullpath(&self, bindings: &Bindings) -> Self {
+    pub fn expand_fullpath(&self, env: &Env) -> Self {
         match self {
-            Self::Path(path) => Self::Path(path.expand_fullpath(&bindings)),
+            Self::Path(path) => Self::Path(path.expand_fullpath2(&env)),
             Self::Num(_) => self.to_owned(),
             Self::Add(left, right) => Self::Add(
-                Box::new((*left).expand_fullpath(&bindings)),
-                Box::new((*right).expand_fullpath(&bindings)),
+                Box::new((*left).expand_fullpath(&env)),
+                Box::new((*right).expand_fullpath(&env)),
             ),
             Self::Sub(left, right) => Self::Sub(
-                Box::new((*left).expand_fullpath(&bindings)),
-                Box::new((*right).expand_fullpath(&bindings)),
+                Box::new((*left).expand_fullpath(&env)),
+                Box::new((*right).expand_fullpath(&env)),
             ),
             Self::Mul(left, right) => Self::Mul(
-                Box::new((*left).expand_fullpath(&bindings)),
-                Box::new((*right).expand_fullpath(&bindings)),
+                Box::new((*left).expand_fullpath(&env)),
+                Box::new((*right).expand_fullpath(&env)),
             ),
             Self::Div(left, right) => Self::Div(
-                Box::new((*left).expand_fullpath(&bindings)),
-                Box::new((*right).expand_fullpath(&bindings)),
+                Box::new((*left).expand_fullpath(&env)),
+                Box::new((*right).expand_fullpath(&env)),
             ),
             Self::Rem(left, right) => Self::Rem(
-                Box::new((*left).expand_fullpath(&bindings)),
-                Box::new((*right).expand_fullpath(&bindings)),
+                Box::new((*left).expand_fullpath(&env)),
+                Box::new((*right).expand_fullpath(&env)),
             ),
             Self::Exp(left, right) => Self::Exp(
-                Box::new((*left).expand_fullpath(&bindings)),
-                Box::new((*right).expand_fullpath(&bindings)),
+                Box::new((*left).expand_fullpath(&env)),
+                Box::new((*right).expand_fullpath(&env)),
             ),
             _ => todo!(),
         }
     }
 
-    pub fn eval_to_vector(self, book: &FieldBook, bindings: &Bindings) -> PqlVector {
+    pub fn eval_to_vector(self, env: &Env) -> PqlVector {
         match self.to_owned() {
             Expr::Path(path) => {
-                let path = path.expand_fullpath(&bindings);
-                let v = book
-                    .source_fields
-                    .get(path.to_string().as_str())
-                    .unwrap()
-                    .to_owned();
-                PqlVector(v)
+                todo!()
+                // let path = path.expand_fullpath(&env);
+                // let v = book
+                //     .source_fields
+                //     .get(path.to_string().as_str())
+                //     .unwrap()
+                //     .to_owned();
+                // PqlVector(v)
             }
-            Self::Num(num) => PqlVector(vec![PqlValue::Float(OrderedFloat(num)); book.column_size]),
+            Self::Num(num) => {
+                todo!()
+                // PqlVector(vec![PqlValue::Float(OrderedFloat(num)); book.column_size]),
+            }
             Self::Add(box expr1, box expr2) => {
-                expr1.eval_to_vector(&book, &bindings) + expr2.eval_to_vector(&book, &bindings)
+                expr1.eval_to_vector(&env) + expr2.eval_to_vector(&env)
             }
             Self::Sub(box expr1, box expr2) => {
-                expr1.eval_to_vector(&book, &bindings) - expr2.eval_to_vector(&book, &bindings)
+                expr1.eval_to_vector(&env) - expr2.eval_to_vector(&env)
             }
             Self::Mul(box expr1, box expr2) => {
-                expr1.eval_to_vector(&book, &bindings) * expr2.eval_to_vector(&book, &bindings)
+                expr1.eval_to_vector(&env) * expr2.eval_to_vector(&env)
             }
             Self::Div(box expr1, box expr2) => {
-                expr1.eval_to_vector(&book, &bindings) / expr2.eval_to_vector(&book, &bindings)
+                expr1.eval_to_vector(&env) / expr2.eval_to_vector(&env)
             }
             Self::Rem(box expr1, box expr2) => {
-                expr1.eval_to_vector(&book, &bindings) % expr2.eval_to_vector(&book, &bindings)
+                expr1.eval_to_vector(&env) % expr2.eval_to_vector(&env)
             }
             _ => todo!(),
         }
@@ -118,43 +122,43 @@ impl Expr {
         }
     }
 
-    pub fn source_field_name_set(&self, bindings: &Bindings) -> HashSet<String> {
+    pub fn source_field_name_set(&self, env: &Env) -> HashSet<String> {
         match self.to_owned() {
             Expr::Num(_) => HashSet::default(),
             Expr::Path(path) => {
                 collect! {
                     as HashSet<String>:
-                    path.expand_fullpath(&bindings).to_string()
+                    path.expand_fullpath2(&env).to_string()
                 }
             }
             Expr::Add(box expr1, box expr2) => {
-                let a = expr1.source_field_name_set(&bindings);
-                let b = expr2.source_field_name_set(&bindings);
+                let a = expr1.source_field_name_set(&env);
+                let b = expr2.source_field_name_set(&env);
                 a.union(&b).map(String::from).collect::<HashSet<_>>()
             }
             Expr::Sub(box expr1, box expr2) => {
-                let a = expr1.source_field_name_set(&bindings);
-                let b = expr2.source_field_name_set(&bindings);
+                let a = expr1.source_field_name_set(&env);
+                let b = expr2.source_field_name_set(&env);
                 a.union(&b).map(String::from).collect::<HashSet<_>>()
             }
             Expr::Mul(box expr1, box expr2) => {
-                let a = expr1.source_field_name_set(&bindings);
-                let b = expr2.source_field_name_set(&bindings);
+                let a = expr1.source_field_name_set(&env);
+                let b = expr2.source_field_name_set(&env);
                 a.union(&b).map(String::from).collect::<HashSet<_>>()
             }
             Expr::Div(box expr1, box expr2) => {
-                let a = expr1.source_field_name_set(&bindings);
-                let b = expr2.source_field_name_set(&bindings);
+                let a = expr1.source_field_name_set(&env);
+                let b = expr2.source_field_name_set(&env);
                 a.union(&b).map(String::from).collect::<HashSet<_>>()
             }
             Expr::Rem(box expr1, box expr2) => {
-                let a = expr1.source_field_name_set(&bindings);
-                let b = expr2.source_field_name_set(&bindings);
+                let a = expr1.source_field_name_set(&env);
+                let b = expr2.source_field_name_set(&env);
                 a.union(&b).map(String::from).collect::<HashSet<_>>()
             }
             Expr::Exp(box expr1, box expr2) => {
-                let a = expr1.source_field_name_set(&bindings);
-                let b = expr2.source_field_name_set(&bindings);
+                let a = expr1.source_field_name_set(&env);
+                let b = expr2.source_field_name_set(&env);
                 a.union(&b).map(String::from).collect::<HashSet<_>>()
             }
             _ => {

@@ -3,25 +3,23 @@ use std::str::FromStr;
 use ordered_float::OrderedFloat;
 
 use partiql::parser;
+use partiql::planner::Sql;
 use partiql::sql::Expr;
 use partiql::sql::Field;
 use partiql::sql::Func;
-use partiql::sql::Proj;
+use partiql::sql::Selector;
+use partiql::sql::SourceValue;
 use partiql::sql::WhereCond;
-use partiql::sql::{Selector, Sql};
 use partiql::value::PqlValue;
 
 fn get_sql(qi: &str) -> anyhow::Result<Sql> {
     let input = std::fs::read_to_string(format!("samples/{}.sql", qi)).unwrap();
-    dbg!(qi);
-    println!("{}", input);
-    let sql = parser::sql(&input)?;
-    Ok(sql)
+    Sql::from_str(&input)
 }
 
 #[test]
 fn select_deeppath() -> anyhow::Result<()> {
-    let sql = parser::sql(
+    let sql = Sql::from_str(
         "
 SELECT hr.employees.id,
        hr.employees.name AS employeeName,
@@ -29,24 +27,14 @@ SELECT hr.employees.id,
 FROM hr
 ",
     )?;
-    dbg!(&sql);
 
     assert_eq!(
         sql,
         Sql {
             select_clause: vec![
-                Proj {
-                    expr: Expr::Path(Selector::from("hr.employees.id")),
-                    alias: None
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("hr.employees.name")),
-                    alias: Some("employeeName".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("hr.employees.title")),
-                    alias: Some("title".to_owned()),
-                },
+                Field::from_str("hr.employees.id")?,
+                Field::from_str("hr.employees.name AS employeeName")?,
+                Field::from_str("hr.employees.title AS title")?
             ],
             from_clause: vec![Field::from_str("hr")?],
             left_join_clause: vec![],
@@ -67,18 +55,9 @@ fn q1() -> anyhow::Result<()> {
         sql,
         Sql {
             select_clause: vec![
-                Proj {
-                    expr: Expr::Path(Selector::from("e.id")),
-                    alias: None
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("e.name")),
-                    alias: Some("employeeName".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("e.title")),
-                    alias: Some("title".to_owned()),
-                },
+                Field::from_str("e.id")?,
+                Field::from_str("e.name AS employeeName")?,
+                Field::from_str("e.title AS title")?
             ],
             from_clause: vec![Field::from_str("hr.employees AS e",)?],
             left_join_clause: vec![],
@@ -101,14 +80,8 @@ fn q2() -> anyhow::Result<()> {
         sql,
         Sql {
             select_clause: vec![
-                Proj {
-                    expr: Expr::Path(Selector::from("e.name")),
-                    alias: Some("employeeName".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("p.name")),
-                    alias: Some("projectName".to_owned()),
-                },
+                Field::from_str("e.name AS employeeName")?,
+                Field::from_str("p.name AS projectName")?,
             ],
             from_clause: vec![
                 Field::from_str("hr.employeesNest AS e")?,
@@ -134,22 +107,10 @@ fn q3() -> anyhow::Result<()> {
         sql,
         Sql {
             select_clause: vec![
-                Proj {
-                    expr: Expr::Path(Selector::from("e.id")),
-                    alias: Some("id".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("e.name")),
-                    alias: Some("employeeName".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("e.title")),
-                    alias: Some("title".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("p.name")),
-                    alias: Some("projectName".to_owned()),
-                },
+                Field::from_str("e.id AS id")?,
+                Field::from_str("e.name AS employeeName")?,
+                Field::from_str("e.title AS title")?,
+                Field::from_str("p.name AS projectName")?,
             ],
             from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
             left_join_clause: vec![Field::from_str("e.projects AS p")?],
@@ -161,94 +122,84 @@ fn q3() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[test]
-fn q4_1() -> anyhow::Result<()> {
-    let input = r#"
-SELECT e.name AS employeeName,
-  ( SELECT p
-    FROM e.projects AS p
-    WHERE p.name LIKE '%querying%'
-  ) AS queryProjectsNum
-FROM hr.employeesNest AS e
-    "#;
-    let sql = parser::sql(&input)?;
-    dbg!(&sql);
+// #[test]
+// fn q4_1() -> anyhow::Result<()> {
+//     let input = r#"
+// SELECT e.name AS employeeName,
+//   ( SELECT p
+//     FROM e.projects AS p
+//     WHERE p.name LIKE '%querying%'
+//   ) AS queryProjectsNum
+// FROM hr.employeesNest AS e
+//     "#;
+//     let sql = Sql::from_str(&input)?;
 
-    assert_eq!(
-        sql,
-        Sql {
-            select_clause: vec![
-                Proj {
-                    expr: Expr::Path(Selector::from("e.name")),
-                    alias: Some("employeeName".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Sql(Sql {
-                        select_clause: vec![Proj {
-                            expr: Expr::Path(Selector::from("p")),
-                            alias: None
-                        }],
-                        from_clause: vec![Field::from_str("e.projects AS p")?],
-                        left_join_clause: vec![],
-                        where_clause: Some(Box::new(WhereCond::Like {
-                            expr: Expr::Path(Selector::from("p.name"),),
-                            right: "%querying%".to_owned()
-                        })),
-                        orderby: None,
-                        limit: None,
-                    }),
-                    alias: Some("queryProjectsNum".to_owned()),
-                },
-            ],
-            from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
-            left_join_clause: vec![],
-            where_clause: None,
-            orderby: None,
-            limit: None,
-        }
-    );
-    Ok(())
-}
+//     assert_eq!(
+//         sql,
+//         Sql {
+//             select_clause: vec![
+//                 Field::from_str("e.name AS employeeName")?,
+//                 Field {
+//                     value: SourceValue::Expr(Expr::Sql(Sql {
+//                         select_clause: vec![Field::from_str("p")?,],
+//                         from_clause: vec![Field::from_str("e.projects AS p")?],
+//                         left_join_clause: vec![],
+//                         where_clause: Some(Box::new(WhereCond::Like {
+//                             expr: Expr::Path(Selector::from("p.name"),),
+//                             right: "%querying%".to_owned()
+//                         })),
+//                         orderby: None,
+//                         limit: None,
+//                     })),
+//                     alias: Some("queryProjectsNum".to_owned()),
+//                 },
+//             ],
+//             from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
+//             left_join_clause: vec![],
+//             where_clause: None,
+//             orderby: None,
+//             limit: None,
+//         }
+//     );
+//     Ok(())
+// }
 
-#[test]
-fn q4() -> anyhow::Result<()> {
-    let sql = get_sql("q4")?;
+// #[test]
+// fn q4() -> anyhow::Result<()> {
+//     let sql = get_sql("q4")?;
 
-    assert_eq!(
-        sql,
-        Sql {
-            select_clause: vec![
-                Proj {
-                    expr: Expr::Path(Selector::from("e.name")),
-                    alias: Some("employeeName".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Sql(Sql {
-                        select_clause: vec![Proj {
-                            expr: Expr::Func(Box::new(Func::Count(Expr::Star))),
-                            alias: None
-                        }],
-                        from_clause: vec![Field::from_str("e.projects AS p")?],
-                        left_join_clause: vec![],
-                        where_clause: Some(Box::new(WhereCond::Like {
-                            expr: Expr::Path(Selector::from("p.name"),),
-                            right: "%querying%".to_owned()
-                        })),
-                        orderby: None,
-                        limit: None,
-                    }),
-                    alias: Some("queryProjectsNum".to_owned()),
-                },
-            ],
-            from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
-            left_join_clause: vec![],
-            where_clause: None,
-            orderby: None,
-            limit: None,
-        }
-    );
-    Ok(())
-}
+//     assert_eq!(
+//         sql,
+//         Sql {
+//             select_clause: vec![
+//                 Field::from_str("e.name AS employeeName")?,
+//                 Field {
+//                     value: SourceValue::Expr(Expr::Sql(Sql {
+//                         select_clause: vec![Field {
+//                             value: SourceValue::Expr(Expr::Func(Box::new(Func::Count(Expr::Star)))),
+//                             alias: None
+//                         }],
+//                         from_clause: vec![Field::from_str("e.projects AS p")?],
+//                         left_join_clause: vec![],
+//                         where_clause: Some(Box::new(WhereCond::Like {
+//                             expr: Expr::Path(Selector::from("p.name"),),
+//                             right: "%querying%".to_owned()
+//                         })),
+//                         orderby: None,
+//                         limit: None,
+//                     })),
+//                     alias: Some("queryProjectsNum".to_owned()),
+//                 },
+//             ],
+//             from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
+//             left_join_clause: vec![],
+//             where_clause: None,
+//             orderby: None,
+//             limit: None,
+//         }
+//     );
+//     Ok(())
+// }
 
 #[test]
 fn q5() {
@@ -282,8 +233,7 @@ FROM matrices AS t,
      y AS x
 WHERE x / 2 = 0
     "#;
-    let sql = parser::sql(&input);
-    dbg!(&sql);
+    let sql = Sql::from_str(&input);
 
     if sql.is_ok() {
         assert_eq!(true, true);
@@ -300,14 +250,8 @@ fn q7() -> anyhow::Result<()> {
         sql,
         Sql {
             select_clause: vec![
-                Proj {
-                    expr: Expr::Path(Selector::from("t.id")),
-                    alias: Some("id".to_owned()),
-                },
-                Proj {
-                    expr: Expr::Path(Selector::from("x")),
-                    alias: Some("even".to_owned()),
-                },
+                Field::from_str("t.id AS id")?,
+                Field::from_str("x AS even")?,
             ],
             from_clause: vec![
                 Field::from_str("matrices AS t")?,

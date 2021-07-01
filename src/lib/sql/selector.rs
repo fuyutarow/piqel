@@ -2,7 +2,6 @@ use std::collections::VecDeque;
 use std::str::FromStr;
 
 use crate::parser;
-use crate::sql::Bindings;
 use crate::sql::Env;
 use crate::sql::SourceValue;
 
@@ -133,11 +132,6 @@ impl Selector {
 
     pub fn to_vec(&self) -> Vec<SelectorNode> {
         self.data.clone().into_iter().collect::<Vec<SelectorNode>>()
-    }
-
-    pub fn expand_fullpath(&self, bidings: &Bindings) -> Self {
-        let value = SourceValue::Selector(self.to_owned());
-        bidings.get_full_path(&value)
     }
 
     pub fn expand_fullpath2(&self, env: &Env) -> Self {

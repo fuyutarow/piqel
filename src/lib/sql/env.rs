@@ -80,29 +80,46 @@ impl Env {
                 SourceValue::Selector(trace_path)
             }
             SourceValue::Value(_) => value.to_owned(),
+            _ => todo!(),
         }
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::Env;
-//     use crate::parser;
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
 
-//     #[test]
-//     fn test_op_from() -> anyhow::Result<()> {
-//         let mut env = Env::default();
-//         let fields = parser::clauses::from("FROM hr.employees AS e, [1,2,3] AS arr")?.1;
+    use super::Env;
+    use crate::planner::Drain;
+    use crate::planner::Sql;
+    use crate::sql::Field;
 
-//         for field in fields {
-//             if let Some(alias) = field.alias {
-//                 env.insert(&alias, &field.value);
-//             }
-//         }
+    #[test]
+    fn get_full_path() -> anyhow::Result<()> {
+        let sql = Sql::from_str(
+            r#"
+SELECT
+  e.name AS employeeName, p.name AS projectName
+FROM
+  hr.employeesNest AS e, e.projects AS p
+        "#,
+        )?;
 
-//         Env {
-//             data:
-//         }
+        let mut env = Env::default();
+        Drain(sql.from_clause).excute(&mut env);
 
-//     }
-// }
+        assert_eq!(
+            env.expand_fullpath(&Field::from_str("e.name AS employeeName")?.value)
+                .to_string(),
+            "hr.employeesNest.name",
+        );
+
+        assert_eq!(
+            env.expand_fullpath(&Field::from_str("p.name AS projectName")?.value)
+                .to_string(),
+            "hr.employeesNest.projects.name",
+        );
+
+        Ok(())
+    }
+}

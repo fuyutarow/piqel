@@ -1,9 +1,8 @@
 use std::str::FromStr;
 
-use partiql::parser;
 use partiql::planner::evaluate;
 use partiql::planner::Sql;
-use partiql::pqlir_parser;
+
 use partiql::value::PqlValue;
 
 fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {

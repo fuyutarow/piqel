@@ -1,7 +1,7 @@
 use crate::sql::restrict;
 use crate::sql::Env;
 use crate::sql::Expr;
-use crate::sql::Field;
+
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
 

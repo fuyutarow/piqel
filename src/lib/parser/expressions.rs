@@ -17,13 +17,12 @@ use nom::IResult;
 pub use crate::parser;
 pub use crate::parser::elements;
 pub use crate::parser::elements::string_allowed_in_field;
-use crate::parser::select_statement::parse_sql;
+use crate::parser::select_statement;
 pub use crate::parser::whitespace;
 use crate::pqlir_parser;
 pub use crate::sql::clause;
 use crate::sql::Expr;
 use crate::sql::Field;
-use crate::sql::Proj;
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
 use crate::sql::SourceValue;
@@ -104,36 +103,6 @@ pub fn projection(input: &str) -> IResult<&str, (Selector, Option<String>)> {
     Ok((input, (selector, opt_alias.map(String::from))))
 }
 
-pub fn parse_proj<'a>(input: &'a str) -> IResult<&'a str, Proj> {
-    let (input, (expr, opt_alias)) = tuple((
-        alt((
-            parse_expr,
-            delimited(
-                preceded(whitespace, char('(')),
-                preceded(whitespace, parse_sql_as_expr),
-                preceded(whitespace, char(')')),
-            ),
-            // preceded(
-            //     preceded(whitespace, char('(')),
-            //     cut(terminated(
-            //         preceded(whitespace, parse_sql_as_expr),
-            //         preceded(whitespace, char(')')),
-            //     )),
-            // ),
-        )),
-        opt(tuple((
-            preceded(whitespace, tag_no_case("AS")),
-            preceded(whitespace, string_allowed_in_field),
-        ))),
-    ))(input)?;
-
-    let res = Proj {
-        expr,
-        alias: opt_alias.map(|e| e.1),
-    };
-    Ok((input, res))
-}
-
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
     // The math::parse must be placed after the parse_path_as_expr to prevent the inf keyword from being parsed.
     alt((
@@ -149,7 +118,8 @@ pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
 }
 
 pub fn parse_sql_as_expr(input: &str) -> IResult<&str, Expr> {
-    map(parse_sql, |sql| Expr::Sql(sql))(input)
+    todo!()
+    // map(parse_field, |sql| Expr::Sql(sql))(input)
 }
 
 pub fn _parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
