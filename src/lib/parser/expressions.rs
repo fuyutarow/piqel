@@ -17,7 +17,6 @@ use nom::IResult;
 pub use crate::parser;
 pub use crate::parser::elements;
 pub use crate::parser::elements::string_allowed_in_field;
-use crate::parser::select_statement;
 pub use crate::parser::whitespace;
 use crate::pqlir_parser;
 pub use crate::sql::clause;
@@ -25,7 +24,6 @@ use crate::sql::Expr;
 use crate::sql::Field;
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
-use crate::sql::SourceValue;
 use crate::value::PqlValue;
 
 pub fn pqlvalue_as_field(input: &str) -> IResult<&str, Field> {
@@ -37,16 +35,15 @@ pub fn pqlvalue_as_field(input: &str) -> IResult<&str, Field> {
         )),
     ))(input)?;
 
-    let value = SourceValue::Value(value);
     let field = Field {
-        value,
+        expr: Expr::Value(value),
         alias: alias.map(String::from),
     };
     Ok((input, field))
 }
 
 pub fn parse_field(input: &str) -> IResult<&str, Field> {
-    alt((pqlvalue_as_field, selector_as_field))(input)
+    alt((expr_as_field, pqlvalue_as_field, selector_as_field))(input)
 }
 
 /// ```
@@ -64,7 +61,7 @@ pub fn pqlvalue_with_alias_to_pql_value(input: &str) -> IResult<&str, PqlValue> 
     let (input, field) = pqlvalue_as_field(input)?;
     let value = match field {
         Field {
-            value: SourceValue::Value(value),
+            expr: Expr::Value(value),
             alias: Some(alias),
         } => PqlValue::Object(collect! {
             as Map::<String , PqlValue>:
@@ -84,9 +81,8 @@ pub fn selector_as_field(input: &str) -> IResult<&str, Field> {
         )),
     ))(input)?;
 
-    let value = SourceValue::Selector(selector);
     let field = Field {
-        value,
+        expr: Expr::Selector(selector),
         alias: alias.map(String::from),
     };
     Ok((input, field))
@@ -103,6 +99,28 @@ pub fn projection(input: &str) -> IResult<&str, (Selector, Option<String>)> {
     Ok((input, (selector, opt_alias.map(String::from))))
 }
 
+pub fn expr_as_field(input: &str) -> IResult<&str, Field> {
+    // The math::parse must be placed after the parse_path_as_expr to prevent the inf keyword from being parsed.
+    let (input, (expr, alias)) = tuple((
+        alt((
+            parse_star_as_expr,
+            parser::math::parse,
+            parser::elements::float_number,
+            parser::func::count,
+        )),
+        opt(preceded(
+            opt(preceded(multispace0, tag_no_case("AS"))),
+            preceded(multispace0, alphanumeric1),
+        )),
+    ))(input)?;
+
+    let field = Field {
+        expr,
+        alias: alias.map(String::from),
+    };
+    Ok((input, field))
+}
+
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
     // The math::parse must be placed after the parse_path_as_expr to prevent the inf keyword from being parsed.
     alt((
@@ -117,17 +135,9 @@ pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {
     map(tag("*"), |_| Expr::Star)(input)
 }
 
-pub fn parse_sql_as_expr(input: &str) -> IResult<&str, Expr> {
+pub fn parse_sql_as_expr(_input: &str) -> IResult<&str, Expr> {
     todo!()
     // map(parse_field, |sql| Expr::Sql(sql))(input)
-}
-
-pub fn _parse_field<'a>(input: &'a str) -> IResult<&'a str, Field> {
-    let (input, (selector, alias)) =
-        tuple((parse_selector, opt(parse_alias_in_from_clause)))(input)?;
-    let value = SourceValue::Selector(selector);
-    let res = Field { value, alias };
-    Ok((input, res))
 }
 
 pub fn parse_alias_in_from_clause(input: &str) -> IResult<&str, String> {
@@ -161,7 +171,7 @@ pub fn parse_selector(input: &str) -> IResult<&str, Selector> {
 }
 
 pub fn parse_path_as_expr<'a>(input: &'a str) -> IResult<&'a str, Expr> {
-    map(parse_selector, |path| Expr::Path(path))(input)
+    map(parse_selector, |selector| Expr::Selector(selector))(input)
 }
 
 #[cfg(test)]

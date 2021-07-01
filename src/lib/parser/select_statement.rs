@@ -44,7 +44,7 @@ pub fn parse_sql21(input: &str) -> IResult<&str, planner::Sql> {
             opt_limit,
         ),
     ) = tuple((
-        opt(preceded(multispace0, clauses::select2)),
+        opt(preceded(multispace0, clauses::select)),
         opt(preceded(multispace0, clauses::from)),
         opt(preceded(multispace0, clauses::left_join)),
         opt(preceded(multispace0, clauses::parse_where)),
@@ -78,7 +78,7 @@ pub fn parse_sql22(input: &str) -> IResult<&str, planner::Sql> {
         opt(preceded(multispace0, clauses::from)),
         opt(preceded(multispace0, clauses::left_join)),
         opt(preceded(multispace0, clauses::parse_where)),
-        opt(preceded(multispace0, clauses::select2)),
+        opt(preceded(multispace0, clauses::select)),
         opt(preceded(multispace0, clauses::orderby)),
         opt(preceded(multispace0, clauses::limit)),
     ))(input)?;

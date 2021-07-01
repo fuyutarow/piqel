@@ -3,7 +3,6 @@ use std::str::FromStr;
 
 use crate::parser;
 use crate::sql::Env;
-use crate::sql::SourceValue;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SelectorNode {

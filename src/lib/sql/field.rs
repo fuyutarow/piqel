@@ -1,15 +1,12 @@
 use std::str::FromStr;
 
 use crate::parser;
-
 use crate::sql::Env;
 use crate::sql::Expr;
-use crate::sql::Selector;
-use crate::value::PqlValue;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Field {
-    pub value: SourceValue,
+    pub expr: Expr,
     pub alias: Option<String>,
 }
 
@@ -31,31 +28,8 @@ impl FromStr for Field {
 impl Field {
     pub fn expand_fullpath(&self, env: &Env) -> Self {
         Self {
-            value: env.expand_fullpath(&self.value),
+            expr: env.expand_fullpath(&self.expr),
             alias: self.alias.to_owned(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum SourceValue {
-    Selector(Selector),
-    Value(PqlValue),
-    Expr(Expr),
-}
-
-impl Default for SourceValue {
-    fn default() -> Self {
-        Self::Value(PqlValue::default())
-    }
-}
-
-impl SourceValue {
-    pub fn to_string(self) -> String {
-        match self {
-            Self::Selector(selector) => selector.to_string(),
-            Self::Value(value) => value.to_json().expect("to json"),
-            _ => todo!(),
         }
     }
 }

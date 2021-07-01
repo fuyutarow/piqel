@@ -3,7 +3,9 @@ use indexmap::IndexMap as Map;
 use itertools::Itertools;
 
 use crate::sql::Env;
+use crate::sql::Expr;
 use crate::sql::Field;
+use crate::sql::Selector;
 use crate::value::PqlValue;
 
 #[derive(Debug, Default, Clone)]
@@ -12,6 +14,7 @@ pub struct Projection(pub Vec<Field>);
 impl Projection {
     pub fn execute(self, data: PqlValue, env: &Env) -> Vec<PqlValue> {
         let v = self.step1(data, env);
+        dbg!(&v);
         let v = self.step2(v);
         let v = self.step3(v);
         let v = self.step4(v);
@@ -19,12 +22,14 @@ impl Projection {
     }
 
     pub fn step1(&self, data: PqlValue, env: &Env) -> PqlValue {
+        dbg!(&self);
         let fields = self
             .0
             .iter()
             .map(|field| field.expand_fullpath(&env))
             .collect::<Vec<Field>>();
-        let projected = data.select_by_fields(&fields).unwrap_or_default();
+        dbg!(&fields);
+        let projected = data.select_by_fields(&fields, &env).unwrap_or_default();
         projected
     }
 
@@ -38,6 +43,50 @@ impl Projection {
 
     pub fn step4(&self, records: Records) -> Vec<PqlValue> {
         records.into_list()
+    }
+}
+
+impl PqlValue {
+    pub fn project_by_selector(
+        &self,
+        alias: Option<String>,
+        selector: &Selector,
+    ) -> (String, Self) {
+        if let Some(value) = self.select_by_selector(&selector) {
+            let key = alias.clone().unwrap_or({
+                let last = selector.to_vec().last().unwrap().to_string();
+                last
+            });
+            (key, value)
+        } else {
+            dbg!(&selector);
+            todo!()
+        }
+    }
+
+    pub fn select_by_fields(&self, field_list: &[Field], _env: &Env) -> Option<Self> {
+        let mut new_map = Map::<String, Self>::new();
+
+        for field in field_list {
+            match &field.expr {
+                Expr::Selector(selector) => {
+                    if let Some(value) = self.select_by_selector(&selector) {
+                        let key = field.alias.clone().unwrap_or({
+                            let last = selector.to_vec().last().unwrap().to_string();
+                            last
+                        });
+                        new_map.insert(key, value);
+                    } else {
+                        dbg!(&selector);
+                        todo!()
+                    }
+                }
+                Expr::Value(_) => todo!(),
+                _ => todo!(),
+            }
+        }
+
+        Some(Self::Object(new_map))
     }
 }
 
@@ -55,14 +104,17 @@ impl From<PqlValue> for Rows {
         let data = match value {
             PqlValue::Object(record) => record
                 .into_iter()
-                .map(|(k, v)| match v {
+                .map(|(key, val)| match val {
                     PqlValue::Array(array) => {
                         if size == 0 {
                             size = array.len();
                         }
-                        (k, array)
+                        (key, array)
                     }
-                    _ => unreachable!(),
+                    _ => {
+                        size = 1;
+                        (key, vec![val])
+                    }
                 })
                 .collect::<Map<String, Vec<PqlValue>>>(),
             _ => unreachable!(),

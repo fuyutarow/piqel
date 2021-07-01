@@ -2,42 +2,38 @@ use std::collections::VecDeque;
 
 use indexmap::IndexMap as Map;
 
+use crate::sql::Expr;
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
-use crate::sql::SourceValue;
 use crate::value::PqlValue;
 
 #[derive(Debug, Default, Clone)]
 pub struct Env {
-    data: Map<String, SourceValue>,
+    data: Map<String, Expr>,
 }
 
 impl Env {
-    pub fn insert(&mut self, alias: &str, value: &SourceValue) -> Option<SourceValue> {
+    pub fn insert(&mut self, alias: &str, value: &Expr) -> Option<Expr> {
         self.data.insert(alias.to_string(), value.to_owned())
     }
 
-    pub fn insert_from_selector(
-        &mut self,
-        alias: &str,
-        selector: &Selector,
-    ) -> Option<SourceValue> {
-        let value = SourceValue::Selector(selector.to_owned());
+    pub fn insert_from_selector(&mut self, alias: &str, selector: &Selector) -> Option<Expr> {
+        let value = Expr::Selector(selector.to_owned());
         self.insert(alias, &value)
     }
 
-    pub fn insert_from_pqlval(&mut self, alias: &str, value: &PqlValue) -> Option<SourceValue> {
-        let value = SourceValue::Value(value.to_owned());
+    pub fn insert_from_pqlval(&mut self, alias: &str, value: &PqlValue) -> Option<Expr> {
+        let value = Expr::Value(value.to_owned());
         self.insert(alias, &value)
     }
 
-    pub fn get(&self, key: &str) -> Option<SourceValue> {
+    pub fn get(&self, key: &str) -> Option<Expr> {
         self.data.get(key).map(|e| e.to_owned())
     }
 
     pub fn get_as_selector(&self, key: &str) -> Option<Selector> {
         match self.get(key) {
-            Some(SourceValue::Selector(selector)) => Some(selector),
+            Some(Expr::Selector(selector)) => Some(selector),
             _ => None,
         }
     }
@@ -71,15 +67,15 @@ impl Env {
         trace_path
     }
 
-    pub fn expand_fullpath(&self, value: &SourceValue) -> SourceValue {
+    pub fn expand_fullpath(&self, value: &Expr) -> Expr {
         match &value {
-            SourceValue::Selector(selector) => {
+            Expr::Selector(selector) => {
                 let mut trace_path = Selector::default();
 
                 self.rec_get_full_path(selector, &mut trace_path);
-                SourceValue::Selector(trace_path)
+                Expr::Selector(trace_path)
             }
-            SourceValue::Value(_) => value.to_owned(),
+            Expr::Value(_) => value.to_owned(),
             _ => todo!(),
         }
     }
@@ -109,13 +105,13 @@ FROM
         Drain(sql.from_clause).excute(&mut env);
 
         assert_eq!(
-            env.expand_fullpath(&Field::from_str("e.name AS employeeName")?.value)
+            env.expand_fullpath(&Field::from_str("e.name AS employeeName")?.expr)
                 .to_string(),
             "hr.employeesNest.name",
         );
 
         assert_eq!(
-            env.expand_fullpath(&Field::from_str("p.name AS projectName")?.value)
+            env.expand_fullpath(&Field::from_str("p.name AS projectName")?.expr)
                 .to_string(),
             "hr.employeesNest.projects.name",
         );

@@ -1,9 +1,7 @@
 use std::str::FromStr;
 
 use crate::lang::{Lang, LangType};
-use crate::parser;
 use crate::planner;
-use crate::planner::Sql;
 use crate::value::PqlValue;
 
 pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> anyhow::Result<String> {

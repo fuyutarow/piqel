@@ -9,7 +9,7 @@ impl Drain {
     pub fn excute(self, env: &mut Env) {
         for field in self.0 {
             if let Some(alias) = field.alias {
-                env.insert(&alias, &field.value);
+                env.insert(&alias, &field.expr);
             }
         }
     }

@@ -10,10 +10,8 @@ use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::sql::Field;
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
-use crate::sql::SourceValue;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -176,44 +174,6 @@ impl PqlValue {
                 }
             }
             _ => Some(self.clone()),
-        }
-    }
-
-    pub fn select_by_fields(&self, field_list: &[Field]) -> Option<Self> {
-        let mut new_map = IndexMap::<String, Self>::new();
-
-        for field in field_list {
-            match &field.value {
-                SourceValue::Selector(selector) => {
-                    if let Some(value) = self.select_by_selector(&selector) {
-                        let key = field.alias.clone().unwrap_or({
-                            let last = selector.to_vec().last().unwrap().to_string();
-                            last
-                        });
-                        new_map.insert(key, value);
-                    } else {
-                        dbg!(&selector);
-                        todo!()
-                    }
-                }
-                _ => todo!(),
-            }
-        }
-
-        Some(Self::Object(new_map))
-    }
-
-    pub fn select_map_by_fields(&self, field_list: &[Field]) -> Option<Self> {
-        match self {
-            Self::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|value| value.select_by_fields(field_list))
-                    .collect::<Vec<_>>();
-
-                Some(Self::Array(new_array))
-            }
-            _ => None,
         }
     }
 

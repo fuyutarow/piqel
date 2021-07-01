@@ -95,10 +95,10 @@ mod tests {
                 "",
                 Expr::Sub(
                     Box::new(Expr::Sub(
-                        Box::new(Expr::Path(Selector::from("a"))),
-                        Box::new(Expr::Path(Selector::from("b"))),
+                        Box::new(Expr::Selector(Selector::from("a"))),
+                        Box::new(Expr::Selector(Selector::from("b"))),
                     )),
-                    Box::new(Expr::Path(Selector::from("c"))),
+                    Box::new(Expr::Selector(Selector::from("c"))),
                 )
             ))
         );

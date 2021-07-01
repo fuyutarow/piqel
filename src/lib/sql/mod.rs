@@ -1,7 +1,6 @@
 mod env;
 mod expr;
 mod field;
-mod filter;
 mod selector;
 mod utils;
 mod where_cond;
@@ -9,8 +8,6 @@ mod where_cond;
 pub use env::Env;
 pub use expr::{Expr, Func};
 pub use field::Field;
-pub use field::SourceValue;
-pub use filter::restrict;
 pub use selector::Selector;
 pub use selector::SelectorNode;
 pub use where_cond::re_from_str;

@@ -16,10 +16,9 @@ pub use crate::parser::parse_value;
 pub use crate::parser::string_allowed_in_field;
 pub use crate::sql::clause;
 use crate::sql::Field;
-
 use crate::sql::WhereCond;
 
-pub fn select2(input: &str) -> IResult<&str, Vec<Field>> {
+pub fn select(input: &str) -> IResult<&str, Vec<Field>> {
     let (input, vec) = context(
         "select claues",
         preceded(

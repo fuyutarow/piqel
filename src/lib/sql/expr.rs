@@ -4,7 +4,6 @@ use collect_mac::collect;
 use ordered_float::OrderedFloat;
 
 use crate::planner::Sql;
-use crate::sql::env;
 use crate::sql::Env;
 use crate::sql::Selector;
 use crate::value::PqlValue;
@@ -13,7 +12,8 @@ use crate::value::PqlVector;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Star,
-    Path(Selector),
+    Selector(Selector),
+    Value(PqlValue),
     Num(f64),
     Func(Box<Func>),
     Add(Box<Expr>, Box<Expr>),
@@ -27,21 +27,35 @@ pub enum Expr {
 
 impl Default for Expr {
     fn default() -> Self {
-        Self::Star
+        Self::Value(PqlValue::default())
+    }
+}
+
+impl From<Expr> for String {
+    fn from(expr: Expr) -> Self {
+        match expr {
+            Expr::Selector(selector) => selector.to_string(),
+            Expr::Value(value) => value.to_json().expect("to json"),
+            _ => todo!(),
+        }
     }
 }
 
 impl Expr {
+    pub fn to_string(self) -> String {
+        String::from(self)
+    }
+
     pub fn as_path(&self) -> Option<Selector> {
         match self {
-            Expr::Path(path) => Some(path.to_owned()),
+            Expr::Selector(path) => Some(path.to_owned()),
             _ => None,
         }
     }
 
     pub fn expand_fullpath(&self, env: &Env) -> Self {
         match self {
-            Self::Path(path) => Self::Path(path.expand_fullpath2(&env)),
+            Self::Selector(path) => Self::Selector(path.expand_fullpath2(&env)),
             Self::Num(_) => self.to_owned(),
             Self::Add(left, right) => Self::Add(
                 Box::new((*left).expand_fullpath(&env)),
@@ -73,7 +87,7 @@ impl Expr {
 
     pub fn eval_to_vector(self, env: &Env) -> PqlVector {
         match self.to_owned() {
-            Expr::Path(path) => {
+            Expr::Selector(_selector) => {
                 todo!()
                 // let path = path.expand_fullpath(&env);
                 // let v = book
@@ -83,7 +97,7 @@ impl Expr {
                 //     .to_owned();
                 // PqlVector(v)
             }
-            Self::Num(num) => {
+            Self::Num(_num) => {
                 todo!()
                 // PqlVector(vec![PqlValue::Float(OrderedFloat(num)); book.column_size]),
             }
@@ -108,8 +122,9 @@ impl Expr {
 
     pub fn eval(self) -> PqlValue {
         match self.to_owned() {
+            Self::Value(value) => value,
             Self::Star => todo!(),
-            Self::Path(_) => todo!(),
+            Self::Selector(_) => todo!(),
             Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
             Self::Func(_) => todo!(),
             Self::Sql(_) => todo!(),
@@ -125,10 +140,10 @@ impl Expr {
     pub fn source_field_name_set(&self, env: &Env) -> HashSet<String> {
         match self.to_owned() {
             Expr::Num(_) => HashSet::default(),
-            Expr::Path(path) => {
+            Expr::Selector(selector) => {
                 collect! {
                     as HashSet<String>:
-                    path.expand_fullpath2(&env).to_string()
+                    selector.expand_fullpath2(&env).to_string()
                 }
             }
             Expr::Add(box expr1, box expr2) => {

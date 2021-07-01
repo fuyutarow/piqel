@@ -2,13 +2,10 @@ use std::str::FromStr;
 
 use ordered_float::OrderedFloat;
 
-use partiql::parser;
 use partiql::planner::Sql;
 use partiql::sql::Expr;
 use partiql::sql::Field;
-use partiql::sql::Func;
 use partiql::sql::Selector;
-use partiql::sql::SourceValue;
 use partiql::sql::WhereCond;
 use partiql::value::PqlValue;
 
@@ -62,7 +59,7 @@ fn q1() -> anyhow::Result<()> {
             from_clause: vec![Field::from_str("hr.employees AS e",)?],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Eq {
-                expr: Expr::Path(Selector::from("e.title"),),
+                expr: Expr::Selector(Selector::from("e.title"),),
                 right: PqlValue::Str("Dev Mgr".to_owned()),
             })),
             orderby: None,
@@ -89,7 +86,7 @@ fn q2() -> anyhow::Result<()> {
             ],
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Like {
-                expr: Expr::Path(Selector::from("p.name")),
+                expr: Expr::Selector(Selector::from("p.name")),
                 right: "%security%".to_owned()
             })),
             orderby: None,
@@ -140,7 +137,7 @@ fn q3() -> anyhow::Result<()> {
 //             select_clause: vec![
 //                 Field::from_str("e.name AS employeeName")?,
 //                 Field {
-//                     value: SourceValue::Expr(Expr::Sql(Sql {
+//                     value: Expr::Expr(Expr::Sql(Sql {
 //                         select_clause: vec![Field::from_str("p")?,],
 //                         from_clause: vec![Field::from_str("e.projects AS p")?],
 //                         left_join_clause: vec![],
@@ -174,9 +171,9 @@ fn q3() -> anyhow::Result<()> {
 //             select_clause: vec![
 //                 Field::from_str("e.name AS employeeName")?,
 //                 Field {
-//                     value: SourceValue::Expr(Expr::Sql(Sql {
+//                     value: Expr::Expr(Expr::Sql(Sql {
 //                         select_clause: vec![Field {
-//                             value: SourceValue::Expr(Expr::Func(Box::new(Func::Count(Expr::Star)))),
+//                             value: Expr::Expr(Expr::Func(Box::new(Func::Count(Expr::Star)))),
 //                             alias: None
 //                         }],
 //                         from_clause: vec![Field::from_str("e.projects AS p")?],
@@ -261,7 +258,7 @@ fn q7() -> anyhow::Result<()> {
             left_join_clause: vec![],
             where_clause: Some(Box::new(WhereCond::Eq {
                 expr: Expr::Rem(
-                    Box::new(Expr::Path(Selector::from("x"))),
+                    Box::new(Expr::Selector(Selector::from("x"))),
                     Box::new(Expr::Num(2.))
                 ),
                 right: PqlValue::Float(OrderedFloat(0.))
