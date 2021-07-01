@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use crate::parser;
 use crate::sql::Bindings;
+use crate::sql::Env;
 use crate::sql::SourceValue;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -137,5 +138,9 @@ impl Selector {
     pub fn expand_fullpath(&self, bidings: &Bindings) -> Self {
         let value = SourceValue::Selector(self.to_owned());
         bidings.get_full_path(&value)
+    }
+
+    pub fn expand_fullpath2(&self, env: &Env) -> Self {
+        env.expand_fullpath_as_selector(&self)
     }
 }

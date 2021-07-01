@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::{tag, tag_no_case};
-use nom::character::complete::multispace0;
+use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::opt;
 use nom::error::context;
 use nom::multi::separated_list1;
@@ -77,7 +77,7 @@ pub fn left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     let (input, fields) = context(
         "left join clause",
         preceded(
-            tag_no_case("LEFT JOIN"),
+            tuple((tag_no_case("LEFT"), multispace1, tag_no_case("JOIN"))),
             preceded(
                 multispace0,
                 preceded(

@@ -64,6 +64,13 @@ impl Env {
         }
     }
 
+    pub fn expand_fullpath_as_selector(&self, selector: &Selector) -> Selector {
+        let mut trace_path = Selector::default();
+
+        self.rec_get_full_path(selector, &mut trace_path);
+        trace_path
+    }
+
     pub fn expand_fullpath(&self, value: &SourceValue) -> SourceValue {
         match &value {
             SourceValue::Selector(selector) => {
