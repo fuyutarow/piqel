@@ -157,41 +157,33 @@ impl Selector {
         env.expand_fullpath_as_selector(&self)
     }
 
-    // pub fn expand_fullpath3(&self, env: &Env) -> Self {
-    //     let mut selector = Self::default();
-    //     if let Some((head, tail)) = self.split_first() {
-    //         dbg!("#1");
-    //         selector = env.expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()));
-    //         dbg!("#2");
-    //         selector.data.append(&mut tail.data.to_owned())
-    //     } else {
-    //         dbg!("#3");
-    //         selector = env.expand_fullpath_as_selector(&self);
-    //     }
-    //     dbg!("#4");
-    //     selector.data.push_front(SelectorNode::default());
-    //     selector
-    // }
+    pub fn expand_fullpath3(&self, env: &Env) -> Self {
+        let (head, tail) = self.split_first();
+
+        let mut selector = Selector::default();
+        if head != SelectorNode::default() {
+            selector.data.push_front(SelectorNode::default());
+        }
+
+        selector.data.append(
+            &mut env
+                .expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()))
+                .data,
+        );
+        selector.data.append(&mut tail.data.to_owned());
+        selector
+    }
 
     pub fn evaluate(&self, env: &Env) -> Option<PqlValue> {
-        let (head, tail) = self.split_first();
+        let (head, tail) = self.expand_fullpath3(&env).split_first();
         if let Some(expr) = env.get(head.to_string().as_str()) {
             match expr {
                 Expr::Value(value) => {
-                    // dbg!(&value, &tail);
-                    // let v = tail.evaluate(&env);
-                    dbg!(&self);
-                    dbg!(&value);
                     let v = value.select_by_selector(&tail);
-                    dbg!(&v);
                     v
                 }
                 Expr::Selector(selector) => {
-                    dbg!(&self);
-                    dbg!(&selector);
-                    let s = selector.expand_fullpath(&env);
-                    // let s = selector;
-                    dbg!(&s);
+                    let s = selector.expand_fullpath3(&env);
                     s.evaluate(&env)
                 }
                 Expr::Star => todo!(),
@@ -209,14 +201,6 @@ impl Selector {
             dbg!(&head, &tail);
             todo!()
         }
-        // } else if let Some(expr) = env.get(self.to_string().as_str()) {
-        //     match expr {
-        //         Expr::Value(value) => Some(value),
-        //         _ => todo!(),
-        //     }
-        // } else {
-        //     todo!()
-        // }
     }
 }
 
@@ -339,50 +323,50 @@ mod tests {
         Ok(())
     }
 
-    //     #[test]
-    //     fn test_eval_selector_aliaspath2() -> anyhow::Result<()> {
-    //         let env = {
-    //             let mut env = Env::default();
-    //             let data = get_data()?;
-    //             env.insert("", &Expr::Value(data));
-    //             let drain = Drain(vec![
-    //                 Field::from_str(r#"hr.employeesNest AS e"#)?,
-    //                 Field::from_str(r#"e.projects AS p"#)?,
-    //             ]);
-    //             drain.excute(&mut env);
-    //             env
-    //         };
+    #[test]
+    fn test_eval_selector_aliaspath2() -> anyhow::Result<()> {
+        let env = {
+            let mut env = Env::default();
+            let data = get_data()?;
+            env.insert("", &Expr::Value(data));
+            let drain = Drain(vec![
+                Field::from_str(r#"hr.employeesNest AS e"#)?,
+                Field::from_str(r#"e.projects AS p"#)?,
+            ]);
+            drain.excute(&mut env);
+            env
+        };
 
-    //         let selector = Selector::from_str("e.projects")?;
-    //         dbg!(&selector);
-    //         let r = selector.evaluate(&env);
-    //         dbg!(&r);
-    //         assert_eq!(
-    //             selector.evaluate(&env),
-    //             Some(PqlValue::from_str(
-    //                 r#"
-    // [
-    //   [
-    //     {
-    //       "name": "AWS Redshift Spectrum querying"
-    //     },
-    //     {
-    //       "name": "AWS Redshift security"
-    //     },
-    //     {
-    //       "name": "AWS Aurora security"
-    //     }
-    //   ],
-    //   [],
-    //   [
-    //     {
-    //       "name": "AWS Redshift security"
-    //     }
-    //   ]
-    // ]
-    // "#
-    //             )?)
-    //         );
-    //         Ok(())
-    // }
+        let selector = Selector::from_str("e.projects")?;
+        // dbg!(&selector);
+        let r = selector.evaluate(&env);
+        // dbg!(&r);
+        assert_eq!(
+            selector.evaluate(&env),
+            Some(PqlValue::from_str(
+                r#"
+    [
+      [
+        {
+          "name": "AWS Redshift Spectrum querying"
+        },
+        {
+          "name": "AWS Redshift security"
+        },
+        {
+          "name": "AWS Aurora security"
+        }
+      ],
+      [],
+      [
+        {
+          "name": "AWS Redshift security"
+        }
+      ]
+    ]
+    "#
+            )?)
+        );
+        Ok(())
+    }
 }
