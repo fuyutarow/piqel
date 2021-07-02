@@ -98,41 +98,6 @@ impl Expr {
         }
     }
 
-    pub fn eval_to_vector(self, env: &Env) -> PqlVector {
-        match self.to_owned() {
-            Expr::Selector(_selector) => {
-                todo!()
-                // let path = path.expand_fullpath(&env);
-                // let v = book
-                //     .source_fields
-                //     .get(path.to_string().as_str())
-                //     .unwrap()
-                //     .to_owned();
-                // PqlVector(v)
-            }
-            // Self::Num(_num) => {
-            //     todo!()
-            //     PqlVector(vec![PqlValue::Float(OrderedFloat(num)); book.column_size]),
-            // }
-            Self::Add(box expr1, box expr2) => {
-                expr1.eval_to_vector(&env) + expr2.eval_to_vector(&env)
-            }
-            Self::Sub(box expr1, box expr2) => {
-                expr1.eval_to_vector(&env) - expr2.eval_to_vector(&env)
-            }
-            Self::Mul(box expr1, box expr2) => {
-                expr1.eval_to_vector(&env) * expr2.eval_to_vector(&env)
-            }
-            Self::Div(box expr1, box expr2) => {
-                expr1.eval_to_vector(&env) / expr2.eval_to_vector(&env)
-            }
-            Self::Rem(box expr1, box expr2) => {
-                expr1.eval_to_vector(&env) % expr2.eval_to_vector(&env)
-            }
-            _ => todo!(),
-        }
-    }
-
     pub fn eval(self, env: &Env) -> PqlValue {
         match self.to_owned() {
             Self::Value(value) => value,
@@ -200,4 +165,29 @@ impl Expr {
 pub enum Func {
     Count(Expr),
     Upper(Expr),
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::parser;
+    use crate::planner::LogicalPlan;
+    use crate::planner::Sql;
+    use crate::sql::Env;
+    use crate::value::PqlValue;
+
+    #[test]
+    fn test_expr_mul() -> anyhow::Result<()> {
+        let mut sql = Sql::default();
+        sql.select_clause = parser::clauses::select(r#"SELECT 4 * a AS aa"#)?.1;
+        sql.from_clause = parser::clauses::from("FROM 3 as a")?.1;
+        let plan = LogicalPlan::from(sql);
+
+        let mut env = Env::default();
+        let res = plan.excute(PqlValue::default(), &mut env);
+        assert_eq!(res, PqlValue::from_str(r#"[{ "aa": 12 }]"#)?);
+
+        Ok(())
+    }
 }

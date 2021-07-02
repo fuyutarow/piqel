@@ -1,3 +1,8 @@
+[tasks."add:submodules"]
+script = '''
+git submodule update --init
+'''
+
 [tasks."install:dev"]
 script = '''
 brew install jq jo yj
@@ -11,6 +16,11 @@ npm i -g markdown-to-document ;: use mdtodoc for publish:README
 # GitHub Flavored Markdown (GFM) does not support footnotes. So use `mdtodoc` to convert markdown to html.
 script = '''
 mdtodoc docs/README.md
+'''
+
+[tasks.pq]
+script = '''
+cargo run --bin pq --features cli --
 '''
 
 [tasks."build:pq"]
@@ -114,7 +124,6 @@ script = '''
 makers test:lib
 makers test:pq
 '''
-
 
 [tasks."test:py"]
 dependencies = ["build:pq"]

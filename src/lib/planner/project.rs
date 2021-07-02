@@ -81,19 +81,12 @@ impl PqlValue {
                         todo!()
                     }
                 }
-                Expr::Value(_) => todo!(),
-                Expr::Star => todo!(),
-                Expr::Func(_) => todo!(),
-                Expr::Add(_, _) => todo!(),
-                Expr::Sub(_, _) => todo!(),
-                Expr::Mul(_, _) => {
+                _ => {
                     let value = field.to_owned().expr.eval(&env);
-                    dbg!(value);
+                    let key = field.alias.clone().unwrap_or_default();
+                    dbg!(&value);
+                    new_map.insert(key, value);
                 }
-                Expr::Div(_, _) => todo!(),
-                Expr::Rem(_, _) => todo!(),
-                Expr::Exp(_, _) => todo!(),
-                Expr::Sql(_) => todo!(),
             }
         }
 

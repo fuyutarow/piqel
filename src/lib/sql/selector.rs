@@ -177,9 +177,16 @@ impl Selector {
     pub fn evaluate(&self, env: &Env) -> Option<PqlValue> {
         if let Some((head, tail)) = self.expand_fullpath(&env).split_first() {
             if let Some(expr) = env.get(head.to_string().as_str()) {
+                dbg!(&self);
                 match expr {
                     Expr::Value(value) => {
-                        let v = value.select_by_selector(&tail);
+                        dbg!(&value, &tail);
+                        let v = if tail.data.len() > 0 {
+                            value.select_by_selector(&tail)
+                        } else {
+                            Some(value)
+                        };
+                        dbg!(&v);
                         v
                     }
                     Expr::Selector(selector) => {
@@ -362,6 +369,22 @@ mod tests {
     "#
             )?)
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_eval_selector_num() -> anyhow::Result<()> {
+        let env = {
+            let mut env = Env::default();
+            let data = get_data()?;
+            env.insert("", &Expr::Value(data));
+            let drain = Drain(vec![Field::from_str(r#"3 AS n"#)?]);
+            drain.excute(&mut env);
+            env
+        };
+
+        let selector = Selector::from_str("n")?;
+        assert_eq!(selector.evaluate(&env), Some(PqlValue::from_str("3")?));
         Ok(())
     }
 }
