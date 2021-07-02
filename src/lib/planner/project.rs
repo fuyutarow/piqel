@@ -83,7 +83,6 @@ impl PqlValue {
                 }
                 Expr::Value(_) => todo!(),
                 Expr::Star => todo!(),
-                Expr::Num(_) => todo!(),
                 Expr::Func(_) => todo!(),
                 Expr::Add(_, _) => todo!(),
                 Expr::Sub(_, _) => todo!(),

@@ -187,7 +187,6 @@ impl Selector {
                         s.evaluate(&env)
                     }
                     Expr::Star => todo!(),
-                    Expr::Num(_) => todo!(),
                     Expr::Func(_) => todo!(),
                     Expr::Add(_, _) => todo!(),
                     Expr::Sub(_, _) => todo!(),

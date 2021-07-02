@@ -78,7 +78,7 @@ pub fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
 
 fn parse_number(input: &str) -> IResult<&str, Expr> {
     // map(digit1, |s: &str| Expr::Num(s.parse::<f64>().unwrap()))(input)
-    map(double, |f| Expr::Num(f as f64))(input)
+    map(double, |f| Expr::from(f as f64))(input)
 }
 
 #[cfg(test)]
@@ -113,10 +113,10 @@ mod tests {
                 "",
                 Expr::Sub(
                     Box::new(Expr::Sub(
-                        Box::new(Expr::Num(1.0)),
-                        Box::new(Expr::Num(2.0)),
+                        Box::new(Expr::from(1.0)),
+                        Box::new(Expr::from(2.0)),
                     )),
-                    Box::new(Expr::Num(3.0)),
+                    Box::new(Expr::from(3.0)),
                 )
             ))
         );
@@ -129,7 +129,7 @@ mod tests {
             parsed,
             Ok((
                 "",
-                Expr::Add(Box::new(Expr::Num(12.0)), Box::new(Expr::Num(34.0)))
+                Expr::Add(Box::new(Expr::from(12.0)), Box::new(Expr::from(34.0)))
             ))
         );
     }
@@ -141,7 +141,7 @@ mod tests {
             parsed,
             Ok((
                 "",
-                Expr::Sub(Box::new(Expr::Num(12.0)), Box::new(Expr::Num(34.0)))
+                Expr::Sub(Box::new(Expr::from(12.0)), Box::new(Expr::from(34.0)))
             ))
         );
     }
@@ -156,12 +156,12 @@ mod tests {
                 Expr::Sub(
                     Box::new(Expr::Add(
                         Box::new(Expr::Sub(
-                            Box::new(Expr::Num(12.0)),
-                            Box::new(Expr::Num(34.0))
+                            Box::new(Expr::from(12.0)),
+                            Box::new(Expr::from(34.0))
                         )),
-                        Box::new(Expr::Num(15.0))
+                        Box::new(Expr::from(15.0))
                     )),
-                    Box::new(Expr::Num(9.0))
+                    Box::new(Expr::from(9.0))
                 )
             ))
         );
@@ -172,14 +172,14 @@ mod tests {
         let parsed = parse("1 * 2 + 3 / 4 ^ 6");
         let expected = Expr::Add(
             Box::new(Expr::Mul(
-                Box::new(Expr::Num(1.0)),
-                Box::new(Expr::Num(2.0)),
+                Box::new(Expr::from(1.0)),
+                Box::new(Expr::from(2.0)),
             )),
             Box::new(Expr::Div(
-                Box::new(Expr::Num(3.0)),
+                Box::new(Expr::from(3.0)),
                 Box::new(Expr::Exp(
-                    Box::new(Expr::Num(4.0)),
-                    Box::new(Expr::Num(6.0)),
+                    Box::new(Expr::from(4.0)),
+                    Box::new(Expr::from(6.0)),
                 )),
             )),
         );
@@ -191,10 +191,10 @@ mod tests {
         let parsed = parse("(1 + 2) * 3");
         let expected = Expr::Mul(
             Box::new(Expr::Add(
-                Box::new(Expr::Num(1.0)),
-                Box::new(Expr::Num(2.0)),
+                Box::new(Expr::from(1.0)),
+                Box::new(Expr::from(2.0)),
             )),
-            Box::new(Expr::Num(3.0)),
+            Box::new(Expr::from(3.0)),
         );
         assert_eq!(parsed, Ok(("", expected)));
     }

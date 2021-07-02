@@ -17,6 +17,7 @@ use nom::sequence::{preceded, terminated};
 use nom::{IResult, InputLength};
 
 use crate::sql::Expr;
+use crate::value::PqlValue;
 
 pub fn eof<I: Copy + InputLength, E: ParseError<I>>(input: I) -> IResult<I, I, E> {
     if input.input_len() == 0 {
@@ -56,7 +57,7 @@ pub fn integer<'a>(input: &'a str) -> IResult<&'a str, u64> {
 pub fn float_number<'a>(input: &'a str) -> IResult<&'a str, Expr> {
     let (input, s) = recognize_float(input)?;
     match s.parse::<f64>() {
-        Ok(f) => Ok((input, Expr::Num(f))),
+        Ok(f) => Ok((input, Expr::from(f))),
         Err(_) => Err(nom::Err::Error(ParseError::from_error_kind(
             input,
             ErrorKind::Float,
@@ -83,6 +84,7 @@ fn parse_str<'a, E: ParseError<&'a str>>(i: &'a str) -> IResult<&'a str, &'a str
 mod tests {
     use super::float_number;
     use crate::sql::Expr;
+    use crate::value::PqlValue;
 
     fn float(input: &str) -> anyhow::Result<Expr> {
         match float_number(input) {
@@ -93,7 +95,7 @@ mod tests {
 
     #[test]
     fn parse_float_number() -> anyhow::Result<()> {
-        assert_eq!(float("3.4E3")?, Expr::Num(3.4e3));
+        assert_eq!(float("3.4E3")?, Expr::Value(PqlValue::from(3.4e3)));
 
         Ok(())
     }

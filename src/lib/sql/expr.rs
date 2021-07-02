@@ -14,7 +14,6 @@ pub enum Expr {
     Star,
     Selector(Selector),
     Value(PqlValue),
-    Num(f64),
     Func(Box<Func>),
     Add(Box<Expr>, Box<Expr>),
     Sub(Box<Expr>, Box<Expr>),
@@ -28,6 +27,18 @@ pub enum Expr {
 impl Default for Expr {
     fn default() -> Self {
         Self::Value(PqlValue::default())
+    }
+}
+
+impl From<i64> for Expr {
+    fn from(i: i64) -> Self {
+        Self::Value(PqlValue::Int(i))
+    }
+}
+
+impl From<f64> for Expr {
+    fn from(f: f64) -> Self {
+        Self::Value(PqlValue::Float(OrderedFloat(f)))
     }
 }
 
@@ -57,9 +68,7 @@ impl Expr {
         match self {
             Self::Selector(path) => Self::Selector(path.expand_fullpath2(&env)),
             Expr::Value(_) => self.to_owned(),
-            Self::Num(_) => self.to_owned(),
             Expr::Star => todo!(),
-            Expr::Num(_) => todo!(),
             Expr::Func(_) => todo!(),
             Self::Add(left, right) => Self::Add(
                 Box::new((*left).expand_fullpath(&env)),
@@ -101,10 +110,10 @@ impl Expr {
                 //     .to_owned();
                 // PqlVector(v)
             }
-            Self::Num(_num) => {
-                todo!()
-                // PqlVector(vec![PqlValue::Float(OrderedFloat(num)); book.column_size]),
-            }
+            // Self::Num(_num) => {
+            //     todo!()
+            //     PqlVector(vec![PqlValue::Float(OrderedFloat(num)); book.column_size]),
+            // }
             Self::Add(box expr1, box expr2) => {
                 expr1.eval_to_vector(&env) + expr2.eval_to_vector(&env)
             }
@@ -129,7 +138,6 @@ impl Expr {
             Self::Value(value) => value,
             Self::Selector(selector) => selector.evaluate(&env).unwrap_or_default(),
             Self::Star => todo!(),
-            Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
             Self::Func(_) => todo!(),
             Self::Sql(_) => todo!(),
             Self::Add(box expr1, box expr2) => (expr1).eval(&env) + (expr2).eval(&env),
@@ -143,7 +151,6 @@ impl Expr {
 
     pub fn source_field_name_set(&self, env: &Env) -> HashSet<String> {
         match self.to_owned() {
-            Expr::Num(_) => HashSet::default(),
             Expr::Selector(selector) => {
                 collect! {
                     as HashSet<String>:
