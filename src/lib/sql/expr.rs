@@ -127,7 +127,7 @@ impl Expr {
     pub fn eval(self) -> PqlValue {
         match self.to_owned() {
             Self::Value(value) => value,
-            Self::Selector(selector) => todo!(),
+            Self::Selector(_selector) => todo!(),
             Self::Star => todo!(),
             Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
             Self::Func(_) => todo!(),

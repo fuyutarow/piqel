@@ -1,10 +1,7 @@
 use std::str::FromStr;
 
-use nom::bitvec::vec;
-use partiql::parser;
 use partiql::planner::Drain;
-use partiql::planner::LogicalPlan;
-use partiql::planner::Sql;
+
 use partiql::sql::Env;
 use partiql::sql::Expr;
 use partiql::sql::Field;

@@ -170,7 +170,7 @@ pub fn parse_selector(input: &str) -> IResult<&str, Selector> {
     ))(input)?;
 
     let mut nodes = vec![];
-    if let Some(dot) = opt_dot {
+    if let Some(_dot) = opt_dot {
         nodes.push(SelectorNode::default())
     }
     let mut nodes2 = vec_nodes.into_iter().flatten().collect::<Vec<_>>();

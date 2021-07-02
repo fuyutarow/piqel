@@ -1,8 +1,6 @@
 use std::collections::VecDeque;
 use std::str::FromStr;
 
-use nom::dbg_dmp;
-
 use crate::parser;
 use crate::sql::Env;
 use crate::sql::Expr;
@@ -114,7 +112,7 @@ impl Selector {
         }
     }
 
-    pub fn split_first_old(&self) -> Option<(SelectorNode, Self)> {
+    pub fn split_first(&self) -> Option<(SelectorNode, Self)> {
         let mut data = self.data.to_owned();
 
         if let Some(first) = data.pop_front() {
@@ -122,16 +120,6 @@ impl Selector {
         } else {
             None
         }
-    }
-
-    pub fn split_first(&self) -> (SelectorNode, Self) {
-        let mut nodes = self.data.to_owned();
-        let tail = nodes.split_off(1);
-        let head = nodes
-            .get(0)
-            .expect("len of nodes of selector >= 1")
-            .to_owned();
-        (head, Self { data: tail })
     }
 
     pub fn to_string(&self) -> String {
@@ -158,48 +146,53 @@ impl Selector {
     }
 
     pub fn expand_fullpath3(&self, env: &Env) -> Self {
-        let (head, tail) = self.split_first();
+        if let Some((head, tail)) = self.split_first() {
+            let mut selector = Selector::default();
+            if head != SelectorNode::default() {
+                selector.data.push_front(SelectorNode::default());
+            }
 
-        let mut selector = Selector::default();
-        if head != SelectorNode::default() {
-            selector.data.push_front(SelectorNode::default());
+            selector.data.append(
+                &mut env
+                    .expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()))
+                    .data,
+            );
+            selector.data.append(&mut tail.data.to_owned());
+            selector
+        } else {
+            todo!()
         }
-
-        selector.data.append(
-            &mut env
-                .expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()))
-                .data,
-        );
-        selector.data.append(&mut tail.data.to_owned());
-        selector
     }
 
     pub fn evaluate(&self, env: &Env) -> Option<PqlValue> {
-        let (head, tail) = self.expand_fullpath3(&env).split_first();
-        if let Some(expr) = env.get(head.to_string().as_str()) {
-            match expr {
-                Expr::Value(value) => {
-                    let v = value.select_by_selector(&tail);
-                    v
+        if let Some((head, tail)) = self.expand_fullpath3(&env).split_first() {
+            if let Some(expr) = env.get(head.to_string().as_str()) {
+                match expr {
+                    Expr::Value(value) => {
+                        let v = value.select_by_selector(&tail);
+                        v
+                    }
+                    Expr::Selector(selector) => {
+                        let s = selector.expand_fullpath3(&env);
+                        s.evaluate(&env)
+                    }
+                    Expr::Star => todo!(),
+                    Expr::Num(_) => todo!(),
+                    Expr::Func(_) => todo!(),
+                    Expr::Add(_, _) => todo!(),
+                    Expr::Sub(_, _) => todo!(),
+                    Expr::Mul(_, _) => todo!(),
+                    Expr::Div(_, _) => todo!(),
+                    Expr::Rem(_, _) => todo!(),
+                    Expr::Exp(_, _) => todo!(),
+                    Expr::Sql(_) => todo!(),
                 }
-                Expr::Selector(selector) => {
-                    let s = selector.expand_fullpath3(&env);
-                    s.evaluate(&env)
-                }
-                Expr::Star => todo!(),
-                Expr::Num(_) => todo!(),
-                Expr::Func(_) => todo!(),
-                Expr::Add(_, _) => todo!(),
-                Expr::Sub(_, _) => todo!(),
-                Expr::Mul(_, _) => todo!(),
-                Expr::Div(_, _) => todo!(),
-                Expr::Rem(_, _) => todo!(),
-                Expr::Exp(_, _) => todo!(),
-                Expr::Sql(_) => todo!(),
+            } else {
+                dbg!(&head, &tail);
+                todo!()
             }
         } else {
-            dbg!(&head, &tail);
-            todo!()
+            unreachable!()
         }
     }
 }
@@ -208,16 +201,13 @@ impl Selector {
 mod tests {
     use std::str::FromStr;
 
-    use crate::parser;
     use crate::planner::Drain;
-    use crate::planner::LogicalPlan;
-    use crate::planner::Sql;
+
     use crate::sql::Env;
     use crate::sql::Expr;
     use crate::sql::Field;
     use crate::sql::Selector;
     use crate::value::PqlValue;
-    use nom::bitvec::vec;
 
     fn get_data() -> anyhow::Result<PqlValue> {
         PqlValue::from_str(
@@ -339,7 +329,7 @@ mod tests {
 
         let selector = Selector::from_str("e.projects")?;
         // dbg!(&selector);
-        let r = selector.evaluate(&env);
+        let _r = selector.evaluate(&env);
         // dbg!(&r);
         assert_eq!(
             selector.evaluate(&env),

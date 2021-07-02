@@ -3,7 +3,6 @@ use std::str::FromStr;
 use crate::parser;
 use crate::sql::Env;
 use crate::sql::Expr;
-use crate::value::PqlValue;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Field {

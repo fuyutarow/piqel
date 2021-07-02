@@ -39,7 +39,7 @@ impl Env {
     }
 
     fn rec_get_full_path(&self, selector: &Selector, trace_path: &mut Selector) {
-        if let Some((first, tail)) = selector.split_first_old() {
+        if let Some((first, tail)) = selector.split_first() {
             if let Some(alias_path) = self.get_as_selector(&first.to_string()) {
                 self.rec_get_full_path(&alias_path, trace_path)
             } else {

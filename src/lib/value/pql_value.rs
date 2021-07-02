@@ -6,7 +6,7 @@ use std::str::FromStr;
 use chrono::prelude::*;
 use chrono::serde::ts_seconds;
 use indexmap::IndexMap;
-use itertools::any;
+
 use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
@@ -137,7 +137,7 @@ impl PqlValue {
     pub fn select_by_selector(&self, selector: &Selector) -> Option<Self> {
         match self {
             Self::Object(_map) => {
-                if let Some((key, tail)) = selector.split_first_old() {
+                if let Some((key, tail)) = selector.split_first() {
                     if let Some(obj) = self.select_by_key(&key) {
                         obj.select_by_selector(&tail)
                     } else {
@@ -148,7 +148,7 @@ impl PqlValue {
                 }
             }
             Self::Array(array) => {
-                if let Some((key, _tail)) = selector.split_first_old() {
+                if let Some((key, _tail)) = selector.split_first() {
                     match key {
                         SelectorNode::Number(key_i) => {
                             if key_i < 0 {

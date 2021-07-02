@@ -89,12 +89,12 @@ pub fn restrict(
             }
         }
         Some(PqlValue::Object(mut object)) => {
-            if let Some((first, tail)) = &path.split_first_old() {
-                if let Some(value) = object.get(&first.to_string()) {
+            if let Some((head, tail)) = &path.split_first() {
+                if let Some(value) = object.get(&head.to_string()) {
                     match restrict(Some(value.to_owned()), &tail, cond) {
                         Some(v) if tail.to_vec().len() > 0 => {
                             // Some(value.to_owned())
-                            let it = object.get_mut(&first.to_string()).unwrap();
+                            let it = object.get_mut(&head.to_string()).unwrap();
                             *it = v.to_owned();
                             Some(PqlValue::Object(object))
                         }
@@ -105,7 +105,7 @@ pub fn restrict(
                     None
                 }
             } else {
-                Some(PqlValue::Object(object.to_owned()))
+                unreachable!()
             }
         }
         _ => {
