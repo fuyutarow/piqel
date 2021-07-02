@@ -64,7 +64,7 @@ impl PqlValue {
         }
     }
 
-    pub fn select_by_fields(&self, field_list: &[Field], _env: &Env) -> Option<Self> {
+    pub fn select_by_fields(&self, field_list: &[Field], env: &Env) -> Option<Self> {
         let mut new_map = Map::<String, Self>::new();
 
         for field in field_list {
@@ -88,7 +88,7 @@ impl PqlValue {
                 Expr::Add(_, _) => todo!(),
                 Expr::Sub(_, _) => todo!(),
                 Expr::Mul(_, _) => {
-                    let value = field.to_owned().expr.eval();
+                    let value = field.to_owned().expr.eval(&env);
                     dbg!(value);
                 }
                 Expr::Div(_, _) => todo!(),

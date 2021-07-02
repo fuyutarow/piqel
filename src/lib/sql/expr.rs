@@ -124,20 +124,20 @@ impl Expr {
         }
     }
 
-    pub fn eval(self) -> PqlValue {
+    pub fn eval(self, env: &Env) -> PqlValue {
         match self.to_owned() {
             Self::Value(value) => value,
-            Self::Selector(_selector) => todo!(),
+            Self::Selector(selector) => selector.evaluate(&env).unwrap_or_default(),
             Self::Star => todo!(),
             Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
             Self::Func(_) => todo!(),
             Self::Sql(_) => todo!(),
-            Self::Add(box expr1, box expr2) => (expr1).eval() + (expr2).eval(),
-            Self::Sub(box expr1, box expr2) => (expr1).eval() - (expr2).eval(),
-            Self::Mul(box expr1, box expr2) => (expr1).eval() * (expr2).eval(),
-            Self::Div(box expr1, box expr2) => (expr1).eval() / (expr2).eval(),
-            Self::Rem(box expr1, box expr2) => (expr1).eval() % (expr2).eval(),
-            Self::Exp(box expr1, box expr2) => (expr1).eval().powf((expr2).eval()),
+            Self::Add(box expr1, box expr2) => (expr1).eval(&env) + (expr2).eval(&env),
+            Self::Sub(box expr1, box expr2) => (expr1).eval(&env) - (expr2).eval(&env),
+            Self::Mul(box expr1, box expr2) => (expr1).eval(&env) * (expr2).eval(&env),
+            Self::Div(box expr1, box expr2) => (expr1).eval(&env) / (expr2).eval(&env),
+            Self::Rem(box expr1, box expr2) => (expr1).eval(&env) % (expr2).eval(&env),
+            Self::Exp(box expr1, box expr2) => (expr1).eval(&env).powf((expr2).eval(&env)),
         }
     }
 

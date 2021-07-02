@@ -136,16 +136,26 @@ impl Selector {
     }
 
     pub fn expand_fullpath(&self, env: &Env) -> Self {
-        let mut selector = env.expand_fullpath_as_selector(&self);
-        selector.data.push_front(SelectorNode::default());
-        selector
+        if let Some((head, tail)) = self.split_first() {
+            let mut selector = Selector::default();
+
+            selector.data.append(
+                &mut env
+                    .expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()))
+                    .data,
+            );
+            selector.data.append(&mut tail.data.to_owned());
+            selector
+        } else {
+            todo!()
+        }
     }
 
     pub fn expand_fullpath2(&self, env: &Env) -> Self {
         env.expand_fullpath_as_selector(&self)
     }
 
-    pub fn expand_fullpath3(&self, env: &Env) -> Self {
+    pub fn expand_abspath(&self, env: &Env) -> Self {
         if let Some((head, tail)) = self.split_first() {
             let mut selector = Selector::default();
             if head != SelectorNode::default() {
@@ -165,7 +175,7 @@ impl Selector {
     }
 
     pub fn evaluate(&self, env: &Env) -> Option<PqlValue> {
-        if let Some((head, tail)) = self.expand_fullpath3(&env).split_first() {
+        if let Some((head, tail)) = self.expand_fullpath(&env).split_first() {
             if let Some(expr) = env.get(head.to_string().as_str()) {
                 match expr {
                     Expr::Value(value) => {
@@ -173,7 +183,7 @@ impl Selector {
                         v
                     }
                     Expr::Selector(selector) => {
-                        let s = selector.expand_fullpath3(&env);
+                        let s = selector.expand_fullpath(&env);
                         s.evaluate(&env)
                     }
                     Expr::Star => todo!(),
@@ -188,8 +198,7 @@ impl Selector {
                     Expr::Sql(_) => todo!(),
                 }
             } else {
-                dbg!(&head, &tail);
-                todo!()
+                self.expand_abspath(&env).evaluate(&env)
             }
         } else {
             unreachable!()
@@ -283,7 +292,7 @@ mod tests {
             env
         };
 
-        let selector = Selector::from_str("p")?;
+        let selector = Selector::from_str("e.projects")?;
         assert_eq!(
             selector.evaluate(&env),
             Some(PqlValue::from_str(
@@ -327,10 +336,7 @@ mod tests {
             env
         };
 
-        let selector = Selector::from_str("e.projects")?;
-        // dbg!(&selector);
-        let _r = selector.evaluate(&env);
-        // dbg!(&r);
+        let selector = Selector::from_str("p")?;
         assert_eq!(
             selector.evaluate(&env),
             Some(PqlValue::from_str(
