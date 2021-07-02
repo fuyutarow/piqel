@@ -39,7 +39,7 @@ impl Env {
     }
 
     fn rec_get_full_path(&self, selector: &Selector, trace_path: &mut Selector) {
-        if let Some((first, tail)) = selector.split_first() {
+        if let Some((first, tail)) = selector.split_first_old() {
             if let Some(alias_path) = self.get_as_selector(&first.to_string()) {
                 self.rec_get_full_path(&alias_path, trace_path)
             } else {
@@ -67,17 +67,27 @@ impl Env {
         trace_path
     }
 
-    pub fn expand_fullpath(&self, value: &Expr) -> Expr {
-        match &value {
-            Expr::Selector(selector) => {
-                let mut trace_path = Selector::default();
+    pub fn expand_fullpath(&self, expr: &Expr) -> Expr {
+        expr.expand_fullpath(self)
+        // match &value {
+        //     Expr::Selector(selector) => {
+        //         let mut trace_path = Selector::default();
 
-                self.rec_get_full_path(selector, &mut trace_path);
-                Expr::Selector(trace_path)
-            }
-            Expr::Value(_) => value.to_owned(),
-            _ => todo!(),
-        }
+        //         self.rec_get_full_path(selector, &mut trace_path);
+        //         Expr::Selector(trace_path)
+        //     }
+        //     Expr::Value(_) => value.to_owned(),
+        //     Expr::Star => todo!(),
+        //     Expr::Num(_) => todo!(),
+        //     Expr::Func(_) => todo!(),
+        //     Expr::Add(_, _) => todo!(),
+        //     Expr::Sub(_, _) => todo!(),
+        //     Expr::Mul(_, _) => todo!(),
+        //     Expr::Div(_, _) => todo!(),
+        //     Expr::Rem(_, _) => todo!(),
+        //     Expr::Exp(_, _) => todo!(),
+        //     Expr::Sql(_) => todo!(),
+        // }
     }
 }
 

@@ -82,7 +82,19 @@ impl PqlValue {
                     }
                 }
                 Expr::Value(_) => todo!(),
-                _ => todo!(),
+                Expr::Star => todo!(),
+                Expr::Num(_) => todo!(),
+                Expr::Func(_) => todo!(),
+                Expr::Add(_, _) => todo!(),
+                Expr::Sub(_, _) => todo!(),
+                Expr::Mul(_, _) => {
+                    let value = field.to_owned().expr.eval();
+                    dbg!(value);
+                }
+                Expr::Div(_, _) => todo!(),
+                Expr::Rem(_, _) => todo!(),
+                Expr::Exp(_, _) => todo!(),
+                Expr::Sql(_) => todo!(),
             }
         }
 

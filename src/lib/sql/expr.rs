@@ -56,7 +56,11 @@ impl Expr {
     pub fn expand_fullpath(&self, env: &Env) -> Self {
         match self {
             Self::Selector(path) => Self::Selector(path.expand_fullpath2(&env)),
+            Expr::Value(_) => self.to_owned(),
             Self::Num(_) => self.to_owned(),
+            Expr::Star => todo!(),
+            Expr::Num(_) => todo!(),
+            Expr::Func(_) => todo!(),
             Self::Add(left, right) => Self::Add(
                 Box::new((*left).expand_fullpath(&env)),
                 Box::new((*right).expand_fullpath(&env)),
@@ -81,7 +85,7 @@ impl Expr {
                 Box::new((*left).expand_fullpath(&env)),
                 Box::new((*right).expand_fullpath(&env)),
             ),
-            _ => todo!(),
+            Expr::Sql(_) => todo!(),
         }
     }
 
@@ -123,8 +127,8 @@ impl Expr {
     pub fn eval(self) -> PqlValue {
         match self.to_owned() {
             Self::Value(value) => value,
+            Self::Selector(selector) => todo!(),
             Self::Star => todo!(),
-            Self::Selector(_) => todo!(),
             Self::Num(num) => PqlValue::Float(OrderedFloat(num.to_owned())),
             Self::Func(_) => todo!(),
             Self::Sql(_) => todo!(),

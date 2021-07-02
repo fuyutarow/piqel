@@ -164,8 +164,17 @@ pub fn parse_selector(input: &str) -> IResult<&str, Selector> {
         Ok((input, nodes))
     }
 
-    let (input, vec_nodes) = separated_list1(char('.'), selecotrnode_with_index)(input)?;
-    let nodes = vec_nodes.into_iter().flatten().collect::<Vec<_>>();
+    let (input, (opt_dot, vec_nodes)) = tuple((
+        opt(char('.')),
+        separated_list1(char('.'), selecotrnode_with_index),
+    ))(input)?;
+
+    let mut nodes = vec![];
+    if let Some(dot) = opt_dot {
+        nodes.push(SelectorNode::default())
+    }
+    let mut nodes2 = vec_nodes.into_iter().flatten().collect::<Vec<_>>();
+    nodes.append(&mut nodes2);
     let res = Selector::from(nodes.as_slice());
     Ok((input, res))
 }

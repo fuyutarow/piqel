@@ -1481,6 +1481,7 @@ dependencies = [
  "datetime",
  "indexmap",
  "itertools",
+ "lazy_static",
  "nom 6.1.2",
  "ordered-float",
  "parse-display",
