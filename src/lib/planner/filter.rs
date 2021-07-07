@@ -9,9 +9,9 @@ use crate::value::PqlValue;
 pub struct Filter(pub Option<Box<WhereCond>>);
 
 impl Filter {
-    pub fn execute(self, data: PqlValue, env: &Env) -> PqlValue {
+    pub fn execute(self, value: PqlValue, env: &Env) -> PqlValue {
         match &self.0 {
-            None => data,
+            None => value,
             Some(box WhereCond::Eq { expr, right }) => match expr {
                 Expr::Selector(selector) => {
                     let selector = selector.expand_fullpath2(&env);
@@ -19,7 +19,8 @@ impl Filter {
                         expr: expr.to_owned(),
                         right: right.to_owned(),
                     };
-                    restrict(Some(data.to_owned()), &selector, &Some(cond))
+                    value
+                        .restrict(&selector, &Some(cond))
                         .expect("restricted value")
                 }
                 _ => {
@@ -28,12 +29,14 @@ impl Filter {
             },
             Some(box WhereCond::Like { expr, right }) => match expr {
                 Expr::Selector(selector) => {
-                    let path = selector.expand_fullpath2(&env);
+                    let selector = selector.expand_fullpath2(&env);
                     let cond = WhereCond::Like {
                         expr: expr.to_owned(),
                         right: right.to_owned(),
                     };
-                    restrict(Some(data.to_owned()), &path, &Some(cond)).expect("restricted value")
+                    value
+                        .restrict(&selector, &Some(cond))
+                        .expect("restricted value")
                 }
                 _ => {
                     todo!();
@@ -46,14 +49,6 @@ impl Filter {
         }
     }
 }
-
-// pub fn restrict_env(env: &mut Env, cond: &WhereCond) {
-//     let expr = cond.get_expr();
-//     let selector = expr.as_path();
-
-//     expr.eval(env)
-//     // expr.eva
-// }
 
 pub fn restrict(
     value: Option<PqlValue>,

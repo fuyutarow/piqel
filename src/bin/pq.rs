@@ -8,8 +8,7 @@ use structopt::StructOpt;
 use partiql::lang::{Lang, LangType};
 use partiql::parser;
 use partiql::planner::evaluate;
-use partiql::planner::Sql;
-use partiql::sql;
+use partiql::sql::Sql;
 
 fn read_from_stdin() -> anyhow::Result<String> {
     let mut buf = String::new();

@@ -16,7 +16,7 @@ fn main() -> anyhow::Result<()> {
     dbg!(&plan);
 
     let mut env = Env::default();
-    let d = plan.execute(PqlValue::default(), &mut env);
+    let d = plan.execute(&mut env);
     dbg!(&env);
     dbg!(&d);
 
