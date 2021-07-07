@@ -1,6 +1,6 @@
 mod drain;
 mod eval;
-mod filter;
+pub mod filter;
 mod logical_plan;
 pub mod project;
 

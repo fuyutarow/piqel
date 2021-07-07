@@ -48,6 +48,12 @@ impl From<&str> for Expr {
     }
 }
 
+impl From<Selector> for Expr {
+    fn from(selector: Selector) -> Self {
+        Self::Selector(selector)
+    }
+}
+
 impl From<PqlValue> for Expr {
     fn from(value: PqlValue) -> Self {
         Self::Value(value)

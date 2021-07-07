@@ -12,6 +12,7 @@ use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
+use crate::planner::{self, WhereCond};
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
 
@@ -237,6 +238,10 @@ impl PqlValue {
 
     pub fn to_jsonc(&self) -> serde_json::Result<String> {
         serde_json::to_string(self)
+    }
+
+    pub fn restrict(self, selector: &Selector, cond: &Option<WhereCond>) -> Option<Self> {
+        planner::filter::restrict(Some(self), selector, cond)
     }
 }
 

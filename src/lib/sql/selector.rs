@@ -92,6 +92,16 @@ impl From<&str> for Selector {
     }
 }
 
+impl From<&SelectorNode> for Selector {
+    fn from(node: &SelectorNode) -> Self {
+        Self {
+            data: vec![node]
+                .into_iter()
+                .map(|n| n.to_owned())
+                .collect::<VecDeque<_>>(),
+        }
+    }
+}
 impl From<&[SelectorNode]> for Selector {
     fn from(nodes: &[SelectorNode]) -> Self {
         Self {
@@ -117,6 +127,16 @@ impl Selector {
 
         if let Some(first) = data.pop_front() {
             Some((first, Self { data }))
+        } else {
+            None
+        }
+    }
+
+    pub fn split_last(&self) -> Option<(Self, SelectorNode)> {
+        let mut data = self.data.to_owned();
+
+        if let Some(last) = data.pop_back() {
+            Some((Self { data }, last))
         } else {
             None
         }

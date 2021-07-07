@@ -124,6 +124,8 @@ pub fn restrict(
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::restrict;
     use crate::pqlir_parser;
     use crate::sql::Expr;
@@ -133,20 +135,20 @@ mod tests {
 
     #[test]
     fn boolean() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_value(
+        let value = PqlValue::from_str(
             "
     <<true, false, null>>
    ",
         )?;
 
-        let res = restrict(Some(data), &Selector::default(), &None);
-        assert_eq!(res, Some(PqlValue::Array(vec![PqlValue::Boolean(true)])));
+        let res = value.restrict(&Selector::default(), &None);
+        assert_eq!(res, Some(PqlValue::from_str(r#"<<true>>"#)?));
         Ok(())
     }
 
     #[test]
     fn missing() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_value(
+        let value = PqlValue::from_str(
             "
 {
     'top': <<
@@ -157,7 +159,7 @@ mod tests {
 }
    ",
         )?;
-        let res = restrict(Some(data), &Selector::from("top.b"), &None);
+        let res = value.restrict(&Selector::from("top.b"), &None);
         let expected = pqlir_parser::pql_value(
             "
 {
@@ -174,7 +176,7 @@ mod tests {
 
     #[test]
     fn pattern_string() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_value(
+        let value = PqlValue::from_str(
             "
 {
     'hr': {
@@ -205,12 +207,12 @@ mod tests {
 }
    ",
         )?;
-        let path = Selector::from("hr.employeesNest.projects.name");
+        let selector = Selector::from("hr.employeesNest.projects.name");
         let cond = WhereCond::Like {
             expr: Expr::default(),
             right: "%security%".to_owned(),
         };
-        let res = restrict(Some(data), &path, &Some(cond));
+        let res = value.restrict(&selector, &Some(cond));
         let expected = pqlir_parser::pql_value(
             "
 {

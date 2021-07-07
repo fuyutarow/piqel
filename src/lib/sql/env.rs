@@ -57,10 +57,6 @@ impl Env {
         }
     }
 
-    pub fn get_mut_by_selector(&self, key: &str) -> Option<Expr> {
-        self.data.get(key).map(|e| e.to_owned())
-    }
-
     pub fn get_as_selector(&self, key: &str) -> Option<Selector> {
         match self.get(key) {
             Some(Expr::Selector(selector)) => Some(selector),
