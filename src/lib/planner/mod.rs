@@ -39,13 +39,11 @@ impl From<Sql> for LogicalPlan {
 }
 
 impl LogicalPlan {
-    pub fn excute(self, data: PqlValue, env: &mut Env) -> PqlValue {
+    pub fn execute(self, data: PqlValue, env: &mut Env) -> PqlValue {
         for drain in self.drains {
-            drain.excute(env);
+            drain.execute(env);
         }
-        dbg!(&data);
         let data = self.filter.execute(data, &env);
-        dbg!(&data);
         let mut list = self.project.execute(data, &env);
 
         if let Some(orderby) = &self.order_by {
@@ -102,6 +100,6 @@ impl FromStr for Sql {
 pub fn evaluate<'a>(sql: Sql, data: PqlValue) -> PqlValue {
     let mut env = Env::default();
     let plan = LogicalPlan::from(sql);
-    let result = plan.excute(data, &mut env);
+    let result = plan.execute(data, &mut env);
     result
 }

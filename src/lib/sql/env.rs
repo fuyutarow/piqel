@@ -112,7 +112,7 @@ FROM
         )?;
 
         let mut env = Env::default();
-        Drain(sql.from_clause).excute(&mut env);
+        Drain(sql.from_clause).execute(&mut env);
 
         assert_eq!(
             env.expand_fullpath(&Field::from_str("e.name AS employeeName")?.expr)

@@ -294,7 +294,7 @@ mod tests {
                 Field::from_str(r#"hr.employeesNest AS e"#)?,
                 Field::from_str(r#"e.projects AS p"#)?,
             ]);
-            drain.excute(&mut env);
+            drain.execute(&mut env);
             env
         };
 
@@ -338,7 +338,7 @@ mod tests {
                 Field::from_str(r#"hr.employeesNest AS e"#)?,
                 Field::from_str(r#"e.projects AS p"#)?,
             ]);
-            drain.excute(&mut env);
+            drain.execute(&mut env);
             env
         };
 
@@ -379,7 +379,7 @@ mod tests {
             let data = get_data()?;
             env.insert("", &Expr::Value(data));
             let drain = Drain(vec![Field::from_str(r#"3 AS n"#)?]);
-            drain.excute(&mut env);
+            drain.execute(&mut env);
             env
         };
 

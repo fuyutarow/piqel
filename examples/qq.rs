@@ -47,7 +47,7 @@ fn main() -> anyhow::Result<()> {
         Field::from_str(r#"hr.employeesNest AS e"#)?,
         Field::from_str(r#"e.projects AS p"#)?,
     ]);
-    drain.excute(&mut env);
+    drain.execute(&mut env);
     dbg!(&env);
     let e = Selector::from_str("e")?;
     let v_e = data.select_by_selector(&e);
@@ -59,7 +59,7 @@ fn main() -> anyhow::Result<()> {
     //     v.selec
     // }
 
-    // let d = plan.excute(PqlValue::default(), &mut env);
+    // let d = plan.execute(PqlValue::default(), &mut env);
     // dbg!(&env);
     // dbg!(&d);
 
