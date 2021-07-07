@@ -37,6 +37,7 @@ FROM
         >>
     } AS hr,
     hr.employees e
+LIMIT 2
         "#,
         )?;
 
@@ -50,8 +51,7 @@ FROM
                 r#"
         [
             { 'id': 3, 'employeeName': 'Bob Smith',   'title': null },
-            { 'id': 4, 'employeeName': 'Susan Smith', 'title': 'Dev Mgr' },
-            { 'id': 6, 'employeeName': 'Jane Smith',  'title': 'Software Eng 2'}
+            { 'id': 4, 'employeeName': 'Susan Smith', 'title': 'Dev Mgr' }
         ]
             "#
             )?

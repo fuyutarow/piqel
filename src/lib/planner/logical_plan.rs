@@ -25,8 +25,8 @@ impl From<Sql> for LogicalPlan {
             drains: vec![Drain(sql.from_clause), Drain(sql.left_join_clause)],
             filter: Filter(sql.where_clause),
             project: Projection(sql.select_clause),
-            order_by: None,
-            limit: None,
+            order_by: sql.orderby,
+            limit: sql.limit,
         }
     }
 }
