@@ -176,7 +176,6 @@ impl From<Rows> for Records {
                 let mut record = Map::<String, Vec<PqlValue>>::new();
                 for key in &rows.keys {
                     let v = rows.data.get(key.as_str()).unwrap().get(i).unwrap();
-                    // record.insert(key.to_string(), v.to_owned());
                     match v {
                         PqlValue::Array(array) => {
                             record.insert(key.to_string(), array.to_owned());

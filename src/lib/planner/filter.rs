@@ -96,7 +96,6 @@ pub fn restrict(
                 if let Some(value) = object.get(&head.to_string()) {
                     match restrict(Some(value.to_owned()), &tail, cond) {
                         Some(v) if tail.to_vec().len() > 0 => {
-                            // Some(value.to_owned())
                             let it = object.get_mut(&head.to_string()).unwrap();
                             *it = v.to_owned();
                             Some(PqlValue::Object(object))

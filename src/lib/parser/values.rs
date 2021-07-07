@@ -16,11 +16,7 @@ pub fn array<'a>(input: &'a str) -> IResult<&'a str, Vec<u64>> {
             preceded(
                 multispace0,
                 cut(terminated(
-                    separated_list0(
-                        // preceded(multispace0, char(',')),
-                        char(','),
-                        preceded(multispace0, digit1),
-                    ),
+                    separated_list0(char(','), preceded(multispace0, digit1)),
                     preceded(multispace0, char(']')),
                 )),
             ),

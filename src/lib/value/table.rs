@@ -68,8 +68,6 @@ pub fn try_pqlv_to_dataframe(pqlv: PqlValue, colnames: Vec<String>) -> anyhow::R
                                     let key = k.as_str();
 
                                     match object.get(key) {
-                                        // Some(PqlValue::Int(int)) => Series::new(&k, &[int]),
-                                        // Some(PqlValue::Int(int)) => Series::new(key, &[-100]),
                                         Some(PqlValue::Float(float)) => {
                                             let f: f64 = float.into_inner();
                                             Series::new(key, &[f])

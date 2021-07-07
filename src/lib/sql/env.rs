@@ -75,7 +75,6 @@ impl Env {
             }
             if tail.data.len() > 0 {
                 let tail_path = Selector::from(tail);
-                // for p in tail_path.to_vec()
                 let mut vec_path = tail_path
                     .to_vec()
                     .into_iter()
@@ -95,25 +94,6 @@ impl Env {
 
     pub fn expand_fullpath(&self, expr: &Expr) -> Expr {
         expr.expand_fullpath(self)
-        // match &value {
-        //     Expr::Selector(selector) => {
-        //         let mut trace_path = Selector::default();
-
-        //         self.rec_get_full_path(selector, &mut trace_path);
-        //         Expr::Selector(trace_path)
-        //     }
-        //     Expr::Value(_) => value.to_owned(),
-        //     Expr::Star => todo!(),
-        //     Expr::Num(_) => todo!(),
-        //     Expr::Func(_) => todo!(),
-        //     Expr::Add(_, _) => todo!(),
-        //     Expr::Sub(_, _) => todo!(),
-        //     Expr::Mul(_, _) => todo!(),
-        //     Expr::Div(_, _) => todo!(),
-        //     Expr::Rem(_, _) => todo!(),
-        //     Expr::Exp(_, _) => todo!(),
-        //     Expr::Sql(_) => todo!(),
-        // }
     }
 }
 

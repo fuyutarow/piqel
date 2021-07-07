@@ -77,7 +77,6 @@ pub fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
 }
 
 fn parse_number(input: &str) -> IResult<&str, Expr> {
-    // map(digit1, |s: &str| Expr::Num(s.parse::<f64>().unwrap()))(input)
     map(double, |f| Expr::from(f as f64))(input)
 }
 

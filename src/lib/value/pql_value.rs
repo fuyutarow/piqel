@@ -265,20 +265,17 @@ impl Add for PqlValue {
             (Self::Float(a), Self::Int(b)) => Self::Float(a + OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a + b),
             (Self::Array(array_a), Self::Array(array_b)) => {
-                let vec_a = PqlVector(array_a);
-                let vec_b = PqlVector(array_b);
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
                 PqlValue::from(vec_a + vec_b)
             }
             (Self::Array(array), val) => {
                 let n = array.len();
-                let vec_a = PqlVector(array);
-                let vec_b = PqlVector(vec![val; n]);
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
                 PqlValue::from(vec_a + vec_b)
             }
             (val, Self::Array(array)) => {
                 let n = array.len();
-                let vec_a = PqlVector(array);
-                let vec_b = PqlVector(vec![val; n]);
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
                 PqlValue::from(vec_a + vec_b)
             }
             _ => todo!(),
@@ -295,20 +292,17 @@ impl Sub for PqlValue {
             (Self::Float(a), Self::Int(b)) => Self::Float(a - OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a - b),
             (Self::Array(array_a), Self::Array(array_b)) => {
-                let vec_a = PqlVector(array_a);
-                let vec_b = PqlVector(array_b);
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
                 PqlValue::from(vec_a - vec_b)
             }
             (Self::Array(array), val) => {
                 let n = array.len();
-                let vec_a = PqlVector(array);
-                let vec_b = PqlVector(vec![val; n]);
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
                 PqlValue::from(vec_a - vec_b)
             }
             (val, Self::Array(array)) => {
                 let n = array.len();
-                let vec_a = PqlVector(vec![val; n]);
-                let vec_b = PqlVector(array);
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
                 PqlValue::from(vec_a - vec_b)
             }
             _ => todo!(),
@@ -325,26 +319,20 @@ impl Mul for PqlValue {
             (Self::Float(a), Self::Int(b)) => Self::Float(a * OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a * b),
             (Self::Array(array_a), Self::Array(array_b)) => {
-                let vec_a = PqlVector(array_a);
-                let vec_b = PqlVector(array_b);
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
                 PqlValue::from(vec_a * vec_b)
             }
             (Self::Array(array), val) => {
                 let n = array.len();
-                let vec_a = PqlVector(array);
-                let vec_b = PqlVector(vec![val; n]);
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
                 PqlValue::from(vec_a * vec_b)
             }
             (val, Self::Array(array)) => {
                 let n = array.len();
-                let vec_a = PqlVector(vec![val; n]);
-                let vec_b = PqlVector(array);
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
                 PqlValue::from(vec_a * vec_b)
             }
-            _ => {
-                dbg!(&self, &other);
-                todo!()
-            }
+            _ => todo!(),
         }
     }
 }
@@ -358,20 +346,17 @@ impl Div for PqlValue {
             (Self::Float(a), Self::Int(b)) => Self::Float(a / OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a / b),
             (Self::Array(array_a), Self::Array(array_b)) => {
-                let vec_a = PqlVector(array_a);
-                let vec_b = PqlVector(array_b);
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
                 PqlValue::from(vec_a / vec_b)
             }
             (Self::Array(array), val) => {
                 let n = array.len();
-                let vec_a = PqlVector(array);
-                let vec_b = PqlVector(vec![val; n]);
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
                 PqlValue::from(vec_a / vec_b)
             }
             (val, Self::Array(array)) => {
                 let n = array.len();
-                let vec_a = PqlVector(vec![val; n]);
-                let vec_b = PqlVector(array);
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
                 PqlValue::from(vec_a / vec_b)
             }
             _ => todo!(),
