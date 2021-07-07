@@ -12,7 +12,14 @@ use crate::value::PqlValue;
 pub struct Projection(pub Vec<Field>);
 
 impl Projection {
-    pub fn execute(self, data: PqlValue, env: &Env) -> Vec<PqlValue> {
+    pub fn execute(self, env: &Env) -> Vec<PqlValue> {
+        let v = self.step12(env);
+        let v = self.step3(v);
+        let v = self.step4(v);
+        v
+    }
+
+    pub fn execute_old(self, data: PqlValue, env: &Env) -> Vec<PqlValue> {
         let v = self.step1(data, env);
         let v = self.step2(v);
         let v = self.step3(v);
@@ -32,6 +39,20 @@ impl Projection {
 
     pub fn step2(&self, data: PqlValue) -> Rows {
         Rows::from(data)
+    }
+
+    pub fn step12(&self, env: &Env) -> Rows {
+        let obj = self
+            .0
+            .iter()
+            .map(|field| {
+                let field = field.expand_fullpath(&env);
+                let (alias, expr) = field.rename();
+                let value = expr.eval(env);
+                (alias, value)
+            })
+            .collect::<Map<String, PqlValue>>();
+        Rows::from(PqlValue::Object(obj))
     }
 
     pub fn step3(&self, rows: Rows) -> Records {
@@ -117,7 +138,10 @@ impl From<PqlValue> for Rows {
                     }
                 })
                 .collect::<Map<String, Vec<PqlValue>>>(),
-            _ => unreachable!(),
+            _ => {
+                dbg!(&value);
+                unreachable!()
+            }
         };
 
         let keys = data.keys().map(String::from).collect();

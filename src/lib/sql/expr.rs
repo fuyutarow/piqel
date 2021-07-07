@@ -185,7 +185,8 @@ mod tests {
         let plan = LogicalPlan::from(sql);
 
         let mut env = Env::default();
-        let res = plan.execute(PqlValue::default(), &mut env);
+        let res = plan.execute(&mut env);
+
         assert_eq!(res, PqlValue::from_str(r#"[{ "aa": 12 }]"#)?);
 
         Ok(())

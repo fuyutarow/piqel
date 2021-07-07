@@ -32,12 +32,13 @@ impl From<Sql> for LogicalPlan {
 }
 
 impl LogicalPlan {
-    pub fn execute(self, data: PqlValue, env: &mut Env) -> PqlValue {
+    pub fn execute(self, env: &mut Env) -> PqlValue {
         for drain in self.drains {
             drain.execute(env);
         }
-        let data = self.filter.execute(data, &env);
-        let mut list = self.project.execute(data, &env);
+        // let data = self.filter.execute(data, &env);
+        let mut list = self.project.execute(&env);
+        dbg!(&list);
 
         if let Some(orderby) = &self.order_by {
             let mut list_with_key = list

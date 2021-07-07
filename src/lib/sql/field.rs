@@ -38,4 +38,16 @@ impl Field {
         let value = self.expr.eval(&env);
         value
     }
+
+    pub fn rename(self) -> (String, Expr) {
+        if let Some(alias) = self.alias {
+            (alias, self.expr)
+        } else {
+            let alias = match &self.expr {
+                Expr::Selector(selector) => selector.to_vec().last().unwrap().to_string(),
+                _ => todo!(),
+            };
+            (alias, self.expr)
+        }
+    }
 }
