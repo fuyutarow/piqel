@@ -135,6 +135,13 @@ impl PqlValue {
         }
     }
 
+    pub fn get_mut_by_selectornode(&mut self, node: &SelectorNode) -> Option<&mut Self> {
+        match (self, node.to_owned()) {
+            (Self::Object(map), SelectorNode::String(key_s)) => map.get_mut(&key_s),
+            _ => None,
+        }
+    }
+
     pub fn select_by_selector(&self, selector: &Selector) -> Option<Self> {
         match self {
             Self::Object(_map) => {
@@ -176,6 +183,42 @@ impl PqlValue {
                 }
             }
             _ => Some(self.clone()),
+        }
+    }
+
+    pub fn get_mut_by_selector(&mut self, selector: &Selector) -> Option<&mut Self> {
+        match self {
+            Self::Object(_map) => {
+                if let Some((key, tail)) = selector.split_first() {
+                    if let Some(obj) = self.get_mut_by_selectornode(&key) {
+                        obj.get_mut_by_selector(&tail)
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(self)
+                }
+            }
+            Self::Array(array) => {
+                if let Some((key, _tail)) = selector.split_first() {
+                    match key {
+                        SelectorNode::Number(key_i) => {
+                            if key_i < 0 {
+                                todo!()
+                            } else {
+                                let key_u = key_i as usize;
+                                array.get_mut(key_u)
+                            }
+                        }
+                        _ => {
+                            todo!()
+                        }
+                    }
+                } else {
+                    todo!()
+                }
+            }
+            _ => Some(self),
         }
     }
 
@@ -358,5 +401,25 @@ mod tests {
 
         assert_eq!(i1 > f2, true);
         assert_eq!(f2 < i3, true);
+    }
+
+    #[test]
+    fn test_update_value() -> anyhow::Result<()> {
+        let mut value = PqlValue::from_str(r#"{ "arr" : [1,2,4] }"#)?;
+
+        if let Some(partiql_value) = value.get_mut_by_selector(&Selector {
+            data: vec![
+                SelectorNode::String(String::from("arr")),
+                SelectorNode::Number(1),
+            ]
+            .into_iter()
+            .collect::<VecDeque<SelectorNode>>(),
+        }) {
+            *partiql_value = PqlValue::from(20.);
+        };
+        dbg!(&value);
+
+        assert_eq!(value, PqlValue::from_str(r#"{ "arr": [1,20,4] }"#)?);
+        Ok(())
     }
 }
