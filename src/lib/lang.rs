@@ -176,14 +176,10 @@ impl Lang {
                 let v = TomlValue::from(self.data.to_owned());
                 toml::to_string_pretty(&v).unwrap()
             }
-            (LangType::Yaml, _) => {
-                dbg!("yaml");
-
-                serde_yaml::to_string(&self.data)
-                    .unwrap()
-                    .trim_start_matches("---\n")
-                    .to_string()
-            }
+            (LangType::Yaml, _) => serde_yaml::to_string(&self.data)
+                .unwrap()
+                .trim_start_matches("---\n")
+                .to_string(),
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
         };
 

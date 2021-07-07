@@ -259,7 +259,7 @@ fn q7() -> anyhow::Result<()> {
             where_clause: Some(Box::new(WhereCond::Eq {
                 expr: Expr::Rem(
                     Box::new(Expr::Selector(Selector::from("x"))),
-                    Box::new(Expr::Num(2.))
+                    Box::new(Expr::from(2.))
                 ),
                 right: PqlValue::Float(OrderedFloat(0.))
             })),

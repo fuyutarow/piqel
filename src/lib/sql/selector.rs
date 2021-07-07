@@ -177,16 +177,13 @@ impl Selector {
     pub fn evaluate(&self, env: &Env) -> Option<PqlValue> {
         if let Some((head, tail)) = self.expand_fullpath(&env).split_first() {
             if let Some(expr) = env.get(head.to_string().as_str()) {
-                dbg!(&self);
                 match expr {
                     Expr::Value(value) => {
-                        dbg!(&value, &tail);
                         let v = if tail.data.len() > 0 {
                             value.select_by_selector(&tail)
                         } else {
                             Some(value)
                         };
-                        dbg!(&v);
                         v
                     }
                     Expr::Selector(selector) => {

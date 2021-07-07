@@ -1,8 +1,12 @@
 use std::str::FromStr;
 
+use collect_mac::collect;
+use indexmap::IndexMap as Map;
+
 use crate::parser;
 use crate::sql::Env;
 use crate::sql::Expr;
+use crate::value::PqlValue;
 
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Field {
@@ -31,5 +35,10 @@ impl Field {
             expr: env.expand_fullpath(&self.expr),
             alias: self.alias.to_owned(),
         }
+    }
+
+    pub fn evaluate(self, env: &Env) -> PqlValue {
+        let value = self.expr.evaluate(&env, self.alias);
+        value
     }
 }

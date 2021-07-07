@@ -27,7 +27,6 @@ pub struct LogicalPlan {
 
 impl From<Sql> for LogicalPlan {
     fn from(sql: Sql) -> Self {
-        dbg!(&sql);
         Self {
             drains: vec![Drain(sql.from_clause), Drain(sql.left_join_clause)],
             filter: Filter(sql.where_clause),

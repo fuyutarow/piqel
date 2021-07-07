@@ -1,6 +1,7 @@
 use std::collections::HashSet;
 
 use collect_mac::collect;
+use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;
 
 use crate::planner::Sql;
@@ -154,7 +155,6 @@ impl Expr {
             }
             _ => {
                 dbg!(&self);
-
                 todo!();
             }
         }
@@ -175,6 +175,8 @@ mod tests {
     use crate::planner::LogicalPlan;
     use crate::planner::Sql;
     use crate::sql::Env;
+    use crate::sql::Field;
+    use crate::sql::Selector;
     use crate::value::PqlValue;
 
     #[test]

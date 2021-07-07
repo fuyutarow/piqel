@@ -14,7 +14,6 @@ pub struct Projection(pub Vec<Field>);
 impl Projection {
     pub fn execute(self, data: PqlValue, env: &Env) -> Vec<PqlValue> {
         let v = self.step1(data, env);
-        dbg!(&v);
         let v = self.step2(v);
         let v = self.step3(v);
         let v = self.step4(v);
@@ -22,13 +21,11 @@ impl Projection {
     }
 
     pub fn step1(&self, data: PqlValue, env: &Env) -> PqlValue {
-        dbg!(&self);
         let fields = self
             .0
             .iter()
             .map(|field| field.expand_fullpath(&env))
             .collect::<Vec<Field>>();
-        dbg!(&fields);
         let projected = data.select_by_fields(&fields, &env).unwrap_or_default();
         projected
     }
@@ -84,7 +81,6 @@ impl PqlValue {
                 _ => {
                     let value = field.to_owned().expr.eval(&env);
                     let key = field.alias.clone().unwrap_or_default();
-                    dbg!(&value);
                     new_map.insert(key, value);
                 }
             }

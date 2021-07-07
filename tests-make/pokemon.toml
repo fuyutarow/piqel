@@ -1,7 +1,7 @@
 
 [tests.BMI-top10]
 script = '''
-cat samples/pokemon.json | ./target/debug/pq -q "$(cat<<EOF
+cat samples/pokemon.json/en/pokemon.json | ./target/debug/pq -q "$(cat<<EOF
 SELECT no AS id, name, weight/height/height AS BMI
 ORDER BY BMI DESC
 LIMIT 10
