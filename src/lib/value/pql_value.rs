@@ -1,14 +1,20 @@
+use std::cmp::PartialOrd;
 use std::collections::{BTreeMap, BTreeSet};
 use std::convert::TryFrom;
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
+use std::str::FromStr;
 
+use chrono::prelude::*;
+use chrono::serde::ts_seconds;
 use indexmap::IndexMap;
 use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::sql::DPath;
-use crate::sql::Field;
+use crate::planner::{self, WhereCond};
+use crate::sql::Selector;
+use crate::sql::SelectorNode;
+use crate::value::PqlVector;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -18,6 +24,8 @@ pub enum BPqlValue {
     Boolean(bool),
     Float(OrderedFloat<f64>),
     Int(i64),
+    #[serde(with = "ts_seconds")]
+    DateTime(DateTime<Utc>),
     Array(BTreeSet<Self>),
     Object(BTreeMap<String, Self>),
 }
@@ -30,6 +38,7 @@ impl From<PqlValue> for BPqlValue {
             PqlValue::Boolean(b) => Self::Boolean(b),
             PqlValue::Int(i) => Self::Int(i),
             PqlValue::Float(f) => Self::Float(f),
+            PqlValue::DateTime(t) => Self::DateTime(t),
             PqlValue::Array(_) => todo!(),
             PqlValue::Object(_) => todo!(),
         }
@@ -44,8 +53,24 @@ pub enum PqlValue {
     Boolean(bool),
     Int(i64),
     Float(OrderedFloat<f64>),
+    #[serde(with = "ts_seconds")]
+    DateTime(DateTime<Utc>),
     Array(Vec<Self>),
     Object(IndexMap<String, Self>),
+}
+
+impl Default for PqlValue {
+    fn default() -> Self {
+        Self::Null
+    }
+}
+
+impl FromStr for PqlValue {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        crate::pqlir_parser::from_str(s)
+    }
 }
 
 impl From<&str> for PqlValue {
@@ -72,9 +97,9 @@ impl From<f64> for PqlValue {
     }
 }
 
-impl Default for PqlValue {
-    fn default() -> Self {
-        Self::Null
+impl From<Vec<PqlValue>> for PqlValue {
+    fn from(v: Vec<PqlValue>) -> Self {
+        Self::Array(v)
     }
 }
 
@@ -102,12 +127,28 @@ impl PqlValue {
         }
     }
 
-    pub fn select_by_path(&self, path: &DPath) -> Option<Self> {
+    pub fn select_by_key(&self, key: &SelectorNode) -> Option<Self> {
+        match (self, key.to_owned()) {
+            (Self::Object(map), SelectorNode::String(key_s)) => {
+                map.get(&key_s).map(|v| v.to_owned())
+            }
+            _ => None,
+        }
+    }
+
+    pub fn get_mut_by_selectornode(&mut self, node: &SelectorNode) -> Option<&mut Self> {
+        match (self, node.to_owned()) {
+            (Self::Object(map), SelectorNode::String(key_s)) => map.get_mut(&key_s),
+            _ => None,
+        }
+    }
+
+    pub fn select_by_selector(&self, selector: &Selector) -> Option<Self> {
         match self {
-            Self::Object(map) => {
-                if let Some((key, tail_path)) = path.to_vec().split_first() {
-                    if let Some(obj) = self.clone().get(key) {
-                        obj.select_by_path(&DPath::from(tail_path))
+            Self::Object(_map) => {
+                if let Some((key, tail)) = selector.split_first() {
+                    if let Some(obj) = self.select_by_key(&key) {
+                        obj.select_by_selector(&tail)
                     } else {
                         None
                     }
@@ -116,72 +157,91 @@ impl PqlValue {
                 }
             }
             Self::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|value| value.select_by_path(&path))
-                    .collect::<Vec<_>>();
-
-                Some(Self::Array(new_array))
+                if let Some((key, _tail)) = selector.split_first() {
+                    match key {
+                        SelectorNode::Number(key_i) => {
+                            if key_i < 0 {
+                                todo!()
+                            } else {
+                                let key_u = key_i as usize;
+                                array.get(key_u).map(|v| v.to_owned())
+                            }
+                        }
+                        _ => {
+                            let new_array = array
+                                .into_iter()
+                                .filter_map(|value| value.select_by_selector(&selector))
+                                .collect::<Vec<_>>();
+                            Some(Self::Array(new_array))
+                        }
+                    }
+                } else {
+                    let new_array = array
+                        .into_iter()
+                        .filter_map(|value| value.select_by_selector(&selector))
+                        .collect::<Vec<_>>();
+                    Some(Self::Array(new_array))
+                }
             }
             _ => Some(self.clone()),
         }
     }
 
-    // pub fn select_by_paths(&self, path: &[DPath]) -> Vec<Self> {
-
-    //     match self {
-    //         Self::Object(map) => {
-    //             if let Some((key, tail_path)) = path.to_vec().split_first() {
-    //                 if let Some(obj) = self.clone().get(key) {
-    //                     obj.select_by_path(&DPath::from(tail_path))
-    //                 } else {
-    //                     None
-    //                 }
-    //             } else {
-    //                 Some(self.to_owned())
-    //             }
-    //         }
-    //         Self::Array(array) => {
-    //             let new_array = array
-    //                 .into_iter()
-    //                 .filter_map(|value| value.select_by_path(&path))
-    //                 .collect::<Vec<_>>();
-
-    //             Some(Self::Array(new_array))
-    //         }
-    //         _ => Some(self.clone()),
-    //     }
-    // }
-
-    pub fn select_by_fields(&self, field_list: &[Field]) -> Option<Self> {
-        let mut new_map = IndexMap::<String, Self>::new();
-
-        for field in field_list {
-            if let Some(value) = self.select_by_path(&field.path) {
-                let key = field.alias.clone().unwrap_or({
-                    let last = field.path.to_vec().last().unwrap().to_string();
-                    last
-                });
-                new_map.insert(key, value);
-            } else {
+    pub fn get_mut_by_selector(&mut self, selector: &Selector) -> Option<&mut Self> {
+        match self {
+            Self::Object(_map) => {
+                if let Some((key, tail)) = selector.split_first() {
+                    if let Some(obj) = self.get_mut_by_selectornode(&key) {
+                        obj.get_mut_by_selector(&tail)
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(self)
+                }
             }
+            Self::Array(array) => {
+                if let Some((key, _tail)) = selector.split_first() {
+                    match key {
+                        SelectorNode::Number(key_i) => {
+                            if key_i < 0 {
+                                todo!()
+                            } else {
+                                let key_u = key_i as usize;
+                                array.get_mut(key_u)
+                            }
+                        }
+                        _ => {
+                            todo!()
+                        }
+                    }
+                } else {
+                    todo!()
+                }
+            }
+            _ => Some(self),
         }
-
-        Some(Self::Object(new_map))
     }
 
-    pub fn select_map_by_fields(&self, field_list: &[Field]) -> Option<Self> {
-        match self {
-            Self::Array(array) => {
-                let new_array = array
-                    .into_iter()
-                    .filter_map(|value| value.select_by_fields(field_list))
-                    .collect::<Vec<_>>();
+    pub fn print(&self) -> anyhow::Result<()> {
+        println!("{}", self.to_json()?);
+        Ok(())
+    }
 
-                Some(Self::Array(new_array))
-            }
-            _ => None,
-        }
+    pub fn to_json(&self) -> serde_json::Result<String> {
+        self.to_jsonp()
+    }
+
+    pub fn to_jsonp(&self) -> serde_json::Result<String> {
+        serde_json::to_string_pretty(self)
+    }
+
+    pub fn to_jsonc(&self) -> serde_json::Result<String> {
+        serde_json::to_string(self)
+    }
+
+    pub fn restrict(self, selector: &Selector, cond: &Option<WhereCond>) -> Option<Self> {
+        planner::filter::restrict(Some(self), selector, cond)
     }
 }
 
@@ -204,6 +264,20 @@ impl Add for PqlValue {
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) + b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a + OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a + b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
+                PqlValue::from(vec_a + vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
+                PqlValue::from(vec_a + vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
+                PqlValue::from(vec_a + vec_b)
+            }
             _ => todo!(),
         }
     }
@@ -217,6 +291,20 @@ impl Sub for PqlValue {
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) - b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a - OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a - b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
+                PqlValue::from(vec_a - vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
+                PqlValue::from(vec_a - vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
+                PqlValue::from(vec_a - vec_b)
+            }
             _ => todo!(),
         }
     }
@@ -230,10 +318,21 @@ impl Mul for PqlValue {
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) * b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a * OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a * b),
-            _ => {
-                dbg!(&self, &other);
-                todo!()
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
+                PqlValue::from(vec_a * vec_b)
             }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
+                PqlValue::from(vec_a * vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
+                PqlValue::from(vec_a * vec_b)
+            }
+            _ => todo!(),
         }
     }
 }
@@ -246,6 +345,20 @@ impl Div for PqlValue {
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) / b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a / OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a / b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
+                PqlValue::from(vec_a / vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
+                PqlValue::from(vec_a / vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
+                PqlValue::from(vec_a / vec_b)
+            }
             _ => todo!(),
         }
     }
@@ -289,10 +402,31 @@ impl TryFrom<PqlValue> for i64 {
     }
 }
 
+impl PartialOrd for PqlValue {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let v1 = BPqlValue::from(self.to_owned());
+        let v2 = BPqlValue::from(other.to_owned());
+        Some(v1.cmp(&v2))
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::PqlValue;
+    use std::collections::VecDeque;
+    use std::str::FromStr;
+
+    use indexmap::IndexMap as Map;
     use ordered_float::OrderedFloat;
+
+    use crate::parser;
+    use crate::planner::LogicalPlan;
+    use crate::pqlir_parser;
+    use crate::sql::Env;
+    use crate::sql::Expr;
+    use crate::sql::Selector;
+    use crate::sql::SelectorNode;
+    use crate::sql::Sql;
+    use crate::value::PqlValue;
 
     #[test]
     fn add_sub_mul_div() {
@@ -304,5 +438,327 @@ mod tests {
             PqlValue::Float(OrderedFloat(1.)) / PqlValue::Float(OrderedFloat(0.)),
             PqlValue::Float(OrderedFloat(f64::INFINITY))
         );
+    }
+
+    #[test]
+    fn select_at_arr_1() -> anyhow::Result<()> {
+        let value = PqlValue::from_str(r#"{ "arr" : [1,2,4] }"#)?;
+
+        let selected_value = value.select_by_selector(&Selector {
+            data: vec![
+                SelectorNode::String(String::from("arr")),
+                SelectorNode::Number(1),
+            ]
+            .into_iter()
+            .collect::<VecDeque<SelectorNode>>(),
+        });
+
+        assert_eq!(selected_value, Some(pqlir_parser::from_str("2")?));
+        Ok(())
+    }
+
+    #[test]
+    fn test_ord() {
+        let i1 = PqlValue::from(1);
+        let f2 = PqlValue::from(2.);
+        let i3 = PqlValue::from(3);
+
+        assert_eq!(i1 > f2, true);
+        assert_eq!(f2 < i3, true);
+    }
+
+    #[test]
+    fn test_update_value() -> anyhow::Result<()> {
+        let mut value = PqlValue::from_str(r#"{ "arr" : [1,2,4] }"#)?;
+
+        if let Some(partiql_value) = value.get_mut_by_selector(&Selector {
+            data: vec![
+                SelectorNode::String(String::from("arr")),
+                SelectorNode::Number(1),
+            ]
+            .into_iter()
+            .collect::<VecDeque<SelectorNode>>(),
+        }) {
+            *partiql_value = PqlValue::from(20.);
+        };
+        dbg!(&value);
+
+        assert_eq!(value, PqlValue::from_str(r#"{ "arr": [1,20,4] }"#)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_add() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+    "dat": [
+        { "n": 1 },
+        { "n": 2 },
+        { "n": 3 }
+    ]
+}
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    dat.n + 3 AS n3,
+    4 + dat.n  AS n4,
+    dat.n + dat.n  AS nn,
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "n3": 4.0,
+    "n4": 5.0,
+    "nn": 2.0
+  },
+  {
+    "n3": 5.0,
+    "n4": 6.0,
+    "nn": 4.0
+  },
+  {
+    "n3": 6.0,
+    "n4": 7.0,
+    "nn": 6.0
+  }
+]
+                "#
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_sub() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+    "dat": [
+        { "n": 1 },
+        { "n": 2 },
+        { "n": 3 }
+    ]
+}
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    dat.n - 3 AS n3,
+    4 - dat.n  AS n4,
+    dat.n - dat.n  AS nn,
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+        res.print();
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "n3": -2.0,
+    "n4": 3.0,
+    "nn": 0.0
+  },
+  {
+    "n3": -1.0,
+    "n4": 2.0,
+    "nn": 0.0
+  },
+  {
+    "n3": 0.0,
+    "n4": 1.0,
+    "nn": 0.0
+  }
+]
+                "#
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_mul() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+    "dat": [
+        { "n": 1 },
+        { "n": 2 },
+        { "n": 3 }
+    ]
+}
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    dat.n * 3 AS n3,
+    4* dat.n  AS n4,
+    dat.n* dat.n  AS nn,
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "n3": 3.0,
+    "n4": 4.0,
+    "nn": 1.0
+  },
+  {
+    "n3": 6.0,
+    "n4": 8.0,
+    "nn": 4.0
+  },
+  {
+    "n3": 9.0,
+    "n4": 12.0,
+    "nn": 9.0
+  }
+]
+                "#
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_div() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+    "dat": [
+        { "n": 1 },
+        { "n": 2 },
+        { "n": 3 }
+    ]
+}
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    dat.n / 3 AS n3,
+    4 / dat.n  AS n4,
+    dat.n / dat.n  AS nn,
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+        res.print();
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "n3": 0.3333333333333333,
+    "n4": 4.0,
+    "nn": 1.0
+  },
+  {
+    "n3": 0.6666666666666666,
+    "n4": 2.0,
+    "nn": 1.0
+  },
+  {
+    "n3": 1.0,
+    "n4": 1.3333333333333333,
+    "nn": 1.0
+  }
+]
+
+                "#
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_calc_bmi() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+[
+  { "no": 1, "height": 0.7, "weight": 6.9 },
+  { "no": 2, "height": 1.0, "weight": 13.0 },
+  { "no": 3, "height": 2.0, "weight": 100.0 },
+  { "no": 4, "height": 0.6, "weight": 8.5 },
+  { "no": 5, "height": 1.1, "weight": 19.0 },
+  { "no": 6, "height": 1.7, "weight": 90.5 },
+  { "no": 7, "height": 0.5, "weight": 9.0 },
+  { "no": 8, "height": 1.0, "weight": 22.5 },
+  { "no": 9, "height": 1.6, "weight": 85.5 },
+  { "no": 10, "height": 0.3, "weight": 2.9 }
+]
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    no,
+    weight/height/height AS bmi
+ORDER BY bmi DESC
+LIMIT 3
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+        dbg!(&res);
+        res.print();
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  { "no": 7.0, "bmi": 36.0 },
+  { "no": 9.0, "bmi": 33.3984375 },
+  { "no": 10.0, "bmi": 32.22222222222222 }
+]
+        "#
+            )?
+        );
+
+        Ok(())
     }
 }

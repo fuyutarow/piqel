@@ -1,10 +1,8 @@
-use std::any;
 use std::str::FromStr;
 
 use crate::lang::{Lang, LangType};
-use crate::parser;
-use crate::sql;
-use crate::value::JsonValue;
+use crate::planner;
+use crate::sql::Sql;
 use crate::value::PqlValue;
 
 pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> anyhow::Result<String> {
@@ -12,11 +10,11 @@ pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> anyhow::Result<
     let to_lang_type = LangType::from_str(&to)?;
     let mut lang = Lang::from_as(&input, from_lang_type)?;
 
-    let sql = parser::sql(&sql)?;
-    let result = sql::evaluate(&sql, &lang.data);
+    let sql = Sql::from_str(&sql)?;
+
+    let result = planner::evaluate(sql, lang.data);
     lang.to = to_lang_type;
     lang.data = result;
-    lang.colnames = sql.get_colnames();
     let output = lang.to_string(true)?;
 
     Ok(output)
@@ -24,7 +22,7 @@ pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> anyhow::Result<
 
 pub fn loads(input: &str, from: &str) -> anyhow::Result<PqlValue> {
     let from_lang_type = LangType::from_str(&from)?;
-    let mut lang = Lang::from_as(&input, from_lang_type)?;
+    let lang = Lang::from_as(&input, from_lang_type)?;
     let value = lang.data;
     Ok(value)
 }
@@ -39,8 +37,8 @@ pub fn dumps(data: PqlValue, to: &str) -> anyhow::Result<String> {
 }
 
 pub fn query_evaluate(data: PqlValue, sql: &str) -> anyhow::Result<PqlValue> {
-    let sql = parser::sql(&sql)?;
+    let sql = Sql::from_str(&sql)?;
     let data = PqlValue::from(data);
-    let value = sql::evaluate(&sql, &data);
+    let value = planner::evaluate(sql, data);
     Ok(value)
 }

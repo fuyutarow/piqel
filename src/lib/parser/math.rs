@@ -1,13 +1,12 @@
 use nom::branch::alt;
-use nom::character::complete::{alpha1, alphanumeric1, char, digit1, space0};
+use nom::character::complete::{char, space0};
 use nom::combinator::map;
 use nom::multi::many0;
 use nom::number::complete::double;
-use nom::sequence::{delimited, preceded, tuple};
+use nom::sequence::{delimited, tuple};
 use nom::IResult;
 
 use crate::sql::Expr;
-use crate::sql::Field;
 
 use crate::parser;
 
@@ -78,14 +77,13 @@ pub fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
 }
 
 fn parse_number(input: &str) -> IResult<&str, Expr> {
-    // map(digit1, |s: &str| Expr::Num(s.parse::<f64>().unwrap()))(input)
-    map(double, |f| Expr::Num(f as f64))(input)
+    map(double, |f| Expr::from(f as f64))(input)
 }
 
 #[cfg(test)]
 mod tests {
     use super::parse;
-    use crate::sql::{DPath, Expr};
+    use crate::sql::{Expr, Selector};
 
     #[test]
     fn parse_sub_sub_path() {
@@ -96,10 +94,10 @@ mod tests {
                 "",
                 Expr::Sub(
                     Box::new(Expr::Sub(
-                        Box::new(Expr::Path(DPath::from("a"))),
-                        Box::new(Expr::Path(DPath::from("b"))),
+                        Box::new(Expr::Selector(Selector::from("a"))),
+                        Box::new(Expr::Selector(Selector::from("b"))),
                     )),
-                    Box::new(Expr::Path(DPath::from("c"))),
+                    Box::new(Expr::Selector(Selector::from("c"))),
                 )
             ))
         );
@@ -114,10 +112,10 @@ mod tests {
                 "",
                 Expr::Sub(
                     Box::new(Expr::Sub(
-                        Box::new(Expr::Num(1.0)),
-                        Box::new(Expr::Num(2.0)),
+                        Box::new(Expr::from(1.0)),
+                        Box::new(Expr::from(2.0)),
                     )),
-                    Box::new(Expr::Num(3.0)),
+                    Box::new(Expr::from(3.0)),
                 )
             ))
         );
@@ -130,7 +128,7 @@ mod tests {
             parsed,
             Ok((
                 "",
-                Expr::Add(Box::new(Expr::Num(12.0)), Box::new(Expr::Num(34.0)))
+                Expr::Add(Box::new(Expr::from(12.0)), Box::new(Expr::from(34.0)))
             ))
         );
     }
@@ -142,7 +140,7 @@ mod tests {
             parsed,
             Ok((
                 "",
-                Expr::Sub(Box::new(Expr::Num(12.0)), Box::new(Expr::Num(34.0)))
+                Expr::Sub(Box::new(Expr::from(12.0)), Box::new(Expr::from(34.0)))
             ))
         );
     }
@@ -157,12 +155,12 @@ mod tests {
                 Expr::Sub(
                     Box::new(Expr::Add(
                         Box::new(Expr::Sub(
-                            Box::new(Expr::Num(12.0)),
-                            Box::new(Expr::Num(34.0))
+                            Box::new(Expr::from(12.0)),
+                            Box::new(Expr::from(34.0))
                         )),
-                        Box::new(Expr::Num(15.0))
+                        Box::new(Expr::from(15.0))
                     )),
-                    Box::new(Expr::Num(9.0))
+                    Box::new(Expr::from(9.0))
                 )
             ))
         );
@@ -173,14 +171,14 @@ mod tests {
         let parsed = parse("1 * 2 + 3 / 4 ^ 6");
         let expected = Expr::Add(
             Box::new(Expr::Mul(
-                Box::new(Expr::Num(1.0)),
-                Box::new(Expr::Num(2.0)),
+                Box::new(Expr::from(1.0)),
+                Box::new(Expr::from(2.0)),
             )),
             Box::new(Expr::Div(
-                Box::new(Expr::Num(3.0)),
+                Box::new(Expr::from(3.0)),
                 Box::new(Expr::Exp(
-                    Box::new(Expr::Num(4.0)),
-                    Box::new(Expr::Num(6.0)),
+                    Box::new(Expr::from(4.0)),
+                    Box::new(Expr::from(6.0)),
                 )),
             )),
         );
@@ -192,10 +190,10 @@ mod tests {
         let parsed = parse("(1 + 2) * 3");
         let expected = Expr::Mul(
             Box::new(Expr::Add(
-                Box::new(Expr::Num(1.0)),
-                Box::new(Expr::Num(2.0)),
+                Box::new(Expr::from(1.0)),
+                Box::new(Expr::from(2.0)),
             )),
-            Box::new(Expr::Num(3.0)),
+            Box::new(Expr::from(3.0)),
         );
         assert_eq!(parsed, Ok(("", expected)));
     }

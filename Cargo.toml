@@ -41,6 +41,12 @@ serde_partiql = "1.1.64"
 structopt = "0.3.21"
 toml = "0.5.8"
 rayon = "1.5"
+datetime = "0.5.2"
+chrono = { version="0.4.19", features=["serde"] }
+url = "2.2.2"
+reqwest = { version="0.11.4", features=["blocking", "json"] }
+tokio = { version="1.7.1", features=["full"] }
+lazy_static = "1.4.0"
 
 [dependencies.polars]
 version = "0.14.2"

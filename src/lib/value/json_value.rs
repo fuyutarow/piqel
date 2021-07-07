@@ -1,5 +1,4 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fmt;
 
 use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;
@@ -65,6 +64,7 @@ impl From<PqlValue> for JsonValue {
             PqlValue::Boolean(boolean) => Self::Boolean(boolean),
             PqlValue::Float(float) => Self::Num(float),
             PqlValue::Int(int) => Self::Num(OrderedFloat(int as f64)),
+            PqlValue::DateTime(datetime) => Self::Str(datetime.to_rfc3339()),
             PqlValue::Array(array) => {
                 Self::Array(array.into_iter().map(|v| Self::from(v)).collect::<Vec<_>>())
             }

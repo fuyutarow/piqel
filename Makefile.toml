@@ -1,3 +1,8 @@
+[tasks."add:submodules"]
+script = '''
+git submodule update --init
+'''
+
 [tasks."install:dev"]
 script = '''
 brew install jq jo yj
@@ -13,9 +18,14 @@ script = '''
 mdtodoc docs/README.md
 '''
 
+[tasks.pq]
+script = '''
+cargo run --bin pq --features cli --
+'''
+
 [tasks."build:pq"]
 command = "cargo"
-args = ["build", "--bin", "pq", "--features", "cli"]
+args = ["build", "--bin", "pq", "--features", "cli table"]
 
 [tasks."build:js"]
 script = '''
@@ -81,6 +91,12 @@ script = '''
 cargo kcov
 '''
 
+[tasks.lint]
+script = '''
+cargo fix --allow-dirty
+cargo fmt
+'''
+
 [tasks.test]
 alias = "test:all"
 
@@ -100,6 +116,13 @@ args = ["test"]
 dependencies = ["build:pq"]
 script = '''
 tests-make tests-make/index.toml
+'''
+
+[tasks."test:pqrs"]
+dependencies = ["build:pq"]
+script = '''
+makers test:lib
+makers test:pq
 '''
 
 [tasks."test:py"]
@@ -129,7 +152,7 @@ tests-make tests-make/web.toml
 
 [tasks."dist:up"]
 script = '''
-cargo-distribute --tap ~/homebrew-tap/ --bin pq --features cli --channel nightly
+cargo-distribute --tap ~/homebrew-tap/ --bin pq --features "cli table" --channel nightly
 '''
 
 [tasks.up]
@@ -153,11 +176,6 @@ git tag v$(version-make show Cargo.toml)
 [tasks."version:untag"]
 script = '''
 git tag v$(version-make show Cargo.toml) -d
-'''
-
-[tasks.fix]
-script = '''
-cargo fix
 '''
 
 [tasks.generate-json]

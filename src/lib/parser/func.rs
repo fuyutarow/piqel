@@ -1,13 +1,11 @@
-use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::char;
-use nom::combinator::{cut, map, map_res, opt, value};
+use nom::combinator::cut;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::IResult;
 
 use crate::sql::Expr;
 use crate::sql::Func;
-use crate::sql::Proj;
 
 use crate::parser::{parse_expr, whitespace};
 

@@ -1,4 +1,3 @@
-use std::convert::TryFrom;
 use std::str::FromStr;
 
 use parse_display::{Display, FromStr};
@@ -7,8 +6,6 @@ use parse_display::{Display, FromStr};
 use polars::prelude::CsvReader;
 #[cfg(feature = "table")]
 use polars::prelude::*;
-
-use rayon::prelude::*;
 
 use crate::value::{BPqlValue, PqlValue, TomlValue};
 
@@ -179,14 +176,10 @@ impl Lang {
                 let v = TomlValue::from(self.data.to_owned());
                 toml::to_string_pretty(&v).unwrap()
             }
-            (LangType::Yaml, _) => {
-                dbg!("yaml");
-
-                serde_yaml::to_string(&self.data)
-                    .unwrap()
-                    .trim_start_matches("---\n")
-                    .to_string()
-            }
+            (LangType::Yaml, _) => serde_yaml::to_string(&self.data)
+                .unwrap()
+                .trim_start_matches("---\n")
+                .to_string(),
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
         };
 

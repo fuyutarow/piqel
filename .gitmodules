@@ -4,3 +4,6 @@
 [submodule "examples/partiql-pokemon"]
 	path = examples/partiql-pokemon
 	url = https://github.com/fuyutarow/partiql-pokemon
+[submodule "samples/pokemon.json"]
+	path = samples/pokemon.json
+	url = https://github.com/fuyutarow/pokemon.json

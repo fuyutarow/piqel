@@ -1,14 +1,10 @@
 use nom::branch::alt;
 use nom::bytes::complete::{tag, tag_no_case};
-use nom::character::complete::char;
-use nom::character::complete::digit1;
-use nom::combinator::map;
+
 use nom::combinator::peek;
-use nom::error::ParseError;
-use nom::multi::many_m_n;
-use nom::multi::separated_list0;
+
 use nom::sequence::terminated;
-use nom::sequence::{preceded, tuple};
+
 use nom::IResult;
 
 use crate::parser::elements::eof;

@@ -1,14 +1,58 @@
 use crate::sql::re_from_str;
-use crate::sql::Bindings;
-use crate::sql::DPath;
+use crate::sql::Env;
 use crate::sql::Expr;
+use crate::sql::Selector;
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
-use indexmap::IndexMap as Map;
+
+#[derive(Debug, Default, Clone)]
+pub struct Filter(pub Option<Box<WhereCond>>);
+
+impl Filter {
+    pub fn execute(self, value: PqlValue, env: &Env) -> PqlValue {
+        match &self.0 {
+            None => value,
+            Some(box WhereCond::Eq { expr, right }) => match expr {
+                Expr::Selector(selector) => {
+                    let selector = selector.expand_fullpath2(&env);
+                    let cond = WhereCond::Eq {
+                        expr: expr.to_owned(),
+                        right: right.to_owned(),
+                    };
+                    value
+                        .restrict(&selector, &Some(cond))
+                        .expect("restricted value")
+                }
+                _ => {
+                    todo!();
+                }
+            },
+            Some(box WhereCond::Like { expr, right }) => match expr {
+                Expr::Selector(selector) => {
+                    let selector = selector.expand_fullpath2(&env);
+                    let cond = WhereCond::Like {
+                        expr: expr.to_owned(),
+                        right: right.to_owned(),
+                    };
+                    value
+                        .restrict(&selector, &Some(cond))
+                        .expect("restricted value")
+                }
+                _ => {
+                    todo!();
+                }
+            },
+            _ => {
+                dbg!(&self);
+                todo!()
+            }
+        }
+    }
+}
 
 pub fn restrict(
     value: Option<PqlValue>,
-    path: &DPath,
+    path: &Selector,
     cond: &Option<WhereCond>,
 ) -> Option<PqlValue> {
     match value {
@@ -18,10 +62,10 @@ pub fn restrict(
         Some(PqlValue::Null) => None,
         Some(PqlValue::Str(string)) => {
             let is_match = match cond {
-                Some(WhereCond::Eq { expr, right }) => {
+                Some(WhereCond::Eq { expr: _, right }) => {
                     PqlValue::Str(string.clone()) == right.to_owned()
                 }
-                Some(WhereCond::Like { expr, right }) => re_from_str(&right).is_match(&string),
+                Some(WhereCond::Like { expr: _, right }) => re_from_str(&right).is_match(&string),
 
                 _ => unreachable!(),
             };
@@ -48,23 +92,22 @@ pub fn restrict(
             }
         }
         Some(PqlValue::Object(mut object)) => {
-            if let Some((first, tail)) = &path.split_first() {
-                if let Some(value) = object.get(&first.to_string()) {
+            if let Some((head, tail)) = &path.split_first() {
+                if let Some(value) = object.get(&head.to_string()) {
                     match restrict(Some(value.to_owned()), &tail, cond) {
                         Some(v) if tail.to_vec().len() > 0 => {
-                            // Some(value.to_owned())
-                            let it = object.get_mut(&first.to_string()).unwrap();
+                            let it = object.get_mut(&head.to_string()).unwrap();
                             *it = v.to_owned();
                             Some(PqlValue::Object(object))
                         }
-                        Some(v) => Some(PqlValue::Object(object.to_owned())),
+                        Some(_v) => Some(PqlValue::Object(object.to_owned())),
                         _ => None,
                     }
                 } else {
                     None
                 }
             } else {
-                Some(PqlValue::Object(object.to_owned()))
+                unreachable!()
             }
         }
         _ => {
@@ -75,29 +118,31 @@ pub fn restrict(
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::restrict;
     use crate::pqlir_parser;
-    use crate::sql::DPath;
     use crate::sql::Expr;
+    use crate::sql::Selector;
     use crate::sql::WhereCond;
     use crate::value::PqlValue;
 
     #[test]
     fn boolean() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_model(
+        let value = PqlValue::from_str(
             "
     <<true, false, null>>
    ",
         )?;
 
-        let res = restrict(Some(data), &DPath::default(), &None);
-        assert_eq!(res, Some(PqlValue::Array(vec![PqlValue::Boolean(true)])));
+        let res = value.restrict(&Selector::default(), &None);
+        assert_eq!(res, Some(PqlValue::from_str(r#"<<true>>"#)?));
         Ok(())
     }
 
     #[test]
     fn missing() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_model(
+        let value = PqlValue::from_str(
             "
 {
     'top': <<
@@ -108,8 +153,8 @@ mod tests {
 }
    ",
         )?;
-        let res = restrict(Some(data), &DPath::from("top.b"), &None);
-        let expected = pqlir_parser::pql_model(
+        let res = value.restrict(&Selector::from("top.b"), &None);
+        let expected = pqlir_parser::pql_value(
             "
 {
     'top': <<
@@ -125,7 +170,7 @@ mod tests {
 
     #[test]
     fn pattern_string() -> anyhow::Result<()> {
-        let data = pqlir_parser::pql_model(
+        let value = PqlValue::from_str(
             "
 {
     'hr': {
@@ -156,13 +201,13 @@ mod tests {
 }
    ",
         )?;
-        let path = DPath::from("hr.employeesNest.projects.name");
+        let selector = Selector::from("hr.employeesNest.projects.name");
         let cond = WhereCond::Like {
             expr: Expr::default(),
             right: "%security%".to_owned(),
         };
-        let res = restrict(Some(data), &path, &Some(cond));
-        let expected = pqlir_parser::pql_model(
+        let res = value.restrict(&selector, &Some(cond));
+        let expected = pqlir_parser::pql_value(
             "
 {
     'hr': {

@@ -16,7 +16,7 @@ fn bag() {
     'projectName': 'AWS Redshift security'
   }
 >>"#;
-    match pqlir_parser::pql_model(&input) {
+    match pqlir_parser::pql_value(&input) {
         Ok(_) => assert_eq!(true, true),
         Err(_) => assert_eq!(true, false),
     }
@@ -38,7 +38,7 @@ fn t1() {
         >>
     }
 }"#;
-    match pqlir_parser::pql_model(&input) {
+    match pqlir_parser::pql_value(&input) {
         Ok(_) => assert_eq!(true, true),
         Err(_) => assert_eq!(true, false),
     }

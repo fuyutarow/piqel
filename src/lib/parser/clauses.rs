@@ -1,25 +1,11 @@
 use nom::branch::alt;
 use nom::bytes::complete::{tag, tag_no_case};
-use nom::character::complete::char;
-use nom::character::complete::digit1;
-use nom::character::complete::multispace0;
-use nom::character::complete::multispace1;
-use nom::combinator::cut;
+use nom::character::complete::{multispace0, multispace1};
 use nom::combinator::opt;
-use nom::combinator::peek;
 use nom::error::context;
-use nom::error::ParseError;
-use nom::multi::many1;
-use nom::multi::separated_list0;
 use nom::multi::separated_list1;
-use nom::sequence::delimited;
-use nom::sequence::terminated;
 use nom::sequence::{preceded, tuple};
 use nom::IResult;
-
-use crate::sql::Field;
-use crate::sql::Proj;
-use crate::sql::WhereCond;
 
 pub use crate::parser::elements;
 pub use crate::parser::elements::comma;
@@ -29,13 +15,18 @@ pub use crate::parser::parse_expr;
 pub use crate::parser::parse_value;
 pub use crate::parser::string_allowed_in_field;
 pub use crate::sql::clause;
+use crate::sql::Field;
+use crate::sql::WhereCond;
 
-pub fn select(input: &str) -> IResult<&str, Vec<Proj>> {
+pub fn select(input: &str) -> IResult<&str, Vec<Field>> {
     let (input, vec) = context(
         "select claues",
         preceded(
             tag_no_case("SELECT"),
-            preceded(multispace0, separated_list1(comma, expressions::parse_proj)),
+            preceded(
+                multispace0,
+                separated_list1(comma, expressions::parse_field),
+            ),
         ),
     )(input)?;
     Ok((input, vec))
@@ -62,7 +53,7 @@ pub fn left_join<'a>(input: &'a str) -> IResult<&'a str, Vec<Field>> {
     let (input, fields) = context(
         "left join clause",
         preceded(
-            tag_no_case("LEFT JOIN"),
+            tuple((tag_no_case("LEFT"), multispace1, tag_no_case("JOIN"))),
             preceded(
                 multispace0,
                 preceded(
@@ -149,4 +140,27 @@ pub fn offset(input: &str) -> IResult<&str, u64> {
         tag_no_case("OFFSET"),
         preceded(multispace0, elements::integer),
     )(input)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::from;
+    use crate::sql::Field;
+
+    #[test]
+    fn parse_from() -> anyhow::Result<()> {
+        assert_eq!(from("FROM [1,2,3]")?.1, vec![Field::from_str("[1,2,3]")?],);
+        assert_eq!(
+            from("FROM [1,2,3] AS arr")?.1,
+            vec![Field::from_str("[1,2,3] AS arr")?],
+        );
+        assert_eq!(
+            from("FROM x.y.z AS xyz")?.1,
+            vec![Field::from_str("x.y.z AS xyz")?],
+        );
+
+        Ok(())
+    }
 }
