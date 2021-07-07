@@ -1,3 +1,4 @@
+use std::cmp::PartialOrd;
 use std::collections::{BTreeMap, BTreeSet};
 use std::convert::TryFrom;
 use std::ops::{Add, Div, Mul, Neg, Rem, Sub};
@@ -300,6 +301,14 @@ impl TryFrom<PqlValue> for i64 {
     }
 }
 
+impl PartialOrd for PqlValue {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let v1 = BPqlValue::from(self.to_owned());
+        let v2 = BPqlValue::from(other.to_owned());
+        Some(v1.cmp(&v2))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::VecDeque;
@@ -339,5 +348,15 @@ mod tests {
 
         assert_eq!(selected_value, Some(pqlir_parser::from_str("2")?));
         Ok(())
+    }
+
+    #[test]
+    fn test_ord() {
+        let i1 = PqlValue::from(1);
+        let f2 = PqlValue::from(2.);
+        let i3 = PqlValue::from(3);
+
+        assert_eq!(i1 > f2, true);
+        assert_eq!(f2 < i3, true);
     }
 }

@@ -97,14 +97,13 @@ mod tests {
                 .filter(|value| -> bool {
                     match value.select_by_selector(&Selector::from("id")) {
                         None => todo!(),
-                        Some(PqlValue::Int(i)) => i == 3,
-                        Some(PqlValue::Float(f)) => f == OrderedFloat(3.),
-                        _ => todo!(),
+                        Some(value) => value > PqlValue::from(3.),
                     }
                 })
                 .collect::<Vec<_>>(),
             _ => todo!(),
         };
+        dbg!(&vvv);
         let res = PqlValue::Array(vvv);
 
         assert_eq!(
@@ -112,14 +111,16 @@ mod tests {
                 r#"
 [
     {
-        'id': 3,
-        'name': 'Bob Smith',
-        'title': null,
-        'projects': [
-            { 'name': 'AWS Redshift Spectrum querying' },
-            { 'name': 'AWS Redshift security' },
-            { 'name': 'AWS Aurora security' }
-        ]
+        'id': 4,
+        'name': 'Susan Smith',
+        'title': 'Dev Mgr',
+        'projects': []
+    },
+    {
+        'id': 6,
+        'name': 'Jane Smith',
+        'title': 'Software Eng 2',
+        'projects': [ { 'name': 'AWS Redshift security' } ]
     }
 ]
         "#
