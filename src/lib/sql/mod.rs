@@ -2,6 +2,7 @@ mod env;
 mod expr;
 mod field;
 mod selector;
+mod sql;
 mod utils;
 mod where_cond;
 
@@ -10,6 +11,7 @@ pub use expr::{Expr, Func};
 pub use field::Field;
 pub use selector::Selector;
 pub use selector::SelectorNode;
+pub use sql::Sql;
 pub use where_cond::re_from_str;
 pub use where_cond::WhereCond;
 

@@ -17,7 +17,6 @@ use nom::sequence::{preceded, terminated};
 use nom::{IResult, InputLength};
 
 use crate::sql::Expr;
-use crate::value::PqlValue;
 
 pub fn eof<I: Copy + InputLength, E: ParseError<I>>(input: I) -> IResult<I, I, E> {
     if input.input_len() == 0 {

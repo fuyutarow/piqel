@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use partiql::planner::evaluate;
-use partiql::planner::Sql;
+use partiql::sql::Sql;
 
 use partiql::value::PqlValue;
 

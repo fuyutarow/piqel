@@ -97,8 +97,8 @@ mod tests {
 
     use super::Env;
     use crate::planner::Drain;
-    use crate::planner::Sql;
     use crate::sql::Field;
+    use crate::sql::Sql;
 
     #[test]
     fn get_full_path() -> anyhow::Result<()> {

@@ -1,7 +1,7 @@
 use partiql::parser;
 use partiql::planner::LogicalPlan;
-use partiql::planner::Sql;
 use partiql::sql::Env;
+use partiql::sql::Sql;
 use partiql::value::PqlValue;
 
 fn main() -> anyhow::Result<()> {

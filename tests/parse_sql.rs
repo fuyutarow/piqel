@@ -2,10 +2,10 @@ use std::str::FromStr;
 
 use ordered_float::OrderedFloat;
 
-use partiql::planner::Sql;
 use partiql::sql::Expr;
 use partiql::sql::Field;
 use partiql::sql::Selector;
+use partiql::sql::Sql;
 use partiql::sql::WhereCond;
 use partiql::value::PqlValue;
 

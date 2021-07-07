@@ -1,8 +1,5 @@
 use std::str::FromStr;
 
-use collect_mac::collect;
-use indexmap::IndexMap as Map;
-
 use crate::parser;
 use crate::sql::Env;
 use crate::sql::Expr;
@@ -38,7 +35,7 @@ impl Field {
     }
 
     pub fn evaluate(self, env: &Env) -> PqlValue {
-        let value = self.expr.evaluate(&env, self.alias);
+        let value = self.expr.eval(&env);
         value
     }
 }

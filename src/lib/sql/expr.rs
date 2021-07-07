@@ -1,14 +1,13 @@
 use std::collections::HashSet;
 
 use collect_mac::collect;
-use indexmap::IndexMap as Map;
+
 use ordered_float::OrderedFloat;
 
-use crate::planner::Sql;
 use crate::sql::Env;
 use crate::sql::Selector;
+use crate::sql::Sql;
 use crate::value::PqlValue;
-use crate::value::PqlVector;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
@@ -173,10 +172,9 @@ mod tests {
 
     use crate::parser;
     use crate::planner::LogicalPlan;
-    use crate::planner::Sql;
     use crate::sql::Env;
-    use crate::sql::Field;
-    use crate::sql::Selector;
+
+    use crate::sql::Sql;
     use crate::value::PqlValue;
 
     #[test]

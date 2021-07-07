@@ -7,9 +7,10 @@ use nom::{
 };
 
 use crate::parser::clauses;
-use crate::planner;
 
-pub fn from_str(input: &str) -> anyhow::Result<planner::Sql> {
+use crate::sql::Sql;
+
+pub fn from_str(input: &str) -> anyhow::Result<Sql> {
     match parse_planner_sql(input) {
         Ok((_, sql)) => Ok(sql),
         Err(nom::Err::Incomplete(_needed)) => {
@@ -28,11 +29,11 @@ pub fn from_str(input: &str) -> anyhow::Result<planner::Sql> {
     }
 }
 
-pub fn parse_planner_sql(input: &str) -> IResult<&str, planner::Sql> {
+pub fn parse_planner_sql(input: &str) -> IResult<&str, Sql> {
     alt((parse_sql21, parse_sql22))(input)
 }
 
-pub fn parse_sql21(input: &str) -> IResult<&str, planner::Sql> {
+pub fn parse_sql21(input: &str) -> IResult<&str, Sql> {
     let (
         input,
         (
@@ -52,7 +53,7 @@ pub fn parse_sql21(input: &str) -> IResult<&str, planner::Sql> {
         opt(preceded(multispace0, clauses::limit)),
     ))(input)?;
 
-    let sql = planner::Sql {
+    let sql = Sql {
         select_clause: opt_select_clause.unwrap_or_default(),
         from_clause: opt_from_clause.unwrap_or_default(),
         left_join_clause: opt_left_join_clause.unwrap_or_default(),
@@ -63,7 +64,7 @@ pub fn parse_sql21(input: &str) -> IResult<&str, planner::Sql> {
     Ok((input, sql))
 }
 
-pub fn parse_sql22(input: &str) -> IResult<&str, planner::Sql> {
+pub fn parse_sql22(input: &str) -> IResult<&str, Sql> {
     let (
         input,
         (
@@ -83,7 +84,7 @@ pub fn parse_sql22(input: &str) -> IResult<&str, planner::Sql> {
         opt(preceded(multispace0, clauses::limit)),
     ))(input)?;
 
-    let sql = planner::Sql {
+    let sql = Sql {
         select_clause: opt_select_clause.unwrap_or_default(),
         from_clause: opt_from_clause.unwrap_or_default(),
         left_join_clause: opt_left_join_clause.unwrap_or_default(),
