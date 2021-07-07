@@ -52,7 +52,7 @@ args = ["build", "--release"]
 
 [tasks."release:pq"]
 command = "cargo"
-args = ["build", "--bin", "pq", "--release", "--features", "cli"]
+args = ["build", "--bin", "pq", "--release", "--features", "cli table"]
 
 [tasks."release:js"]
 script = '''
@@ -60,11 +60,6 @@ cd partiql-js
 wasm-pack build --release --target nodejs
 '''
 
-[tasks.publish]
-script = '''
-makers publish:rs
-makers publish:js
-'''
 
 [tasks."publish:rs"]
 dependencies = ["release"]
