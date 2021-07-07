@@ -42,6 +42,18 @@ impl From<f64> for Expr {
     }
 }
 
+impl From<&str> for Expr {
+    fn from(s: &str) -> Self {
+        Self::Value(PqlValue::from(s))
+    }
+}
+
+impl From<PqlValue> for Expr {
+    fn from(value: PqlValue) -> Self {
+        Self::Value(value)
+    }
+}
+
 impl From<Expr> for String {
     fn from(expr: Expr) -> Self {
         match expr {

@@ -13,8 +13,8 @@ pub struct Env {
 }
 
 impl Env {
-    pub fn insert(&mut self, alias: &str, value: &Expr) -> Option<Expr> {
-        self.data.insert(alias.to_string(), value.to_owned())
+    pub fn insert(&mut self, alias: &str, expr: &Expr) -> Option<Expr> {
+        self.data.insert(alias.to_string(), expr.to_owned())
     }
 
     pub fn insert_from_selector(&mut self, alias: &str, selector: &Selector) -> Option<Expr> {
@@ -28,6 +28,36 @@ impl Env {
     }
 
     pub fn get(&self, key: &str) -> Option<Expr> {
+        self.data.get(key).map(|e| e.to_owned())
+    }
+
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut Expr> {
+        self.data.get_mut(key)
+    }
+
+    pub fn get_by_selector(&self, selector: &Selector) -> Option<PqlValue> {
+        if let Some((head, tail)) = selector.split_first() {
+            if let Some(expr) = self.get(head.to_string().as_str()) {
+                match expr {
+                    Expr::Value(value) => {
+                        let v = if tail.data.len() > 0 {
+                            value.select_by_selector(&tail)
+                        } else {
+                            Some(value)
+                        };
+                        v
+                    }
+                    _ => todo!(),
+                }
+            } else {
+                todo!()
+            }
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn get_mut_by_selector(&self, key: &str) -> Option<Expr> {
         self.data.get(key).map(|e| e.to_owned())
     }
 
@@ -97,6 +127,7 @@ mod tests {
 
     use super::Env;
     use crate::planner::Drain;
+    use crate::sql::Expr;
     use crate::sql::Field;
     use crate::sql::Sql;
 
@@ -125,6 +156,20 @@ FROM
                 .to_string(),
             "hr.employeesNest.projects.name",
         );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_update_env() -> anyhow::Result<()> {
+        let mut env = Env::default();
+        env.insert("name", &Expr::from("Alice"));
+
+        if let Some(name) = env.get_mut("name") {
+            *name = Expr::from("Bob");
+        }
+
+        assert_eq!(env.get("name"), Some(Expr::from("Bob")));
 
         Ok(())
     }

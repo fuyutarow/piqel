@@ -18,6 +18,7 @@ mod tests {
 
     use crate::planner::LogicalPlan;
     use crate::sql::Env;
+    use crate::sql::Expr;
     use crate::sql::Sql;
     use crate::value::PqlValue;
 
@@ -43,6 +44,71 @@ LIMIT 2
 
         let plan = LogicalPlan::from(sql);
         let mut env = Env::default();
+        let res = plan.execute(&mut env);
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+        [
+            { 'id': 3, 'employeeName': 'Bob Smith',   'title': null },
+            { 'id': 4, 'employeeName': 'Susan Smith', 'title': 'Dev Mgr' }
+        ]
+            "#
+            )?
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_q2() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+  'hr': {
+      'employeesNest': <<
+         {
+          'id': 3,
+          'name': 'Bob Smith',
+          'title': null,
+          'projects': [ { 'name': 'AWS Redshift Spectrum querying' },
+                        { 'name': 'AWS Redshift security' },
+                        { 'name': 'AWS Aurora security' }
+                      ]
+          },
+          {
+              'id': 4,
+              'name': 'Susan Smith',
+              'title': 'Dev Mgr',
+              'projects': []
+          },
+          {
+              'id': 6,
+              'name': 'Jane Smith',
+              'title': 'Software Eng 2',
+              'projects': [ { 'name': 'AWS Redshift security' } ]
+          }
+      >>
+    }
+}
+        "#,
+        )?;
+
+        let sql = Sql::from_str(
+            r#"
+SELECT e.name AS employeeName,
+       p.name AS projectName
+FROM hr.employeesNest AS e,
+     e.projects AS p
+WHERE p.name LIKE '%security%'
+        "#,
+        )?;
+        dbg!(&sql);
+
+        let plan = LogicalPlan::from(sql);
+        let mut env = Env::default();
+        env.insert("", &Expr::Value(data));
         let res = plan.execute(&mut env);
 
         assert_eq!(

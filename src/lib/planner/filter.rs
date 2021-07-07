@@ -47,6 +47,14 @@ impl Filter {
     }
 }
 
+// pub fn restrict_env(env: &mut Env, cond: &WhereCond) {
+//     let expr = cond.get_expr();
+//     let selector = expr.as_path();
+
+//     expr.eval(env)
+//     // expr.eva
+// }
+
 pub fn restrict(
     value: Option<PqlValue>,
     path: &Selector,
