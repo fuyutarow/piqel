@@ -23,6 +23,13 @@ script = '''
 cargo run --bin pq --features cli --
 '''
 
+[tasks."build:all"]
+script = '''
+makers build:pq
+makers build:py
+makers build:js
+'''
+
 [tasks."build:pq"]
 command = "cargo"
 args = ["build", "--bin", "pq", "--features", "cli table"]
@@ -30,8 +37,7 @@ args = ["build", "--bin", "pq", "--features", "cli table"]
 [tasks."build:js"]
 script = '''
 cd partiql-js
-wasm-pack build --release
-wasm-pack build
+makers build:js
 '''
 
 [tasks."install:dev:py"]
@@ -57,9 +63,8 @@ args = ["build", "--bin", "pq", "--release", "--features", "cli table"]
 [tasks."release:js"]
 script = '''
 cd partiql-js
-wasm-pack build --release --target nodejs
+makers release:js
 '''
-
 
 [tasks."publish:rs"]
 dependencies = ["release"]
@@ -68,11 +73,9 @@ cargo publish
 '''
 
 [tasks."publish:js"]
-dependencies = ["release:js"]
 script = '''
-pwd
 cd partiql-js
-wasm-pack publish
+makers publish:js
 '''
 
 [tasks."publish:py"]
@@ -121,7 +124,6 @@ makers test:pq
 '''
 
 [tasks."test:py"]
-dependencies = ["build:pq"]
 script = '''
 cd partiql-py
 makers test:py

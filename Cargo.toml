@@ -21,7 +21,7 @@ path = "src/bin/pq.rs"
 required-features = ["cli"]
 
 [dependencies]
-# polars = { version="0.13.0", fe  features=["json"], optional=true }
+polars = { version="0.14.2", features=["json"], optional=true }
 anyhow = "1.0.40"
 atty = "0.2.14"
 bat = { version="0.18.1", optional=true }
@@ -38,38 +38,13 @@ serde_derive = "1.0.126"
 serde_json = { version="1.0.64", features=["preserve_order"] }
 serde_yaml = "0.8.17"
 serde_partiql = "1.1.64"
-structopt = "0.3.21"
+structopt = { version="0.3.21", optional=true }
 toml = "0.5.8"
 rayon = "1.5"
-datetime = "0.5.2"
 chrono = { version="0.4.19", features=["serde"] }
-url = "2.2.2"
-reqwest = { version="0.11.4", features=["blocking", "json"] }
-tokio = { version="1.7.1", features=["full"] }
-lazy_static = "1.4.0"
 
-[dependencies.polars]
-version = "0.14.2"
-features = [
-	"json",
-	"zip_with",
-	# "simd",
-	"lazy",
-	"strings",
-	"temporal",
-	"random",
-	"object",
-	"csv-file",
-	"pretty_fmt",
-	"performant",
-	"dtype-full",
-	"rows",
-	"private",
-	"round_series",
-]
-optional = true
 
 [features]
 table = ["polars"]
-cli = ["bat"]
+cli = ["bat", "structopt"]
 default = []
