@@ -25,7 +25,7 @@ cargo run --bin pq --features cli --
 
 [tasks."build:pq"]
 command = "cargo"
-args = ["build", "--bin", "pq", "--features", "cli"]
+args = ["build", "--bin", "pq", "--features", "cli table"]
 
 [tasks."build:js"]
 script = '''
@@ -152,7 +152,7 @@ tests-make tests-make/web.toml
 
 [tasks."dist:up"]
 script = '''
-cargo-distribute --tap ~/homebrew-tap/ --bin pq --features cli --channel nightly
+cargo-distribute --tap ~/homebrew-tap/ --bin pq --features "cli table" --channel nightly
 '''
 
 [tasks.up]
