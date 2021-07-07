@@ -7,6 +7,12 @@ use crate::value::PqlValue;
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct PqlVector(pub Vec<PqlValue>);
 
+impl From<PqlVector> for PqlValue {
+    fn from(v: PqlVector) -> Self {
+        Self::Array(v.0)
+    }
+}
+
 impl Neg for PqlVector {
     type Output = Self;
     fn neg(self) -> Self::Output {

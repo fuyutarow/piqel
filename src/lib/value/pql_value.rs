@@ -7,7 +7,6 @@ use std::str::FromStr;
 use chrono::prelude::*;
 use chrono::serde::ts_seconds;
 use indexmap::IndexMap;
-
 use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
@@ -15,6 +14,7 @@ use serde_derive::{Deserialize, Serialize};
 use crate::planner::{self, WhereCond};
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
+use crate::value::PqlVector;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]
@@ -264,6 +264,23 @@ impl Add for PqlValue {
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) + b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a + OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a + b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let vec_a = PqlVector(array_a);
+                let vec_b = PqlVector(array_b);
+                PqlValue::from(vec_a + vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let vec_a = PqlVector(array);
+                let vec_b = PqlVector(vec![val; n]);
+                PqlValue::from(vec_a + vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let vec_a = PqlVector(array);
+                let vec_b = PqlVector(vec![val; n]);
+                PqlValue::from(vec_a + vec_b)
+            }
             _ => todo!(),
         }
     }
@@ -277,6 +294,23 @@ impl Sub for PqlValue {
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) - b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a - OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a - b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let vec_a = PqlVector(array_a);
+                let vec_b = PqlVector(array_b);
+                PqlValue::from(vec_a - vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let vec_a = PqlVector(array);
+                let vec_b = PqlVector(vec![val; n]);
+                PqlValue::from(vec_a - vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let vec_a = PqlVector(vec![val; n]);
+                let vec_b = PqlVector(array);
+                PqlValue::from(vec_a - vec_b)
+            }
             _ => todo!(),
         }
     }
@@ -290,6 +324,23 @@ impl Mul for PqlValue {
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) * b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a * OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a * b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let vec_a = PqlVector(array_a);
+                let vec_b = PqlVector(array_b);
+                PqlValue::from(vec_a * vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let vec_a = PqlVector(array);
+                let vec_b = PqlVector(vec![val; n]);
+                PqlValue::from(vec_a * vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let vec_a = PqlVector(vec![val; n]);
+                let vec_b = PqlVector(array);
+                PqlValue::from(vec_a * vec_b)
+            }
             _ => {
                 dbg!(&self, &other);
                 todo!()
@@ -306,6 +357,23 @@ impl Div for PqlValue {
             (Self::Int(a), Self::Float(b)) => Self::Float(OrderedFloat(a as f64) / b),
             (Self::Float(a), Self::Int(b)) => Self::Float(a / OrderedFloat(b as f64)),
             (Self::Float(a), Self::Float(b)) => Self::Float(a / b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let vec_a = PqlVector(array_a);
+                let vec_b = PqlVector(array_b);
+                PqlValue::from(vec_a / vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let vec_a = PqlVector(array);
+                let vec_b = PqlVector(vec![val; n]);
+                PqlValue::from(vec_a / vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let vec_a = PqlVector(vec![val; n]);
+                let vec_b = PqlVector(array);
+                PqlValue::from(vec_a / vec_b)
+            }
             _ => todo!(),
         }
     }
@@ -362,12 +430,18 @@ mod tests {
     use std::collections::VecDeque;
     use std::str::FromStr;
 
+    use indexmap::IndexMap as Map;
     use ordered_float::OrderedFloat;
 
-    use super::PqlValue;
+    use crate::parser;
+    use crate::planner::LogicalPlan;
     use crate::pqlir_parser;
+    use crate::sql::Env;
+    use crate::sql::Expr;
     use crate::sql::Selector;
     use crate::sql::SelectorNode;
+    use crate::sql::Sql;
+    use crate::value::PqlValue;
 
     #[test]
     fn add_sub_mul_div() {
@@ -425,6 +499,281 @@ mod tests {
         dbg!(&value);
 
         assert_eq!(value, PqlValue::from_str(r#"{ "arr": [1,20,4] }"#)?);
+        Ok(())
+    }
+
+    #[test]
+    fn test_add() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+    "dat": [
+        { "n": 1 },
+        { "n": 2 },
+        { "n": 3 }
+    ]
+}
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    dat.n + 3 AS n3,
+    4 + dat.n  AS n4,
+    dat.n + dat.n  AS nn,
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "n3": 4.0,
+    "n4": 5.0,
+    "nn": 2.0
+  },
+  {
+    "n3": 5.0,
+    "n4": 6.0,
+    "nn": 4.0
+  },
+  {
+    "n3": 6.0,
+    "n4": 7.0,
+    "nn": 6.0
+  }
+]
+                "#
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_sub() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+    "dat": [
+        { "n": 1 },
+        { "n": 2 },
+        { "n": 3 }
+    ]
+}
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    dat.n - 3 AS n3,
+    4 - dat.n  AS n4,
+    dat.n - dat.n  AS nn,
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+        res.print();
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "n3": -2.0,
+    "n4": 3.0,
+    "nn": 0.0
+  },
+  {
+    "n3": -1.0,
+    "n4": 2.0,
+    "nn": 0.0
+  },
+  {
+    "n3": 0.0,
+    "n4": 1.0,
+    "nn": 0.0
+  }
+]
+                "#
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_mul() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+    "dat": [
+        { "n": 1 },
+        { "n": 2 },
+        { "n": 3 }
+    ]
+}
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    dat.n * 3 AS n3,
+    4* dat.n  AS n4,
+    dat.n* dat.n  AS nn,
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "n3": 3.0,
+    "n4": 4.0,
+    "nn": 1.0
+  },
+  {
+    "n3": 6.0,
+    "n4": 8.0,
+    "nn": 4.0
+  },
+  {
+    "n3": 9.0,
+    "n4": 12.0,
+    "nn": 9.0
+  }
+]
+                "#
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_div() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+{
+    "dat": [
+        { "n": 1 },
+        { "n": 2 },
+        { "n": 3 }
+    ]
+}
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    dat.n / 3 AS n3,
+    4 / dat.n  AS n4,
+    dat.n / dat.n  AS nn,
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+        res.print();
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "n3": 0.3333333333333333,
+    "n4": 4.0,
+    "nn": 1.0
+  },
+  {
+    "n3": 0.6666666666666666,
+    "n4": 2.0,
+    "nn": 1.0
+  },
+  {
+    "n3": 1.0,
+    "n4": 1.3333333333333333,
+    "nn": 1.0
+  }
+]
+
+                "#
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_calc_bmi() -> anyhow::Result<()> {
+        let data = PqlValue::from_str(
+            r#"
+[
+  { "no": 1, "height": 0.7, "weight": 6.9 },
+  { "no": 2, "height": 1.0, "weight": 13.0 },
+  { "no": 3, "height": 2.0, "weight": 100.0 },
+  { "no": 4, "height": 0.6, "weight": 8.5 },
+  { "no": 5, "height": 1.1, "weight": 19.0 },
+  { "no": 6, "height": 1.7, "weight": 90.5 },
+  { "no": 7, "height": 0.5, "weight": 9.0 },
+  { "no": 8, "height": 1.0, "weight": 22.5 },
+  { "no": 9, "height": 1.6, "weight": 85.5 },
+  { "no": 10, "height": 0.3, "weight": 2.9 }
+]
+"#,
+        )?;
+        let mut env = Env::default();
+        env.insert("", &Expr::from(data));
+
+        let mut sql = Sql::from_str(
+            r#"
+SELECT
+    no,
+    weight/height/height AS bmi
+ORDER BY bmi DESC
+LIMIT 3
+    "#,
+        )?;
+        let plan = LogicalPlan::from(sql);
+
+        let res = plan.execute(&mut env);
+        dbg!(&res);
+        res.print();
+
+        assert_eq!(
+            res,
+            PqlValue::from_str(
+                r#"
+[
+  { "no": 7.0, "bmi": 36.0 },
+  { "no": 9.0, "bmi": 33.3984375 },
+  { "no": 10.0, "bmi": 32.22222222222222 }
+]
+        "#
+            )?
+        );
+
         Ok(())
     }
 }
