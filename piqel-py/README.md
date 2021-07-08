@@ -11,15 +11,15 @@
 
 ## Installation
 ```sh:$
-pip install partiql
+pip install piqel
 ```
 ```sh:$
-poetry add partiql
+poetry add piqel
 ```
 
 ## Usage
 ```py:test_partiql.py
-import partiql as pq
+import piqel as pq
 
 data = {
     "SHELL": "/bin/bash",

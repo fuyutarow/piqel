@@ -1,8 +1,8 @@
 from typing import Literal, Optional, Union, Any
 import pandas as pd
 
-from .partiql import __version__
-from . import partiql
+from .piqel import __version__
+from . import piqel
 
 
 LangType = Literal["json", "yaml", "toml", "xml", "csv"]
@@ -13,7 +13,7 @@ def load(data):
 
 
 def loads(s: str, from_type: LangType = "json"):
-    data = partiql.loads(s, from_type)
+    data = piqel.loads(s, from_type)
     return DataLake(data)
 
 
@@ -27,11 +27,11 @@ class DataLake:
         return repr(self.data)
 
     def query(self, q: str):
-        self.data = partiql.query_evaluate(self.data, q)
+        self.data = piqel.query_evaluate(self.data, q)
         return self
 
     def to(self, to_type: LangType = "json") -> str:
-        return partiql.dumps(self.data, to_type)
+        return piqel.dumps(self.data, to_type)
 
     def to_dict(self) -> dict:
         return self.data

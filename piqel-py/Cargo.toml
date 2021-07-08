@@ -12,7 +12,7 @@ categories = ["database", "parsing", "parser-implementations"]
 keywords = ["PartiQL", "SQL"]
 
 [lib]
-name = "partiql"
+name = "piqel"
 crate-type = ["cdylib"]
 
 [dependencies]

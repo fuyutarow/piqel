@@ -13,15 +13,15 @@
 
 ## Installation
 ```sh:$
-npm add partiql
+npm add piqel
 ```
 ```sh:$
-yarn add partiql
+yarn add piqel
 ```
 
 ## Usage
 ```js:test_partiql.py
-import partiql
+import piqel
 
 def test_evaluate():
     sql = "SELECT NAME, LOGNAME"
@@ -40,7 +40,7 @@ def test_evaluate():
 """
     expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
     assert (
-        partiql.evaluate(
+        piqel.evaluate(
             sql,
             input,
             "json",

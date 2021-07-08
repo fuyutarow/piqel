@@ -25,5 +25,5 @@ pub fn add(a: i32, b: i32) -> i32 {
 
 #[wasm_bindgen]
 pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> Option<String> {
-    partiql::engine::evaluate(sql, input, from, to).ok()
+    piqel::engine::evaluate(sql, input, from, to).ok()
 }
