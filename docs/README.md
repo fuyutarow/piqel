@@ -41,8 +41,8 @@ tobe = '''
 | --- | --- | --- |
 | [pq](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs) | CLI (brew, scoop) | |
 | [piqel](https://github.com/fuyutarow/piqel) | Rust (cargo) | https://crates.io/crates/piqel |
-| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | JavaScript (npm) | https://www.npmjs.com/package/piqel-js |
-| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | Python (pip) | https://pypi.org/project/partiql |
+| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | JavaScript (npm) | https://www.npmjs.com/package/piqel |
+| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | Python (pip) | https://pypi.org/project/piqel |
 
 
 

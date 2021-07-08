@@ -9,7 +9,7 @@ authors = ["FUKUDA Yutaro <fuyutarow@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 categories = ["database", "parsing", "parser-implementations"]
-keywords = ["partiql"]
+keywords = ["PartiQL", "SQL"]
 
 [lib]
 name = "partiql"

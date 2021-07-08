@@ -5,7 +5,7 @@
   <strong>An implementation of PartiQL written in Rust</strong>
 
   <h3>
-    <a href="https://partiql.vercel.app">Document</a>
+    <a href="https://partiql.vercel.app">Document(WIP)</a>
   </h3>
 </div>
 
@@ -51,11 +51,11 @@ def test_evaluate():
 ```
 
 
-# Family
+## Family
 
 | content | lang | package |
 | --- | --- | --- |
 | [pq](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs) | CLI (brew, scoop) | |
 | [piqel](https://github.com/fuyutarow/piqel) | Rust (cargo) | https://crates.io/crates/piqel |
-| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | JavaScript (npm) | https://www.npmjs.com/package/piqel-js |
-| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | Python (pip) | https://pypi.org/project/partiql |
+| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | JavaScript (npm) | https://www.npmjs.com/package/piqel |
+| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | Python (pip) | https://pypi.org/project/piqel |
