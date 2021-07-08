@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>
-<code>partiql-rs</code>
+<code>piqel</code>
 </h1>
 
 <strong>An implementation of PartiQL written in Rust</strong>
@@ -19,7 +19,7 @@ cat<<EOS | pq -q "SELECT NAME, LOGNAME" -t json
 {
   "SHELL": "/bin/bash",
   "NAME": "my machine name",
-  "PWD": "/home/fuyutarow/partiql-rs",
+  "PWD": "/home/fuyutarow/piqel",
   "LOGNAME": "fuyutarow",
   "HOME": "/home/fuyutarow",
   "LANG": "C.UTF-8",
@@ -43,10 +43,10 @@ tobe = '''
 
 | content                                                                     | lang              | package                                  |
 |-----------------------------------------------------------------------------|-------------------|------------------------------------------|
-| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs)      | CLI (brew, scoop) |                                          |
-| [partiql-rs](https://github.com/fuyutarow/partiql-rs)                       | Rust (cargo)      | https://crates.io/crates/partiql-rs      |
-| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | JavaScript (npm)  | https://www.npmjs.com/package/partiql-js |
-| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | Python (pip)      | https://pypi.org/project/partiql         |
+| [pq](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs)      | CLI (brew, scoop) |                                          |
+| [piqel](https://github.com/fuyutarow/piqel)                       | Rust (cargo)      | https://crates.io/crates/piqel      |
+| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | JavaScript (npm)  | https://www.npmjs.com/package/piqel-js |
+| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | Python (pip)      | https://pypi.org/project/partiql         |
 
 ## Table of Contants
 
@@ -133,7 +133,7 @@ jo[1]
 -   [x] LIMIT
 
 [more
-examples](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make)
+examples](https://github.com/fuyutarow/piqel/tree/alpha/tests-make)
 
 # Test
 
@@ -148,10 +148,10 @@ makers test:pq
 
 | content                                                                     | test                                                                        |
 |-----------------------------------------------------------------------------|-----------------------------------------------------------------------------|
-| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs)      | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make)       |
-| [partiql-rs](https://github.com/fuyutarow/partiql-rs)                       | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests)            |
-| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js/tests) |
-| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py/tests) |
+| [pq](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs)      | [test](https://github.com/fuyutarow/piqel/tree/alpha/tests-make)       |
+| [piqel](https://github.com/fuyutarow/piqel)                       | [test](https://github.com/fuyutarow/piqel/tree/alpha/tests)            |
+| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | [test](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js/tests) |
+| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | [test](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py/tests) |
 
 ## code coverage
 

@@ -36,19 +36,19 @@ args = ["build", "--bin", "pq", "--features", "cli table"]
 
 [tasks."build:js"]
 script = '''
-cd partiql-js
+cd piqel-js
 makers build:js
 '''
 
 [tasks."install:dev:py"]
 script = '''
-cd partiql-py
+cd piqel-py
 makers update:py
 '''
 
 [tasks."build:py"]
 script = '''
-cd partiql-py
+cd piqel-py
 makers build:py
 '''
 
@@ -62,7 +62,7 @@ args = ["build", "--bin", "pq", "--release", "--features", "cli table"]
 
 [tasks."release:js"]
 script = '''
-cd partiql-js
+cd piqel-js
 makers release:js
 '''
 
@@ -74,13 +74,13 @@ cargo publish
 
 [tasks."publish:js"]
 script = '''
-cd partiql-js
+cd piqel-js
 makers publish:js
 '''
 
 [tasks."publish:py"]
 script = '''
-cd partiql-py
+cd piqel-py
 makers publish:py
 '''
 
@@ -125,7 +125,7 @@ makers test:pq
 
 [tasks."test:py"]
 script = '''
-cd partiql-py
+cd piqel-py
 makers test:py
 '''
 
@@ -154,7 +154,7 @@ cargo-distribute --tap ~/homebrew-tap/ --bin pq --features "cli table" --channel
 
 [tasks.up]
 script = '''
-git remote add upstream https://github.com/fuyutarow/partiql-rs
+git remote add upstream https://github.com/fuyutarow/piqel
 git fetch upstream
 git merge upstream/alpha
 '''
@@ -162,7 +162,7 @@ git merge upstream/alpha
 [tasks."version:up"]
 script = '''
 version-make up -rz Cargo.toml
-version-make set partiql-js/Cargo.toml -v "$(version-make show Cargo.toml)" -r
+version-make set piqel-js/Cargo.toml -v "$(version-make show Cargo.toml)" -r
 '''
 
 [tasks."version:tag"]

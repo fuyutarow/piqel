@@ -15,7 +15,7 @@ cat<<EOS | pq -q "SELECT NAME, LOGNAME" -t json
 {
   "SHELL": "/bin/bash",
   "NAME": "my machine name",
-  "PWD": "/home/fuyutarow/partiql-rs",
+  "PWD": "/home/fuyutarow/piqel",
   "LOGNAME": "fuyutarow",
   "HOME": "/home/fuyutarow",
   "LANG": "C.UTF-8",
@@ -39,10 +39,10 @@ tobe = '''
 
 | content | lang | package |
 | --- | --- | --- |
-| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs) | CLI (brew, scoop) | |
-| [partiql-rs](https://github.com/fuyutarow/partiql-rs) | Rust (cargo) | https://crates.io/crates/partiql-rs |
-| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | JavaScript (npm) | https://www.npmjs.com/package/partiql-js |
-| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | Python (pip) | https://pypi.org/project/partiql |
+| [pq](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs) | CLI (brew, scoop) | |
+| [piqel](https://github.com/fuyutarow/piqel) | Rust (cargo) | https://crates.io/crates/piqel |
+| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | JavaScript (npm) | https://www.npmjs.com/package/piqel-js |
+| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | Python (pip) | https://pypi.org/project/partiql |
 
 
 
@@ -77,7 +77,7 @@ What's [PartiQL](https://partiql.org/)?
 
 
 ```sh:$
-curl -s "https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1" | pq
+curl -s "https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1" | pq
 ```
 
 
@@ -191,7 +191,7 @@ EOS
 - [x] ORDER BY
 - [x] LIMIT
 
-[more examples](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make)
+[more examples](https://github.com/fuyutarow/piqel/tree/alpha/tests-make)
 
 
 ## Test
@@ -209,10 +209,10 @@ makers test:pq
 
 | content | test | command |
 | --- | --- | --- |
-| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make) | `makers test:pq` |
-| [partiql-rs](https://github.com/fuyutarow/partiql-rs) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/tests) | `makers test:lib` |
-| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js/tests) | `makers test:js` |
-| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | [test](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py/tests) | `makres test:py` |
+| [pq](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs) | [test](https://github.com/fuyutarow/piqel/tree/alpha/tests-make) | `makers test:pq` |
+| [piqel](https://github.com/fuyutarow/piqel) | [test](https://github.com/fuyutarow/piqel/tree/alpha/tests) | `makers test:lib` |
+| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | [test](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js/tests) | `makers test:js` |
+| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | [test](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py/tests) | `makres test:py` |
 | all | | `makers test` |
 
 
@@ -251,22 +251,22 @@ makers build:pq ;: for pq commnad
 jq[^jq] approach
 
 ```sh:$
-curl -s "https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1" | jq  ".[].commit.author"
+curl -s "https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1" | jq  ".[].commit.author"
 ```
 
 gron[^gron] approach
 ```sh:$
-curl -s "https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1" | gron | grep "commit.author" | gron -u
+curl -s "https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1" | gron | grep "commit.author" | gron -u
 ```
 
 nusehll[^nushell] approach
 ```sh:nu$
-curl -s "https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1" | from json | get commit.author | to json
+curl -s "https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1" | from json | get commit.author | to json
 ```
 
 pq[^pq] approach
 ```sh:$
-curl -s "https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1" | pq -q "SELECT commit.author"
+curl -s "https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1" | pq -q "SELECT commit.author"
 ```
 
 ### utils
@@ -280,7 +280,7 @@ curl -s "https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1" |
 [^gron]: https://github.com/tomnomnom/gron
 [^nushell]: https://github.com/nushell/nushell
 [^tests-make]: https://github.com/fuyutarow/tests-make
-[^pq]: https://github.com/fuyutarow/partiql-rs
+[^pq]: https://github.com/fuyutarow/piqel
 [^partiql-pokemon]: https://github.com/fuyutarow/partiql-pokemon
 [^cargo-distribute]: https://github.com/fuyutarow/cargo-disritubte
 [^pokemon.json]: https://github.com/fuyutarow/pokemon.json

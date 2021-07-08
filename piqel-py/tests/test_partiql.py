@@ -14,7 +14,7 @@ def test_query():
     data = {
         "SHELL": "/bin/bash",
         "NAME": "my machine name",
-        "PWD": "/home/fuyutarow/partiql-rs",
+        "PWD": "/home/fuyutarow/piqel",
         "LOGNAME": "fuyutarow",
         "HOME": "/home/fuyutarow",
         "LANG": "C.UTF-8",
@@ -35,7 +35,7 @@ def test_loads_json_and_query():
 {
   "SHELL": "/bin/bash",
   "NAME": "my machine name",
-  "PWD": "/home/fuyutarow/partiql-rs",
+  "PWD": "/home/fuyutarow/piqel",
   "LOGNAME": "fuyutarow",
   "HOME": "/home/fuyutarow",
   "LANG": "C.UTF-8",

@@ -1,10 +1,10 @@
 [package]
-name = "partiql"
-version = "0.202107.0"
+name = "piqel"
+version = "0.202107.1"
 edition = "2018"
 description = "A implementation of PartiQL"
-homepage = "https://github.com/fuyutarow/partiql-rs"
-repository = "https://github.com/fuyutarow/partiql-rs.git"
+homepage = "https://github.com/fuyutarow/piqel"
+repository = "https://github.com/fuyutarow/piqel.git"
 authors = ["FUKUDA Yutaro <fuyutarow@gmail.com>"]
 license = "MIT"
 readme = "README.md"
@@ -16,7 +16,7 @@ name = "partiql"
 crate-type = ["cdylib"]
 
 [dependencies]
-partiql-rs = { path="..", features=["table"] }
+piqel = { path="..", features=["table"] }
 pyo3 = { version="0.13.2", features=["extension-module"] }
 pyo3-built = "0.4.5"
 pyo3-chrono = "0.1.0"

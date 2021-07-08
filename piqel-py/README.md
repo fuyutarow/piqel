@@ -24,7 +24,7 @@ import partiql as pq
 data = {
     "SHELL": "/bin/bash",
     "NAME": "my machine name",
-    "PWD": "/home/fuyutarow/partiql-rs",
+    "PWD": "/home/fuyutarow/piqel",
     "LOGNAME": "fuyutarow",
     "HOME": "/home/fuyutarow",
     "LANG": "C.UTF-8",
@@ -50,7 +50,7 @@ makers test:py
 
 | content | lang | package |
 | --- | --- | --- |
-| [pq](https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs) | CLI (brew, scoop) | |
-| [partiql-rs](https://github.com/fuyutarow/partiql-rs) | Rust (cargo) | https://crates.io/crates/partiql-rs |
-| [partiql-js](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js) | JavaScript (npm) | https://www.npmjs.com/package/partiql-js |
-| [partiql-py](https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py) | Python (pip) | https://pypi.org/project/partiql |
+| [pq](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs) | CLI (brew, scoop) | |
+| [piqel](https://github.com/fuyutarow/piqel) | Rust (cargo) | https://crates.io/crates/piqel |
+| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | JavaScript (npm) | https://www.npmjs.com/package/piqel-js |
+| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | Python (pip) | https://pypi.org/project/partiql |

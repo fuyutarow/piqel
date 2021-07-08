@@ -9,7 +9,7 @@
 
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: 'partiql-rs',
+  title: 'piqel',
   tagline: 'The tagline of my site',
   url: 'https://partiql.vercel.app',
   baseUrl: '/',
@@ -17,7 +17,7 @@ module.exports = {
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'fuyuatrow',
-  projectName: 'partiql-rs',
+  projectName: 'piqel',
   themeConfig: {
     navbar: {
       title: 'PartiQL-rs',
@@ -35,7 +35,7 @@ module.exports = {
         // {to: 'blog', label: 'Blog', position: 'left'},
         // Please keep GitHub link to the right for consistency.
         {
-          href: 'https://github.com/fuyutarow/partiql-rs',
+          href: 'https://github.com/fuyutarow/piqel',
           label: 'GitHub',
           position: 'right',
         },

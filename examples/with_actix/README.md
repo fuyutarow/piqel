@@ -1,4 +1,4 @@
-# partiql-rs with Actix-web and DB
+# piqel with Actix-web and DB
 
 ## Simply Run
 ```sh:$
