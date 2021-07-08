@@ -19,28 +19,6 @@ impl Projection {
         v
     }
 
-    pub fn execute_old(self, data: PqlValue, env: &Env) -> Vec<PqlValue> {
-        let v = self.step1(data, env);
-        let v = self.step2(v);
-        let v = self.step3(v);
-        let v = self.step4(v);
-        v
-    }
-
-    pub fn step1(&self, data: PqlValue, env: &Env) -> PqlValue {
-        let fields = self
-            .0
-            .iter()
-            .map(|field| field.expand_fullpath(&env))
-            .collect::<Vec<Field>>();
-        let projected = data.select_by_fields(&fields, &env).unwrap_or_default();
-        projected
-    }
-
-    pub fn step2(&self, data: PqlValue) -> Rows {
-        Rows::from(data)
-    }
-
     pub fn step12(&self, env: &Env) -> Rows {
         let obj = self
             .0

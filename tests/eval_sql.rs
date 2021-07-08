@@ -66,13 +66,13 @@ fn q5() -> anyhow::Result<()> {
     Ok(())
 }
 
-// #[test]
-// fn q6() -> anyhow::Result<()> {
-//     let (sql, data, output) = get_sql_data_output("q6")?;
-//     let res = evaluate(&sql, &data);
-//     assert_eq!(res, output);
-//     Ok(())
-// }
+#[test]
+fn q6() -> anyhow::Result<()> {
+    let (sql, data, output) = get_sql_data_output("q6")?;
+    let res = evaluate(sql, data);
+    assert_eq!(res, output);
+    Ok(())
+}
 
 // #[test]
 // fn q7() -> anyhow::Result<()> {

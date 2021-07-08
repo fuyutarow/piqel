@@ -43,16 +43,7 @@ impl LogicalPlan {
                         let filtered = self.filter.execute(value.to_owned(), &env);
                         Expr::from(filtered)
                     }
-                    Expr::Star => todo!(),
-                    Expr::Selector(_) => todo!(),
-                    Expr::Func(_) => todo!(),
-                    Expr::Add(_, _) => todo!(),
-                    Expr::Sub(_, _) => todo!(),
-                    Expr::Mul(_, _) => todo!(),
-                    Expr::Div(_, _) => todo!(),
-                    Expr::Rem(_, _) => todo!(),
-                    Expr::Exp(_, _) => todo!(),
-                    Expr::Sql(_) => todo!(),
+                    _ => todo!(),
                 };
                 env.insert("", &data);
             };
