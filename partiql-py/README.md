@@ -1,5 +1,7 @@
 <div align="center">
-  <h1><code>partiql-py</code></h1>
+  <div>
+    <img src="https://raw.githubusercontent.com/fuyutarow/piqel/alpha/docs/static/img/label.png"></img>
+  </div>
   <strong>An implementation of PartiQL written in Rust</strong>
 
   <h3>
@@ -44,7 +46,7 @@ makers test:py
 ```
 
 
-# Familiy
+# Family
 
 | content | lang | package |
 | --- | --- | --- |

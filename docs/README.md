@@ -1,12 +1,12 @@
 <div align="center">
-  <h1><code>partiql-rs</code></h1>
+  <div>
+    <img src="https://raw.githubusercontent.com/fuyutarow/piqel/alpha/docs/static/img/label.png"></img>
+  </div>
   <strong>An implementation of PartiQL written in Rust</strong>
-
   <h3>
     <a href="https://partiql.vercel.app">Document(WIP)</a>
   </h3>
 </div>
-
 
 ```toml:tests-make/hello.toml
 [tests.hello]
@@ -35,7 +35,7 @@ tobe = '''
 '''
 ```
 
-## Familiy
+## Family
 
 | content | lang | package |
 | --- | --- | --- |
@@ -137,31 +137,21 @@ Comparison with existing command yj[^yj]
 
 ### Calculate BMI
 
-1. Download the file and then calculate BMI in local.
-```sh:$
-curl -s https://raw.githubusercontent.com/fuyutarow/pokemon.json/master/en/pokemon.json | pq -q "SELECT name, weight/height/height AS bmi ORDER BY bmi DESC LIMIT 20"
-```
+1. Download the file and then calculate BMI in a local.
+  ```sh:$
+  curl -s https://raw.githubusercontent.com/fuyutarow/pokemon.json/master/en/pokemon.json | pq -q "SELECT name, weight/height/height AS bmi ORDER BY bmi DESC LIMIT 20"
+  ```
 
-2. In terminal, send a query to the server to calculate BMI in remote. 
-```sh:$
-curl https://partiql-pokemon.vercel.app/api/pokemon/ja -G --data-urlencode "q= SELECT name, weight/height/height AS bmi ORDER BY bmi DESC LIMIT 20"
-```
+2. In a terminal, send a query to the server to calculate BMI in a remote.
+  ```sh:$
+  curl https://partiql-pokemon.vercel.app/api/pokemon/ja -G --data-urlencode "q= SELECT name, weight/height/height AS bmi ORDER BY bmi DESC LIMIT 20"
+  ```
 
-3. In web browser, send a query to the server to calculate BMI in remote.
-
-
-["https://partiql-pokemon.vercel.app/api/pokemon/en?q= SELECT name, weight/height/height AS  bmi ORDER BY bmi DESC LIMIT 20"]
-(https://partiql-pokemon.vercel.app/api/pokemon/ja?q=%20SELECT%20name,%20weight/height/height%20AS%20%20bmi%20ORDER%20BY%20bmi%20DESC%20LIMIT%2020)
-
+3. In a web browser, send a query to the server to calculate BMI in a remote.
 
 <a href="https://partiql-pokemon.vercel.app/api/pokemon/ja?q=%20SELECT%20name,%20weight/height/height%20AS%20%20bmi%20ORDER%20BY%20bmi%20DESC%20LIMIT%2020">
 partiql-pokemon.vercel.app/api/pokemon/en?q= SELECT name, weight/height/height AS  bmi ORDER BY bmi DESC LIMIT 20
 </a>
-
-[partiql-pokemon.vercel.app/api/pokemon/en?q= SELECT name, weight/height/height AS  bmi ORDER BY bmi DESC LIMIT 20]
-(https://partiql-pokemon.vercel.app/api/pokemon/ja?q=%20SELECT%20name,%20weight/height/height%20AS%20%20bmi%20ORDER%20BY%20bmi%20DESC%20LIMIT%2020)
-
-https://partiql-pokemon.vercel.app/api/pokemon/ja?q=%20SELECT%20name,%20weight/height/height%20AS%20%20bmi%20ORDER%20BY%20bmi%20DESC%20LIMIT%2020
 
 ## Installation
 

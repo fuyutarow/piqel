@@ -12,10 +12,10 @@ cargo install cargo-distribute
 npm i -g markdown-to-document ;: use mdtodoc for publish:README
 '''
 
-[tasks."publish:README"]
+[tasks."release:readme"]
 # GitHub Flavored Markdown (GFM) does not support footnotes. So use `mdtodoc` to convert markdown to html.
 script = '''
-mdtodoc docs/README.md
+mdtodoc docs/README.md -e light
 '''
 
 [tasks.pq]

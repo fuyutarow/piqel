@@ -1,5 +1,7 @@
 <div align="center">
-  <h1><code>partiql-js</code></h1>
+  <div>
+    <img src="https://raw.githubusercontent.com/fuyutarow/piqel/alpha/docs/static/img/label.png"></img>
+  </div>
   <strong>An implementation of PartiQL written in Rust</strong>
 
   <h3>
@@ -49,7 +51,7 @@ def test_evaluate():
 ```
 
 
-# Familiy
+# Family
 
 | content | lang | package |
 | --- | --- | --- |
