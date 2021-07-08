@@ -13,11 +13,11 @@ module.exports = {
       "pq/01",
       "pq/02",
     ],
-    "partiql-rs (cargo)": [
+    "piqel (cargo)": [
       'rs/01',
       'rs/02',
     ],
     "partiql.js (npm)": ['mdx'],
-    "partiql-py (pypi)": ['py/01'],
+    "piqel-py (pypi)": ['py/01'],
   },
 };

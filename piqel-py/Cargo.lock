@@ -707,7 +707,7 @@ dependencies = [
 name = "partiql"
 version = "0.202107.0"
 dependencies = [
- "partiql-rs",
+ "piqel",
  "pyo3",
  "pyo3-built",
  "pyo3-chrono",
@@ -715,7 +715,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "partiql-rs"
+name = "piqel"
 version = "0.202107.0"
 dependencies = [
  "anyhow",

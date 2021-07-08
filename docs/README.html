@@ -13,7 +13,7 @@ cat&lt;&lt;EOS | pq -q &quot;SELECT NAME, LOGNAME&quot; -t json
 {
   &quot;SHELL&quot;: &quot;/bin/bash&quot;,
   &quot;NAME&quot;: &quot;my machine name&quot;,
-  &quot;PWD&quot;: &quot;/home/fuyutarow/partiql-rs&quot;,
+  &quot;PWD&quot;: &quot;/home/fuyutarow/piqel&quot;,
   &quot;LOGNAME&quot;: &quot;fuyutarow&quot;,
   &quot;HOME&quot;: &quot;/home/fuyutarow&quot;,
   &quot;LANG&quot;: &quot;C.UTF-8&quot;,
@@ -43,22 +43,22 @@ tobe = '''
 </thead>
 <tbody>
 <tr>
-<td><a href="https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs">pq</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs">pq</a></td>
 <td>CLI (brew, scoop)</td>
 <td></td>
 </tr>
 <tr>
-<td><a href="https://github.com/fuyutarow/partiql-rs">partiql-rs</a></td>
+<td><a href="https://github.com/fuyutarow/piqel">piqel</a></td>
 <td>Rust (cargo)</td>
-<td><a href="https://crates.io/crates/partiql-rs">https://crates.io/crates/partiql-rs</a></td>
+<td><a href="https://crates.io/crates/piqel">https://crates.io/crates/piqel</a></td>
 </tr>
 <tr>
-<td><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js">partiql-js</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/tree/alpha/piqel-js">piqel-js</a></td>
 <td>JavaScript (npm)</td>
-<td><a href="https://www.npmjs.com/package/partiql-js">https://www.npmjs.com/package/partiql-js</a></td>
+<td><a href="https://www.npmjs.com/package/piqel-js">https://www.npmjs.com/package/piqel-js</a></td>
 </tr>
 <tr>
-<td><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py">partiql-py</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/tree/alpha/piqel-py">piqel-py</a></td>
 <td>Python (pip)</td>
 <td><a href="https://pypi.org/project/partiql">https://pypi.org/project/partiql</a></td>
 </tr>
@@ -102,7 +102,7 @@ tobe = '''
 </tr>
 </tbody>
 </table>
-<pre class="code-block"><code class="language-sh:$ sh:$">curl -s &quot;https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1&quot; | pq
+<pre class="code-block"><code class="language-sh:$ sh:$">curl -s &quot;https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1&quot; | pq
 </code></pre>
 <h3 id="convert-file-format">convert file format</h3>
 <table>
@@ -254,7 +254,7 @@ EOS
 <li>[x] ORDER BY</li>
 <li>[x] LIMIT</li>
 </ul>
-<p><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make">more examples</a></p>
+<p><a href="https://github.com/fuyutarow/piqel/tree/alpha/tests-make">more examples</a></p>
 <h2 id="test">Test</h2>
 <p>Use <a href="https://github.com/fuyutarow/tests-make">tests-make</a> to test CLI <code>pq</code>.</p>
 <pre class="code-block"><code class="language-sh:$ sh:$">brew install fuyutarow/tap/tests-make
@@ -273,23 +273,23 @@ tests-make tests-make/index.toml
 </thead>
 <tbody>
 <tr>
-<td><a href="https://github.com/fuyutarow/partiql-rs/blob/alpha/src/bin/pq.rs">pq</a></td>
-<td><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/tests-make">test</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs">pq</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/tree/alpha/tests-make">test</a></td>
 <td><code>makers test:pq</code></td>
 </tr>
 <tr>
-<td><a href="https://github.com/fuyutarow/partiql-rs">partiql-rs</a></td>
-<td><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/tests">test</a></td>
+<td><a href="https://github.com/fuyutarow/piqel">piqel</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/tree/alpha/tests">test</a></td>
 <td><code>makers test:lib</code></td>
 </tr>
 <tr>
-<td><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js">partiql-js</a></td>
-<td><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-js/tests">test</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/tree/alpha/piqel-js">piqel-js</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/tree/alpha/piqel-js/tests">test</a></td>
 <td><code>makers test:js</code></td>
 </tr>
 <tr>
-<td><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py">partiql-py</a></td>
-<td><a href="https://github.com/fuyutarow/partiql-rs/tree/alpha/partiql-py/tests">test</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/tree/alpha/piqel-py">piqel-py</a></td>
+<td><a href="https://github.com/fuyutarow/piqel/tree/alpha/piqel-py/tests">test</a></td>
 <td><code>makres test:py</code></td>
 </tr>
 <tr>
@@ -317,16 +317,16 @@ makers build:pq ;: for pq commnad
 <h2 id="appendix">Appendix</h2>
 <h3 id="comparison-of-tools-that-can-extract-fields">Comparison of tools that can extract fields</h3>
 <p>jq<sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup> approach</p>
-<pre class="code-block"><code class="language-sh:$ sh:$">curl -s &quot;https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1&quot; | jq  &quot;.[].commit.author&quot;
+<pre class="code-block"><code class="language-sh:$ sh:$">curl -s &quot;https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1&quot; | jq  &quot;.[].commit.author&quot;
 </code></pre>
 <p>gron<sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup> approach</p>
-<pre class="code-block"><code class="language-sh:$ sh:$">curl -s &quot;https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1&quot; | gron | grep &quot;commit.author&quot; | gron -u
+<pre class="code-block"><code class="language-sh:$ sh:$">curl -s &quot;https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1&quot; | gron | grep &quot;commit.author&quot; | gron -u
 </code></pre>
 <p>nusehll<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup> approach</p>
-<pre class="code-block"><code class="language-sh:nu$ sh:nu$">curl -s &quot;https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1&quot; | from json | get commit.author | to json
+<pre class="code-block"><code class="language-sh:nu$ sh:nu$">curl -s &quot;https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1&quot; | from json | get commit.author | to json
 </code></pre>
 <p>pq<sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a></sup> approach</p>
-<pre class="code-block"><code class="language-sh:$ sh:$">curl -s &quot;https://api.github.com/repos/fuyutarow/partiql-rs/commits?per_page=1&quot; | pq -q &quot;SELECT commit.author&quot;
+<pre class="code-block"><code class="language-sh:$ sh:$">curl -s &quot;https://api.github.com/repos/fuyutarow/piqel/commits?per_page=1&quot; | pq -q &quot;SELECT commit.author&quot;
 </code></pre>
 <h3 id="utils">utils</h3>
 <ul>
@@ -343,7 +343,7 @@ makers build:pq ;: for pq commnad
 </li>
 <li id="fn4" class="footnote-item"><p><a href="https://github.com/nushell/nushell">https://github.com/nushell/nushell</a> <a href="#fnref4" class="footnote-backref">↩︎</a></p>
 </li>
-<li id="fn5" class="footnote-item"><p><a href="https://github.com/fuyutarow/partiql-rs">https://github.com/fuyutarow/partiql-rs</a> <a href="#fnref5" class="footnote-backref">↩︎</a></p>
+<li id="fn5" class="footnote-item"><p><a href="https://github.com/fuyutarow/piqel">https://github.com/fuyutarow/piqel</a> <a href="#fnref5" class="footnote-backref">↩︎</a></p>
 </li>
 <li id="fn6" class="footnote-item"><p><a href="https://github.com/sagiegurari/cargo-make">https://github.com/sagiegurari/cargo-make</a> … Run <code>cargo install cargo-make</code> to use <code>makers</code> commnad. <a href="#fnref6" class="footnote-backref">↩︎</a></p>
 </li>

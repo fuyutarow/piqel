@@ -52,7 +52,7 @@ psql $DATABASE_URL
 [tasks."version:up"]
 script = '''
 version-make up -rz Cargo.toml
-version-make set partiql-js/Cargo.toml -v "$(version-make show Cargo.toml)" -r
+version-make set piqel-js/Cargo.toml -v "$(version-make show Cargo.toml)" -r
 '''
 
 [tasks."version:tag"]

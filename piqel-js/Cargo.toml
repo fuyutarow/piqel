@@ -1,5 +1,5 @@
 [package]
-name = "partiql-js"
+name = "piqel"
 version = "0.202107.0"
 authors = ["fuyutarow <fuyutarow@gmail.com>"]
 edition = "2018"
@@ -25,7 +25,7 @@ console_error_panic_hook = { version="0.1.6", optional=true }
 #
 # Unfortunately, `wee_alloc` requires nightly Rust when targeting wasm for now.
 wee_alloc = { version="0.4.5", optional=true }
-partiql-rs = { path=".." }
+piqel = { path=".." }
 anyhow = "1.0.40"
 
 [dev-dependencies]
