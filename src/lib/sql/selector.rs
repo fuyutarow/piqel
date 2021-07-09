@@ -114,6 +114,10 @@ impl From<&[SelectorNode]> for Selector {
 }
 
 impl Selector {
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+
     pub fn last(&self) -> Option<String> {
         if let Some(last) = self.to_vec().last() {
             Some(last.to_string())

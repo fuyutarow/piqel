@@ -193,19 +193,49 @@ impl Expr {
         }
     }
 
-    pub fn to_path(&self) -> Selector {
+    pub fn to_path(&self) -> Option<Selector> {
         match self.to_owned() {
-            Self::Value(value) => Selector::default(),
-            Self::Selector(selector) => selector,
+            Self::Value(value) => None,
+            Self::Selector(selector) => Some(selector),
             Self::Star => todo!(),
             Self::Func(_) => todo!(),
             Self::Sql(_) => todo!(),
-            Self::Add(box expr1, box expr2) => expr1.to_path().intersect(&expr2.to_path()),
-            Self::Sub(box expr1, box expr2) => expr1.to_path().intersect(&expr2.to_path()),
-            Self::Mul(box expr1, box expr2) => expr1.to_path().intersect(&expr2.to_path()),
-            Self::Div(box expr1, box expr2) => expr1.to_path().intersect(&expr2.to_path()),
-            Self::Rem(box expr1, box expr2) => expr1.to_path().intersect(&expr2.to_path()),
-            Self::Exp(box expr1, box expr2) => expr1.to_path().intersect(&expr2.to_path()),
+            Self::Add(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                ((Some(s1), Some(s2))) => Some(s1.intersect(&s2)),
+                ((Some(s1), _)) => Some(s1),
+                ((_, Some(s2))) => Some(s2),
+                _ => None,
+            },
+            Self::Sub(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                ((Some(s1), Some(s2))) => Some(s1.intersect(&s2)),
+                ((Some(s1), _)) => Some(s1),
+                ((_, Some(s2))) => Some(s2),
+                _ => None,
+            },
+            Self::Mul(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                ((Some(s1), Some(s2))) => Some(s1.intersect(&s2)),
+                ((Some(s1), _)) => Some(s1),
+                ((_, Some(s2))) => Some(s2),
+                _ => None,
+            },
+            Self::Div(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                ((Some(s1), Some(s2))) => Some(s1.intersect(&s2)),
+                ((Some(s1), _)) => Some(s1),
+                ((_, Some(s2))) => Some(s2),
+                _ => None,
+            },
+            Self::Rem(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                ((Some(s1), Some(s2))) => Some(s1.intersect(&s2)),
+                ((Some(s1), _)) => Some(s1),
+                ((_, Some(s2))) => Some(s2),
+                _ => None,
+            },
+            Self::Exp(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                ((Some(s1), Some(s2))) => Some(s1.intersect(&s2)),
+                ((Some(s1), _)) => Some(s1),
+                ((_, Some(s2))) => Some(s2),
+                _ => None,
+            },
         }
     }
 }
@@ -249,7 +279,18 @@ mod tests {
 
         let res = expr.to_path();
 
-        assert_eq!(res, Selector::from(r#"a.b"#));
+        assert_eq!(res, Some(Selector::from(r#"a.b"#)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_common_math() -> anyhow::Result<()> {
+        let expr = Expr::from_str("a.b * 2")?;
+
+        let res = expr.to_path();
+
+        assert_eq!(res, Some(Selector::from(r#"a.b"#)));
 
         Ok(())
     }

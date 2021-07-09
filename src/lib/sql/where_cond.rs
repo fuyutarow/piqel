@@ -20,7 +20,7 @@ impl Default for WhereCond {
 }
 
 impl WhereCond {
-    pub fn get_expr(&self) -> Expr {
+    pub fn as_expr(&self) -> Expr {
         match &self {
             Self::Eq { expr, right: _ } => expr.to_owned(),
             Self::Like { expr, right: _ } => expr.to_owned(),
@@ -38,6 +38,10 @@ impl WhereCond {
                 right,
             },
         }
+    }
+
+    pub fn to_path(&self) -> Option<Selector> {
+        self.as_expr().to_path()
     }
 }
 

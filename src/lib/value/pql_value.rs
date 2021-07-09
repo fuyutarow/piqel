@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use chrono::prelude::*;
 use chrono::serde::ts_seconds;
-use indexmap::IndexMap;
+use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
@@ -56,7 +56,7 @@ pub enum PqlValue {
     #[serde(with = "ts_seconds")]
     DateTime(DateTime<Utc>),
     Array(Vec<Self>),
-    Object(IndexMap<String, Self>),
+    Object(Map<String, Self>),
 }
 
 impl Default for PqlValue {
@@ -100,6 +100,12 @@ impl From<f64> for PqlValue {
 impl From<Vec<PqlValue>> for PqlValue {
     fn from(v: Vec<PqlValue>) -> Self {
         Self::Array(v)
+    }
+}
+
+impl From<Map<String, PqlValue>> for PqlValue {
+    fn from(obj: Map<String, PqlValue>) -> Self {
+        Self::Object(obj)
     }
 }
 
