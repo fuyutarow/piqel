@@ -227,6 +227,20 @@ impl Selector {
             unreachable!()
         }
     }
+
+    pub fn intersect(&self, other: &Selector) -> Selector {
+        let mut res = Selector::default();
+
+        for (a, b) in self.data.iter().zip(other.data.iter()) {
+            if a == b {
+                res.data.push_back(a.to_owned())
+            } else {
+                break;
+            }
+        }
+
+        res
+    }
 }
 
 #[cfg(test)]
@@ -402,6 +416,18 @@ mod tests {
 
         let selector = Selector::from_str("n")?;
         assert_eq!(selector.evaluate(&env), Some(PqlValue::from_str("3")?));
+        Ok(())
+    }
+
+    #[test]
+    fn test_calculate_common_path() -> anyhow::Result<()> {
+        let abc = Selector::from("a.b.c");
+        let abd = Selector::from("a.b.d");
+
+        let res = abc.intersect(&abd);
+
+        assert_eq!(res, Selector::from("a.b"));
+
         Ok(())
     }
 }
