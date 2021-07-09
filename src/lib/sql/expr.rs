@@ -1,9 +1,10 @@
 use std::collections::HashSet;
+use std::str::FromStr;
 
 use collect_mac::collect;
-
 use ordered_float::OrderedFloat;
 
+use crate::parser;
 use crate::sql::Env;
 use crate::sql::Selector;
 use crate::sql::Sql;
@@ -65,6 +66,21 @@ impl From<Expr> for String {
         match expr {
             Expr::Selector(selector) => selector.to_string(),
             Expr::Value(value) => value.to_json().expect("to json"),
+            _ => todo!(),
+        }
+    }
+}
+
+impl FromStr for Expr {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match parser::expressions::parse_expr(s) {
+            Ok((_, expr)) => Ok(expr),
+            Err(nom::Err::Error(err)) => {
+                eprint!("{}", err);
+                anyhow::bail!("failed")
+            }
             _ => todo!(),
         }
     }

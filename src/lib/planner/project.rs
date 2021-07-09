@@ -153,14 +153,17 @@ impl From<Rows> for Records {
             for i in 0..rows.size {
                 let mut record = Map::<String, Vec<PqlValue>>::new();
                 for key in &rows.keys {
-                    let v = rows.data.get(key.as_str()).unwrap().get(i).unwrap();
-                    match v {
-                        PqlValue::Array(array) => {
-                            record.insert(key.to_string(), array.to_owned());
+                    if let Some(v) = rows.data.get(key.as_str()).unwrap().get(i) {
+                        match v {
+                            PqlValue::Array(array) => {
+                                record.insert(key.to_string(), array.to_owned());
+                            }
+                            _ => {
+                                record.insert(key.to_string(), vec![v.to_owned()]);
+                            }
                         }
-                        _ => {
-                            record.insert(key.to_string(), vec![v.to_owned()]);
-                        }
+                    } else {
+                        dbg!(&record);
                     }
                 }
                 records.push(record);

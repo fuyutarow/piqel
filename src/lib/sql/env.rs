@@ -12,6 +12,14 @@ pub struct Env {
     data: Map<String, Expr>,
 }
 
+impl From<PqlValue> for Env {
+    fn from(value: PqlValue) -> Self {
+        let mut env = Self::default();
+        env.insert("", &Expr::from(value));
+        env
+    }
+}
+
 impl Env {
     pub fn insert(&mut self, alias: &str, expr: &Expr) -> Option<Expr> {
         self.data.insert(alias.to_string(), expr.to_owned())

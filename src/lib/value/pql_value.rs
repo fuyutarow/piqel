@@ -367,14 +367,27 @@ impl Div for PqlValue {
 impl Rem for PqlValue {
     type Output = Self;
     fn rem(self, other: Self) -> Self::Output {
-        let (a, b) = match (self, other) {
-            (Self::Int(a), Self::Int(b)) => (a as f64, b as f64),
-            (Self::Int(a), Self::Float(OrderedFloat(b))) => (a as f64, b),
-            (Self::Float(OrderedFloat(a)), Self::Int(b)) => (a, b as f64),
-            (Self::Float(OrderedFloat(a)), Self::Float(OrderedFloat(b))) => (a, b),
+        match (self, other) {
+            (Self::Int(a), Self::Int(b)) => Self::from(a % b),
+            (Self::Int(a), Self::Float(OrderedFloat(b))) => Self::from(a as f64 % b),
+            (Self::Float(OrderedFloat(a)), Self::Int(b)) => Self::from(a % b as f64),
+            (Self::Float(OrderedFloat(a)), Self::Float(OrderedFloat(b))) => Self::from(a % b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
+                PqlValue::from(vec_a % vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
+                PqlValue::from(vec_a % vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
+                PqlValue::from(vec_a % vec_b)
+            }
             _ => todo!(),
-        };
-        Self::from(a % b)
+        }
     }
 }
 

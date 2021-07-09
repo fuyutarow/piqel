@@ -102,12 +102,7 @@ pub fn projection(input: &str) -> IResult<&str, (Selector, Option<String>)> {
 pub fn expr_as_field(input: &str) -> IResult<&str, Field> {
     // The math::parse must be placed after the parse_path_as_expr to prevent the inf keyword from being parsed.
     let (input, (expr, alias)) = tuple((
-        alt((
-            parse_star_as_expr,
-            parser::math::parse,
-            parser::elements::float_number,
-            parser::func::count,
-        )),
+        parse_expr,
         opt(preceded(
             opt(preceded(multispace0, tag_no_case("AS"))),
             preceded(multispace0, alphanumeric1),
