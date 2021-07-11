@@ -118,6 +118,10 @@ impl Selector {
         self.data.len()
     }
 
+    pub fn get(&self, ith: usize) -> Option<SelectorNode> {
+        self.data.get(ith).map(|e| e.to_owned())
+    }
+
     pub fn last(&self) -> Option<String> {
         if let Some(last) = self.to_vec().last() {
             Some(last.to_string())

@@ -32,22 +32,13 @@ impl From<Sql> for LogicalPlan {
 
 impl LogicalPlan {
     pub fn execute(self, env: &mut Env) -> PqlValue {
+        dbg!(&self);
+
         for drain in self.drains {
             drain.execute(env);
         }
 
-        {
-            if let Some(expr) = env.get("") {
-                let data = match expr {
-                    Expr::Value(value) => {
-                        let filtered = self.filter.execute(value.to_owned(), &env);
-                        Expr::from(filtered)
-                    }
-                    _ => todo!(),
-                };
-                env.insert("", &data);
-            };
-        }
+        self.filter.execute(env);
 
         let mut list = self.project.execute(&env);
         dbg!(&list);
