@@ -14,51 +14,13 @@ impl Filter {
             if let Some(expr) = env.get("") {
                 let data = match expr {
                     Expr::Value(value) => {
-                        let restricted = value.restrict2(&cond).expect("restricted value");
+                        let restricted = value.restrict3(&cond, 0).expect("restricted value");
                         Expr::from(restricted)
                     }
                     _ => todo!(),
                 };
                 env.insert("", &data);
             };
-        }
-    }
-
-    pub fn execute_old(self, value: PqlValue, env: &Env) -> PqlValue {
-        match self.0 {
-            None => value,
-            Some(box WhereCond::Eq { expr, right }) => match expr {
-                Expr::Selector(selector) => {
-                    let selector = selector.expand_fullpath2(&env);
-                    let cond = WhereCond::Eq {
-                        expr: Expr::default(),
-                        right: right.to_owned(),
-                    };
-                    restrict_old(Some(value), &selector, &Some(cond)).expect("restricted value")
-                }
-                _ => {
-                    let pp = expr.expand_fullpath(env);
-                    let v = expr.eval(env);
-                    todo!()
-                }
-            },
-            Some(box WhereCond::Like { expr, right }) => match expr {
-                Expr::Selector(selector) => {
-                    let selector = selector.expand_fullpath2(&env);
-                    let cond = WhereCond::Like {
-                        expr: Expr::default(),
-                        right: right.to_owned(),
-                    };
-                    restrict_old(Some(value), &selector, &Some(cond)).expect("restricted value")
-                }
-                _ => {
-                    todo!();
-                }
-            },
-            _ => {
-                dbg!(&self);
-                todo!()
-            }
         }
     }
 
@@ -70,136 +32,7 @@ impl Filter {
     }
 }
 
-pub fn restrict_old(
-    value: Option<PqlValue>,
-    path: &Selector,
-    cond: &Option<WhereCond>,
-) -> Option<PqlValue> {
-    match value {
-        Some(PqlValue::Array(array)) => {
-            let arr = array
-                .into_iter()
-                .filter_map(|v| {
-                    let vv = restrict_old(Some(v), &path, cond);
-                    vv
-                })
-                .collect::<Vec<_>>();
-
-            if arr.is_empty() {
-                None
-            } else {
-                Some(PqlValue::Array(arr))
-            }
-        }
-        Some(PqlValue::Object(mut object)) => {
-            if let Some((head, tail)) = &path.split_first() {
-                if let Some(value) = object.get(&head.to_string()) {
-                    match restrict_old(Some(value.to_owned()), &tail, cond) {
-                        Some(v) => {
-                            let it = object.get_mut(&head.to_string()).unwrap();
-                            *it = v.to_owned();
-                            Some(PqlValue::Object(object))
-                        }
-                        _ => None,
-                    }
-                } else {
-                    None
-                }
-            } else {
-                unreachable!()
-            }
-        }
-        None => None,
-        Some(PqlValue::Boolean(boolean)) if boolean => Some(PqlValue::Boolean(boolean)),
-        Some(PqlValue::Boolean(_)) => None,
-        Some(PqlValue::Null) => None,
-        Some(value) => match cond {
-            Some(WhereCond::Eq { expr: _, right }) => {
-                if value == right.to_owned() {
-                    Some(value)
-                } else {
-                    None
-                }
-            }
-            Some(WhereCond::Like { expr: _, right }) => {
-                if let PqlValue::Str(string) = &value {
-                    if re_from_str(&right).is_match(&string) {
-                        Some(value)
-                    } else {
-                        None
-                    }
-                } else {
-                    todo!()
-                }
-            }
-            _ => unreachable!(),
-        },
-    }
-}
-
 impl PqlValue {
-    fn restrict2(self, cond: &WhereCond) -> Option<Self> {
-        let env = &Env::from(self.to_owned());
-        let cond = &cond.to_owned().expand_fullpath(&env);
-        match &self {
-            PqlValue::Array(array) => {
-                let arr = array
-                    .into_iter()
-                    .filter_map(|child| {
-                        let vv = child.to_owned().restrict2(&cond);
-                        vv
-                    })
-                    .collect::<Vec<_>>();
-                let res = Some(PqlValue::from(arr));
-                res
-            }
-            PqlValue::Object(object) => {
-                let obj = match cond.to_path().map(|selector| selector.split_first()) {
-                    Some(Some((head, tail))) => {
-                        if let Some(src) = object.get(head.to_string().as_str()) {
-                            if let Some(dist) = src.to_owned().restrict2(cond) {
-                                let mut restricted = object.to_owned();
-                                restricted.insert(head.to_string(), dist);
-                                let m = Some(PqlValue::from(restricted));
-                                m
-                            } else {
-                                None
-                            }
-                        } else {
-                            todo!()
-                        }
-                    }
-                    Some(None) => {
-                        todo!()
-                    }
-                    _ => None,
-                };
-                obj
-            }
-            value => match cond.to_owned() {
-                WhereCond::Eq { expr, right } => {
-                    if expr.eval(&Env::from(value.to_owned())) == right {
-                        Some(value.to_owned())
-                    } else {
-                        None
-                    }
-                }
-                WhereCond::Like { expr: _, right } => {
-                    if let PqlValue::Str(string) = &value {
-                        if re_from_str(&right).is_match(&string) {
-                            Some(value.to_owned())
-                        } else {
-                            None
-                        }
-                    } else {
-                        todo!()
-                    }
-                }
-                _ => unreachable!(),
-            },
-        }
-    }
-
     fn restrict3(self, cond: &WhereCond, depth: usize) -> Option<Self> {
         let env = &Env::from(self.to_owned());
         let cond = &cond.to_owned().expand_fullpath(&env);
@@ -283,7 +116,7 @@ mod tests {
     //    ",
     //         )?;
 
-    //         let res = value.restrict2(&cond);
+    //         let res = value.restrict3(&cond);
     //         assert_eq!(res, Some(PqlValue::from_str(r#"<<true>>"#)?));
     //         Ok(())
     //     }
@@ -353,7 +186,7 @@ mod tests {
             expr: Expr::from(Selector::from("id")),
             right: PqlValue::from(6.),
         };
-        let res = value.restrict2(&cond);
+        let res = value.restrict3(&cond, 0);
         let expected = pqlir_parser::pql_value(
             "
 [
@@ -470,7 +303,7 @@ mod tests {
             expr: Expr::from(Selector::from("projects")),
             right: "%security%".to_owned(),
         };
-        let res = value.restrict2(&cond);
+        let res = value.restrict3(&cond, 0);
         let expected = pqlir_parser::pql_value(
             "
 [
@@ -520,7 +353,7 @@ mod tests {
             expr: Expr::from_str("n%2")?,
             right: PqlValue::from(0.),
         };
-        let res = value.restrict2(&cond);
+        let res = value.restrict3(&cond, 0);
         let expected = pqlir_parser::pql_value(
             "
 [
