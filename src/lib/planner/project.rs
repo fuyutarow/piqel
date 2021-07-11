@@ -13,14 +13,7 @@ pub struct Projection(pub Vec<Field>);
 
 impl Projection {
     pub fn execute(self, env: &Env) -> Vec<PqlValue> {
-        let v = self.step12(env);
-        let v = self.step3(v);
-        let v = self.step4(v);
-        v
-    }
-
-    pub fn step12(&self, env: &Env) -> Rows {
-        let obj = self
+        let v = self
             .0
             .iter()
             .map(|field| {
@@ -30,15 +23,9 @@ impl Projection {
                 (alias, value)
             })
             .collect::<Map<String, PqlValue>>();
-        Rows::from(PqlValue::Object(obj))
-    }
-
-    pub fn step3(&self, rows: Rows) -> Records {
-        Records::from(rows)
-    }
-
-    pub fn step4(&self, records: Records) -> Vec<PqlValue> {
-        records.into_list()
+        let v = Rows::from(PqlValue::Object(v));
+        let v = Records::from(v);
+        v.into_list()
     }
 }
 
@@ -319,6 +306,67 @@ mod tests {
 
         let records = Records::from(rows);
         assert_eq!(PqlValue::from(records.to_owned()), form2);
+
+        let list = records.into_list();
+        assert_eq!(PqlValue::from(list.to_owned()), form3);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_convert_matrix() -> anyhow::Result<()> {
+        let form0 = PqlValue::from_str(
+            r#"
+{
+    "id": [
+        1,
+        3
+    ],
+    "x": [
+        [
+            [2, 4],
+            [6]
+        ],
+        [
+            [8]
+        ]
+    ]
+}
+"#,
+        )?;
+        let form3 = PqlValue::from_str(
+            r#"
+[
+  {
+    "id": 1,
+    "x": 2
+  },
+  {
+    "id": 1,
+    "x": 4
+  },
+  {
+    "id": 1,
+    "x": 6
+  },
+  {
+    "id": 3,
+    "x": 8
+  }
+]
+"#,
+        )?;
+
+        let rows = Rows::from(form0.to_owned());
+        let v = PqlValue::from(rows.to_owned());
+        v.print();
+        // assert_eq!(PqlValue::from(rows.to_owned()), form1);
+
+        let records = Records::from(rows);
+        let v = PqlValue::from(records.to_owned());
+        dbg!(&records);
+        // v.print();
+        // assert_eq!(PqlValue::from(records.to_owned()), form2);
 
         let list = records.into_list();
         assert_eq!(PqlValue::from(list.to_owned()), form3);

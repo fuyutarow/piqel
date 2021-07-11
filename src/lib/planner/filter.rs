@@ -11,6 +11,7 @@ pub struct Filter(pub Option<Box<WhereCond>>);
 impl Filter {
     pub fn execute(self, env: &mut Env) {
         if let Some(cond) = self.0 {
+            let cond = &cond.to_owned().expand_fullpath(&env);
             if let Some(expr) = env.get("") {
                 let data = match expr {
                     Expr::Value(value) => {
@@ -34,8 +35,6 @@ impl Filter {
 
 impl PqlValue {
     fn restrict3(self, cond: &WhereCond, depth: usize) -> Option<Self> {
-        let env = &Env::from(self.to_owned());
-        let cond = &cond.to_owned().expand_fullpath(&env);
         match &self {
             PqlValue::Array(array) => {
                 let arr = array
@@ -45,8 +44,7 @@ impl PqlValue {
                         vv
                     })
                     .collect::<Vec<_>>();
-                let res = Some(PqlValue::from(arr));
-                res
+                (!arr.is_empty()).then(|| PqlValue::from(arr))
             }
             PqlValue::Object(object) => {
                 let obj = match cond.to_path().map(|selector| selector.get(depth)) {
@@ -251,12 +249,6 @@ mod tests {
         ]
     },
     {
-        'id': 4,
-        'name': 'Susan Smith',
-        'title': 'Dev Mgr',
-        'projects': []
-    },
-    {
         'id': 6,
         'name': 'Jane Smith',
         'title': 'Software Eng 2',
@@ -315,12 +307,6 @@ mod tests {
             'AWS Redshift security',
             'AWS Aurora security'
         ]
-    },
-    {
-        'id': 4,
-        'name': 'Susan Smith',
-        'title': 'Dev Mgr',
-        'projects': []
     },
     {
         'id': 6,
