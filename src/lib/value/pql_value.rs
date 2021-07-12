@@ -109,6 +109,15 @@ impl From<Map<String, PqlValue>> for PqlValue {
     }
 }
 
+impl From<PqlValue> for Vec<PqlValue> {
+    fn from(value: PqlValue) -> Self {
+        match value {
+            PqlValue::Array(array) => array,
+            _ => vec![value],
+        }
+    }
+}
+
 impl PqlValue {
     pub fn get(self, key: &str) -> Option<Self> {
         match self {
@@ -244,6 +253,27 @@ impl PqlValue {
 
     pub fn to_jsonc(&self) -> serde_json::Result<String> {
         serde_json::to_string(self)
+    }
+
+    pub fn into_array(self) -> Self {
+        let v: Vec<PqlValue> = self.into();
+        PqlValue::Array(v)
+    }
+    pub fn flatten(self) -> Self {
+        match self {
+            PqlValue::Array(array) => {
+                let flatten_array = array
+                    .into_iter()
+                    .map(|elem| {
+                        let v: Vec<PqlValue> = elem.into();
+                        v
+                    })
+                    .flatten()
+                    .collect::<Vec<_>>();
+                PqlValue::Array(flatten_array)
+            }
+            _ => self,
+        }
     }
 }
 
@@ -769,6 +799,39 @@ LIMIT 3
   { "no": 7.0, "bmi": 36.0 },
   { "no": 9.0, "bmi": 33.3984375 },
   { "no": 10.0, "bmi": 32.22222222222222 }
+]
+        "#
+            )?
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_flatten_array() -> anyhow::Result<()> {
+        assert_eq!(
+            PqlValue::from_str(
+                r#"
+[
+  [ [2, 4], [6] ],
+  [ [8] ]
+]
+     "#,
+            )?
+            .flatten(),
+            PqlValue::from_str(
+                r#"
+[
+  [
+    2.0,
+    4.0
+  ],
+  [
+    6.0
+  ],
+  [
+    8.0
+  ]
 ]
         "#
             )?
