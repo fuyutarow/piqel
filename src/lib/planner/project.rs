@@ -190,7 +190,11 @@ impl Records {
                         .clone()
                         .into_iter()
                         .zip(prod.into_iter())
-                        .map(|(key, p)| (key.to_owned(), p.to_owned()))
+                        .flat_map(|(key, p)| {
+                            p.to_owned()
+                                .then_if_not_missing()
+                                .map(|val| (key.to_owned(), val))
+                        })
                         .collect::<Map<String, _>>();
                     let v = PqlValue::Object(map);
                     v
@@ -206,7 +210,14 @@ impl Records {
 mod tests {
     use super::Records;
     use super::Rows;
+    use crate::planner::LogicalPlan;
+    use crate::sql::Env;
+    use crate::sql::Expr;
+    use crate::sql::Selector;
+    use crate::sql::Sql;
+    use crate::value::JsonValue;
     use crate::value::PqlValue;
+    use indexmap::IndexMap as Map;
     use std::str::FromStr;
 
     #[test]
@@ -365,6 +376,57 @@ mod tests {
         let list = records.into_list();
         assert_eq!(PqlValue::from(list.to_owned()), form3);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_project_a_missing_value() -> anyhow::Result<()> {
+        let env = Env::from(PqlValue::from_str(
+            r#"
+[
+    { 'id': 3, 'name': 'Bob Smith' },
+    { 'id': 4, 'name': 'Susan Smith', 'title': 'Dev Mgr' },
+    { 'id': 6, 'name': 'Jane Smith', 'title': 'Software Eng 2'}
+]
+"#,
+        )?);
+        let sql = Sql::from_str(r#"SELECT id, name, title"#)?;
+        let logical_plan = LogicalPlan::from(sql);
+        dbg!(&logical_plan);
+
+        let name = Expr::from(Selector::from("title")).eval(&env);
+        dbg!(&name);
+
+        let v = logical_plan
+            .project
+            .0
+            .iter()
+            .map(|field| {
+                let field = field.expand_fullpath(&env);
+                let (alias, expr) = field.rename();
+                let value = expr.eval(&env);
+                dbg!(&alias, &value);
+                (alias, value)
+            })
+            .collect::<Map<String, PqlValue>>();
+
+        let v = Rows::from(PqlValue::Object(v));
+        let v = Records::from(v);
+        let v = v.into_list();
+        let v = PqlValue::from(v);
+
+        assert_eq!(
+            PqlValue::from(v),
+            PqlValue::from_str(
+                r#"
+[
+    { 'id': 3, 'name': 'Bob Smith' },
+    { 'id': 4, 'name': 'Susan Smith', 'title': 'Dev Mgr' },
+    { 'id': 6, 'name': 'Jane Smith', 'title': 'Software Eng 2'}
+]
+                "#,
+            )?
+        );
         Ok(())
     }
 }

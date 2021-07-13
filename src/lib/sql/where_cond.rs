@@ -7,6 +7,7 @@ use crate::value::PqlValue;
 #[derive(Debug, Clone, PartialEq)]
 pub enum WhereCond {
     Eq { expr: Expr, right: PqlValue },
+    Neq { expr: Expr, right: PqlValue },
     Like { expr: Expr, right: String },
 }
 
@@ -23,6 +24,7 @@ impl WhereCond {
     pub fn as_expr(&self) -> Expr {
         match &self {
             Self::Eq { expr, right: _ } => expr.to_owned(),
+            Self::Neq { expr, right: _ } => expr.to_owned(),
             Self::Like { expr, right: _ } => expr.to_owned(),
         }
     }
@@ -30,6 +32,10 @@ impl WhereCond {
     pub fn expand_fullpath(self, env: &Env) -> Self {
         match self {
             Self::Eq { expr, right } => Self::Eq {
+                expr: expr.expand_fullpath(env),
+                right,
+            },
+            Self::Neq { expr, right } => Self::Eq {
                 expr: expr.expand_fullpath(env),
                 right,
             },

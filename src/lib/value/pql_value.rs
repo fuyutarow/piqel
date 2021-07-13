@@ -19,6 +19,8 @@ use crate::value::PqlVector;
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum BPqlValue {
+    #[serde(skip_serializing)]
+    Missing,
     Null,
     Str(String),
     Boolean(bool),
@@ -33,6 +35,7 @@ pub enum BPqlValue {
 impl From<PqlValue> for BPqlValue {
     fn from(pqlv: PqlValue) -> Self {
         match pqlv {
+            PqlValue::Missing => Self::Missing,
             PqlValue::Null => Self::Null,
             PqlValue::Str(s) => Self::Str(s),
             PqlValue::Boolean(b) => Self::Boolean(b),
@@ -48,6 +51,8 @@ impl From<PqlValue> for BPqlValue {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum PqlValue {
+    #[serde(skip_serializing)]
+    Missing,
     Null,
     Str(String),
     Boolean(bool),
@@ -165,7 +170,7 @@ impl PqlValue {
                     if let Some(obj) = self.select_by_key(&key) {
                         obj.select_by_selector(&tail)
                     } else {
-                        None
+                        Some(PqlValue::Missing)
                     }
                 } else {
                     Some(self.to_owned())
@@ -238,6 +243,13 @@ impl PqlValue {
         }
     }
 
+    pub fn then_if_not_missing(self) -> Option<Self> {
+        match self {
+            Self::Missing => None,
+            _ => Some(self),
+        }
+    }
+
     pub fn print(&self) -> anyhow::Result<()> {
         println!("{}", self.to_json()?);
         Ok(())
@@ -259,6 +271,7 @@ impl PqlValue {
         let v: Vec<PqlValue> = self.into();
         PqlValue::Array(v)
     }
+
     pub fn flatten(self) -> Self {
         match self {
             PqlValue::Array(array) => {
@@ -822,16 +835,9 @@ LIMIT 3
             PqlValue::from_str(
                 r#"
 [
-  [
-    2.0,
-    4.0
-  ],
-  [
-    6.0
-  ],
-  [
-    8.0
-  ]
+  [ 2.0, 4.0 ],
+  [ 6.0 ],
+  [ 8.0 ]
 ]
         "#
             )?

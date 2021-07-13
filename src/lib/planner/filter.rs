@@ -59,7 +59,9 @@ impl PqlValue {
                                 None
                             }
                         } else {
-                            todo!()
+                            // MISSING
+                            // Some(PqlValue::Null)
+                            None
                         }
                     }
                     Some(None) => {
@@ -77,6 +79,13 @@ impl PqlValue {
                         None
                     }
                 }
+                WhereCond::Neq { expr, right } => {
+                    if expr.eval(&Env::from(value.to_owned())) != right {
+                        Some(value.to_owned())
+                    } else {
+                        None
+                    }
+                }
                 WhereCond::Like { expr: _, right } => {
                     if let PqlValue::Str(string) = &value {
                         if re_from_str(&right).is_match(&string) {
@@ -88,7 +97,6 @@ impl PqlValue {
                         todo!()
                     }
                 }
-                _ => unreachable!(),
             },
         }
     }
@@ -103,52 +111,41 @@ mod tests {
     use crate::sql::Expr;
     use crate::sql::Field;
     use crate::sql::Selector;
+    use crate::sql::Sql;
     use crate::sql::WhereCond;
     use crate::value::PqlValue;
 
-    //     #[test]
-    //     fn boolean() -> anyhow::Result<()> {
-    //         let value = PqlValue::from_str(
-    //             "
-    //     <<true, false, null>>
-    //    ",
-    //         )?;
+    #[test]
+    fn missing() -> anyhow::Result<()> {
+        let value = PqlValue::from_str(
+            "
+    {
+        'top': <<
+            {'a': 1, 'b': true, 'c': 'alpha'},
+            {'a': 2, 'b': null, 'c': 'beta'},
+            {'a': 3, 'c': 'gamma'}
+        >>
+    }
+       ",
+        )?;
+        let cond = WhereCond::Eq {
+            expr: Expr::from(Selector::from("top.b")),
+            right: PqlValue::from(true),
+        };
+        let expected = pqlir_parser::pql_value(
+            "
+    {
+        'top': <<
+            {'a': 1, 'b': true, 'c': 'alpha'}
+        >>
+    }
+       ",
+        )?;
+        let res = value.restrict3(&cond, 0);
+        assert_eq!(res, Some(expected));
 
-    //         let res = value.restrict3(&cond);
-    //         assert_eq!(res, Some(PqlValue::from_str(r#"<<true>>"#)?));
-    //         Ok(())
-    //     }
-
-    //     #[test]
-    //     fn missing() -> anyhow::Result<()> {
-    //         let value = PqlValue::from_str(
-    //             "
-    // {
-    //     'top': <<
-    //         {'a': 1, 'b': true, 'c': 'alpha'},
-    //         {'a': 2, 'b': null, 'c': 'beta'},
-    //         {'a': 3, 'c': 'gamma'}
-    //     >>
-    // }
-    //    ",
-    //         )?;
-    //         let cond = WhereCond::Eq {
-    //             expr: Expr::from(Selector::from("top.b")),
-    //             right: PqlValue::from(6.),
-    //         };
-    //         let expected = pqlir_parser::pql_value(
-    //             "
-    // {
-    //     'top': <<
-    //         {'a': 1, 'b': true, 'c': 'alpha'}
-    //     >>
-    // }
-    //    ",
-    //         )?;
-    //         assert_eq!(res, Some(expected));
-
-    //         Ok(())
-    //     }
+        Ok(())
+    }
 
     #[test]
     fn test_filter_scalar() -> anyhow::Result<()> {

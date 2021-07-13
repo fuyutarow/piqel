@@ -32,8 +32,6 @@ impl From<Sql> for LogicalPlan {
 
 impl LogicalPlan {
     pub fn execute(self, env: &mut Env) -> PqlValue {
-        dbg!(&self);
-
         for drain in self.drains {
             drain.execute(env);
         }
@@ -41,7 +39,6 @@ impl LogicalPlan {
         self.filter.execute(env);
 
         let mut list = self.project.execute(&env);
-        dbg!(&list);
 
         if let Some(orderby) = &self.order_by {
             let mut list_with_key = list
