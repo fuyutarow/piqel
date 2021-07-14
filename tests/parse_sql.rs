@@ -271,23 +271,22 @@ fn q7() -> anyhow::Result<()> {
 }
 
 #[test]
-fn q8() {
-    let sql = get_sql("q8");
+fn q12() -> anyhow::Result<()> {
+    let sql = get_sql("q12")?;
 
-    if sql.is_ok() {
-        assert_eq!(true, true);
-    } else {
-        assert_eq!(false, false);
-    }
-}
-
-#[test]
-fn q9() {
-    let sql = get_sql("q9");
-
-    if sql.is_ok() {
-        assert_eq!(true, true);
-    } else {
-        assert_eq!(false, false);
-    }
+    assert_eq!(
+        sql,
+        Sql {
+            select_clause: vec![
+                Field::from_str("e.name AS employeeName")?,
+                Field::from_str("e.projects[0].name AS firstProjectName")?,
+            ],
+            from_clause: vec![Field::from_str("hr.employeesNest AS e")?,],
+            left_join_clause: vec![],
+            where_clause: None,
+            orderby: None,
+            limit: None,
+        }
+    );
+    Ok(())
 }

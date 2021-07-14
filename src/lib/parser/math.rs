@@ -69,7 +69,7 @@ pub fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
         space0,
         alt((
             parser::float_number,
-            parser::func::count,
+            parser::func::function,
             parser::parse_path_as_expr,
         )),
         space0,

@@ -1,4 +1,5 @@
-use nom::bytes::complete::tag;
+use nom::branch::alt;
+use nom::bytes::complete::{tag, tag_no_case};
 use nom::character::complete::char;
 use nom::combinator::cut;
 use nom::sequence::{preceded, terminated, tuple};
@@ -9,10 +10,19 @@ use crate::sql::Func;
 
 use crate::parser::{parse_expr, whitespace};
 
-pub fn count<'a>(input: &'a str) -> IResult<&'a str, Expr> {
-    let name = "COUNT";
-    let (input, (_, _, expr)) = tuple((
-        preceded(whitespace, tag(name)),
+pub fn function(input: &str) -> IResult<&str, Expr> {
+    let (input, (funcname, _, expr)) = tuple((
+        preceded(
+            whitespace,
+            alt((
+                tag_no_case("count"),
+                tag_no_case("upper"),
+                tag_no_case("lower"),
+                tag_no_case("ceil"),
+                tag_no_case("floor"),
+                tag_no_case("round"),
+            )),
+        ),
         char('('),
         cut(terminated(
             preceded(whitespace, parse_expr),
@@ -20,23 +30,13 @@ pub fn count<'a>(input: &'a str) -> IResult<&'a str, Expr> {
         )),
     ))(input)?;
 
-    let res = Expr::Func(Box::new(Func::Count(expr)));
+    let func = match funcname.to_lowercase().as_str() {
+        "count" => Func::Count(expr),
+        "upper" => Func::Upper(expr),
+        _ => todo!(),
+    };
 
-    Ok((input, res))
-}
-
-pub fn upper<'a>(input: &'a str) -> IResult<&'a str, Expr> {
-    let name = "UPPER";
-    let (input, (_, _, expr)) = tuple((
-        preceded(whitespace, tag(name)),
-        char('('),
-        cut(terminated(
-            preceded(whitespace, parse_expr),
-            preceded(whitespace, char(')')),
-        )),
-    ))(input)?;
-
-    let res = Expr::Func(Box::new(Func::Upper(expr)));
+    let res = Expr::Func(Box::new(func));
 
     Ok((input, res))
 }
