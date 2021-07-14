@@ -6,12 +6,11 @@ use std::str::FromStr;
 
 use chrono::prelude::*;
 use chrono::serde::ts_seconds;
-use indexmap::IndexMap;
+use indexmap::IndexMap as Map;
 use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::planner::{self, WhereCond};
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
 use crate::value::PqlVector;
@@ -19,6 +18,8 @@ use crate::value::PqlVector;
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum BPqlValue {
+    #[serde(skip_serializing)]
+    Missing,
     Null,
     Str(String),
     Boolean(bool),
@@ -33,6 +34,7 @@ pub enum BPqlValue {
 impl From<PqlValue> for BPqlValue {
     fn from(pqlv: PqlValue) -> Self {
         match pqlv {
+            PqlValue::Missing => Self::Missing,
             PqlValue::Null => Self::Null,
             PqlValue::Str(s) => Self::Str(s),
             PqlValue::Boolean(b) => Self::Boolean(b),
@@ -48,6 +50,8 @@ impl From<PqlValue> for BPqlValue {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum PqlValue {
+    #[serde(skip_serializing)]
+    Missing,
     Null,
     Str(String),
     Boolean(bool),
@@ -56,7 +60,7 @@ pub enum PqlValue {
     #[serde(with = "ts_seconds")]
     DateTime(DateTime<Utc>),
     Array(Vec<Self>),
-    Object(IndexMap<String, Self>),
+    Object(Map<String, Self>),
 }
 
 impl Default for PqlValue {
@@ -100,6 +104,21 @@ impl From<f64> for PqlValue {
 impl From<Vec<PqlValue>> for PqlValue {
     fn from(v: Vec<PqlValue>) -> Self {
         Self::Array(v)
+    }
+}
+
+impl From<Map<String, PqlValue>> for PqlValue {
+    fn from(obj: Map<String, PqlValue>) -> Self {
+        Self::Object(obj)
+    }
+}
+
+impl From<PqlValue> for Vec<PqlValue> {
+    fn from(value: PqlValue) -> Self {
+        match value {
+            PqlValue::Array(array) => array,
+            _ => vec![value],
+        }
     }
 }
 
@@ -150,7 +169,7 @@ impl PqlValue {
                     if let Some(obj) = self.select_by_key(&key) {
                         obj.select_by_selector(&tail)
                     } else {
-                        None
+                        Some(PqlValue::Missing)
                     }
                 } else {
                     Some(self.to_owned())
@@ -223,6 +242,13 @@ impl PqlValue {
         }
     }
 
+    pub fn then_if_not_missing(self) -> Option<Self> {
+        match self {
+            Self::Missing => None,
+            _ => Some(self),
+        }
+    }
+
     pub fn print(&self) -> anyhow::Result<()> {
         println!("{}", self.to_json()?);
         Ok(())
@@ -240,8 +266,26 @@ impl PqlValue {
         serde_json::to_string(self)
     }
 
-    pub fn restrict(self, selector: &Selector, cond: &Option<WhereCond>) -> Option<Self> {
-        planner::filter::restrict(Some(self), selector, cond)
+    pub fn into_array(self) -> Self {
+        let v: Vec<PqlValue> = self.into();
+        PqlValue::Array(v)
+    }
+
+    pub fn flatten(self) -> Self {
+        match self {
+            PqlValue::Array(array) => {
+                let flatten_array = array
+                    .into_iter()
+                    .map(|elem| {
+                        let v: Vec<PqlValue> = elem.into();
+                        v
+                    })
+                    .flatten()
+                    .collect::<Vec<_>>();
+                PqlValue::Array(flatten_array)
+            }
+            _ => self,
+        }
     }
 }
 
@@ -367,14 +411,27 @@ impl Div for PqlValue {
 impl Rem for PqlValue {
     type Output = Self;
     fn rem(self, other: Self) -> Self::Output {
-        let (a, b) = match (self, other) {
-            (Self::Int(a), Self::Int(b)) => (a as f64, b as f64),
-            (Self::Int(a), Self::Float(OrderedFloat(b))) => (a as f64, b),
-            (Self::Float(OrderedFloat(a)), Self::Int(b)) => (a, b as f64),
-            (Self::Float(OrderedFloat(a)), Self::Float(OrderedFloat(b))) => (a, b),
+        match (self, other) {
+            (Self::Int(a), Self::Int(b)) => Self::from(a % b),
+            (Self::Int(a), Self::Float(OrderedFloat(b))) => Self::from(a as f64 % b),
+            (Self::Float(OrderedFloat(a)), Self::Int(b)) => Self::from(a % b as f64),
+            (Self::Float(OrderedFloat(a)), Self::Float(OrderedFloat(b))) => Self::from(a % b),
+            (Self::Array(array_a), Self::Array(array_b)) => {
+                let (vec_a, vec_b) = (PqlVector(array_a), PqlVector(array_b));
+                PqlValue::from(vec_a % vec_b)
+            }
+            (Self::Array(array), val) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(array), PqlVector(vec![val; n]));
+                PqlValue::from(vec_a % vec_b)
+            }
+            (val, Self::Array(array)) => {
+                let n = array.len();
+                let (vec_a, vec_b) = (PqlVector(vec![val; n]), PqlVector(array));
+                PqlValue::from(vec_a % vec_b)
+            }
             _ => todo!(),
-        };
-        Self::from(a % b)
+        }
     }
 }
 
@@ -415,10 +472,8 @@ mod tests {
     use std::collections::VecDeque;
     use std::str::FromStr;
 
-    use indexmap::IndexMap as Map;
     use ordered_float::OrderedFloat;
 
-    use crate::parser;
     use crate::planner::LogicalPlan;
     use crate::pqlir_parser;
     use crate::sql::Env;
@@ -503,7 +558,7 @@ mod tests {
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     dat.n + 3 AS n3,
@@ -558,7 +613,7 @@ SELECT
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     dat.n - 3 AS n3,
@@ -614,7 +669,7 @@ SELECT
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     dat.n * 3 AS n3,
@@ -669,7 +724,7 @@ SELECT
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     dat.n / 3 AS n3,
@@ -731,7 +786,7 @@ SELECT
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     no,
@@ -754,6 +809,32 @@ LIMIT 3
   { "no": 7.0, "bmi": 36.0 },
   { "no": 9.0, "bmi": 33.3984375 },
   { "no": 10.0, "bmi": 32.22222222222222 }
+]
+        "#
+            )?
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_flatten_array() -> anyhow::Result<()> {
+        assert_eq!(
+            PqlValue::from_str(
+                r#"
+[
+  [ [2, 4], [6] ],
+  [ [8] ]
+]
+     "#,
+            )?
+            .flatten(),
+            PqlValue::from_str(
+                r#"
+[
+  [ 2.0, 4.0 ],
+  [ 6.0 ],
+  [ 8.0 ]
 ]
         "#
             )?

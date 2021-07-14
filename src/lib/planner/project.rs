@@ -13,36 +13,7 @@ pub struct Projection(pub Vec<Field>);
 
 impl Projection {
     pub fn execute(self, env: &Env) -> Vec<PqlValue> {
-        let v = self.step12(env);
-        let v = self.step3(v);
-        let v = self.step4(v);
-        v
-    }
-
-    pub fn execute_old(self, data: PqlValue, env: &Env) -> Vec<PqlValue> {
-        let v = self.step1(data, env);
-        let v = self.step2(v);
-        let v = self.step3(v);
-        let v = self.step4(v);
-        v
-    }
-
-    pub fn step1(&self, data: PqlValue, env: &Env) -> PqlValue {
-        let fields = self
-            .0
-            .iter()
-            .map(|field| field.expand_fullpath(&env))
-            .collect::<Vec<Field>>();
-        let projected = data.select_by_fields(&fields, &env).unwrap_or_default();
-        projected
-    }
-
-    pub fn step2(&self, data: PqlValue) -> Rows {
-        Rows::from(data)
-    }
-
-    pub fn step12(&self, env: &Env) -> Rows {
-        let obj = self
+        let v = self
             .0
             .iter()
             .map(|field| {
@@ -52,15 +23,9 @@ impl Projection {
                 (alias, value)
             })
             .collect::<Map<String, PqlValue>>();
-        Rows::from(PqlValue::Object(obj))
-    }
-
-    pub fn step3(&self, rows: Rows) -> Records {
-        Records::from(rows)
-    }
-
-    pub fn step4(&self, records: Records) -> Vec<PqlValue> {
-        records.into_list()
+        let v = Rows::from(PqlValue::Object(v));
+        let v = Records::from(v);
+        v.into_list()
     }
 }
 
@@ -175,14 +140,11 @@ impl From<Rows> for Records {
             for i in 0..rows.size {
                 let mut record = Map::<String, Vec<PqlValue>>::new();
                 for key in &rows.keys {
-                    let v = rows.data.get(key.as_str()).unwrap().get(i).unwrap();
-                    match v {
-                        PqlValue::Array(array) => {
-                            record.insert(key.to_string(), array.to_owned());
-                        }
-                        _ => {
-                            record.insert(key.to_string(), vec![v.to_owned()]);
-                        }
+                    if let Some(value) = rows.data.get(key.as_str()).unwrap().get(i) {
+                        let v: Vec<PqlValue> = value.to_owned().flatten().into();
+                        record.insert(key.to_string(), v);
+                    } else {
+                        dbg!(&record);
                     }
                 }
                 records.push(record);
@@ -228,7 +190,11 @@ impl Records {
                         .clone()
                         .into_iter()
                         .zip(prod.into_iter())
-                        .map(|(key, p)| (key.to_owned(), p.to_owned()))
+                        .flat_map(|(key, p)| {
+                            p.to_owned()
+                                .then_if_not_missing()
+                                .map(|val| (key.to_owned(), val))
+                        })
                         .collect::<Map<String, _>>();
                     let v = PqlValue::Object(map);
                     v
@@ -244,7 +210,14 @@ impl Records {
 mod tests {
     use super::Records;
     use super::Rows;
+    use crate::planner::LogicalPlan;
+    use crate::sql::Env;
+    use crate::sql::Expr;
+    use crate::sql::Selector;
+    use crate::sql::Sql;
+
     use crate::value::PqlValue;
+    use indexmap::IndexMap as Map;
     use std::str::FromStr;
 
     #[test]
@@ -342,6 +315,118 @@ mod tests {
         let list = records.into_list();
         assert_eq!(PqlValue::from(list.to_owned()), form3);
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_convert_matrix() -> anyhow::Result<()> {
+        let form0 = PqlValue::from_str(
+            r#"
+{
+    "id": [
+        1,
+        3
+    ],
+    "x": [
+        [
+            [2, 4],
+            [6]
+        ],
+        [
+            [8]
+        ]
+    ]
+}
+"#,
+        )?;
+        let form3 = PqlValue::from_str(
+            r#"
+[
+  {
+    "id": 1,
+    "x": 2
+  },
+  {
+    "id": 1,
+    "x": 4
+  },
+  {
+    "id": 1,
+    "x": 6
+  },
+  {
+    "id": 3,
+    "x": 8
+  }
+]
+"#,
+        )?;
+
+        let rows = Rows::from(form0.to_owned());
+        let v = PqlValue::from(rows.to_owned());
+        v.print();
+        // assert_eq!(PqlValue::from(rows.to_owned()), form1);
+
+        let records = Records::from(rows);
+        let _v = PqlValue::from(records.to_owned());
+        dbg!(&records);
+        // v.print();
+        // assert_eq!(PqlValue::from(records.to_owned()), form2);
+
+        let list = records.into_list();
+        assert_eq!(PqlValue::from(list.to_owned()), form3);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_project_a_missing_value() -> anyhow::Result<()> {
+        let env = Env::from(PqlValue::from_str(
+            r#"
+[
+    { 'id': 3, 'name': 'Bob Smith' },
+    { 'id': 4, 'name': 'Susan Smith', 'title': 'Dev Mgr' },
+    { 'id': 6, 'name': 'Jane Smith', 'title': 'Software Eng 2'}
+]
+"#,
+        )?);
+        let sql = Sql::from_str(r#"SELECT id, name, title"#)?;
+        let logical_plan = LogicalPlan::from(sql);
+        dbg!(&logical_plan);
+
+        let name = Expr::from(Selector::from("title")).eval(&env);
+        dbg!(&name);
+
+        let v = logical_plan
+            .project
+            .0
+            .iter()
+            .map(|field| {
+                let field = field.expand_fullpath(&env);
+                let (alias, expr) = field.rename();
+                let value = expr.eval(&env);
+                dbg!(&alias, &value);
+                (alias, value)
+            })
+            .collect::<Map<String, PqlValue>>();
+
+        let v = Rows::from(PqlValue::Object(v));
+        let v = Records::from(v);
+        let v = v.into_list();
+        let v = PqlValue::from(v);
+
+        assert_eq!(
+            PqlValue::from(v),
+            PqlValue::from_str(
+                r#"
+[
+    { 'id': 3, 'name': 'Bob Smith' },
+    { 'id': 4, 'name': 'Susan Smith', 'title': 'Dev Mgr' },
+    { 'id': 6, 'name': 'Jane Smith', 'title': 'Software Eng 2'}
+]
+                "#,
+            )?
+        );
         Ok(())
     }
 }

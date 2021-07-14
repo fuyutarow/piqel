@@ -4,7 +4,7 @@ use crate::planner::project::Projection;
 use crate::sql::clause::Limit;
 use crate::sql::clause::OrderBy;
 use crate::sql::Env;
-use crate::sql::Expr;
+
 use crate::sql::Sql;
 use crate::value::BPqlValue;
 use crate::value::PqlValue;
@@ -36,30 +36,9 @@ impl LogicalPlan {
             drain.execute(env);
         }
 
-        {
-            if let Some(expr) = env.get("") {
-                let data = match expr {
-                    Expr::Value(value) => {
-                        let filtered = self.filter.execute(value.to_owned(), &env);
-                        Expr::from(filtered)
-                    }
-                    Expr::Star => todo!(),
-                    Expr::Selector(_) => todo!(),
-                    Expr::Func(_) => todo!(),
-                    Expr::Add(_, _) => todo!(),
-                    Expr::Sub(_, _) => todo!(),
-                    Expr::Mul(_, _) => todo!(),
-                    Expr::Div(_, _) => todo!(),
-                    Expr::Rem(_, _) => todo!(),
-                    Expr::Exp(_, _) => todo!(),
-                    Expr::Sql(_) => todo!(),
-                };
-                env.insert("", &data);
-            };
-        }
+        self.filter.execute(env);
 
         let mut list = self.project.execute(&env);
-        dbg!(&list);
 
         if let Some(orderby) = &self.order_by {
             let mut list_with_key = list

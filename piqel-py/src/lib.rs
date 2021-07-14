@@ -3,7 +3,7 @@ use pyo3::types::*;
 use pythonize::{depythonize, pythonize};
 
 #[pymodule]
-fn partiql(py: Python, m: &PyModule) -> PyResult<()> {
+fn piqel(py: Python, m: &PyModule) -> PyResult<()> {
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
 
     #[pyfn(m, "loads")]

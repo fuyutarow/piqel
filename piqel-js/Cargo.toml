@@ -1,8 +1,15 @@
 [package]
 name = "piqel"
 version = "0.202107.1"
-authors = ["fuyutarow <fuyutarow@gmail.com>"]
 edition = "2018"
+description = "A implementation of PartiQL"
+homepage = "https://github.com/fuyutarow/piqel"
+repository = "https://github.com/fuyutarow/piqel.git"
+authors = ["FUKUDA Yutaro <fuyutarow@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+categories = ["database", "parsing", "parser-implementations"]
+keywords = ["PartiQL", "SQL"]
 
 [lib]
 crate-type = ["cdylib"]

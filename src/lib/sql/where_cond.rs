@@ -1,4 +1,4 @@
-use crate::sql::field::Field;
+use crate::sql::Env;
 use crate::sql::Expr;
 use crate::sql::Selector;
 use crate::value::PqlValue;
@@ -6,6 +6,7 @@ use crate::value::PqlValue;
 #[derive(Debug, Clone, PartialEq)]
 pub enum WhereCond {
     Eq { expr: Expr, right: PqlValue },
+    Neq { expr: Expr, right: PqlValue },
     Like { expr: Expr, right: String },
 }
 
@@ -19,11 +20,33 @@ impl Default for WhereCond {
 }
 
 impl WhereCond {
-    pub fn get_expr(&self) -> Expr {
+    pub fn as_expr(&self) -> Expr {
         match &self {
             Self::Eq { expr, right: _ } => expr.to_owned(),
+            Self::Neq { expr, right: _ } => expr.to_owned(),
             Self::Like { expr, right: _ } => expr.to_owned(),
         }
+    }
+
+    pub fn expand_fullpath(self, env: &Env) -> Self {
+        match self {
+            Self::Eq { expr, right } => Self::Eq {
+                expr: expr.expand_fullpath(env),
+                right,
+            },
+            Self::Neq { expr, right } => Self::Eq {
+                expr: expr.expand_fullpath(env),
+                right,
+            },
+            Self::Like { expr, right } => Self::Like {
+                expr: expr.expand_fullpath(env),
+                right,
+            },
+        }
+    }
+
+    pub fn to_path(&self) -> Option<Selector> {
+        self.as_expr().to_path()
     }
 }
 

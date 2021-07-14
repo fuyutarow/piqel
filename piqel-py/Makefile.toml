@@ -1,6 +1,7 @@
 [tasks."install:py"]
 dependencies = ["build:py"]
 script = '''
+poetry install
 poetry run maturin develop
 '''
 

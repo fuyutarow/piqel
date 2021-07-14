@@ -1,12 +1,12 @@
 # %%
-from partiql import __version__
-import partiql as pq
+from piqel import __version__
+import piqel as pq
 import pandas as pd
 
 
 # %%
 def test_version():
-    assert __version__ == "0.202106.9"
+    assert __version__ == "0.202107.1"
 
 
 # %%

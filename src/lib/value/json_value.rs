@@ -59,6 +59,7 @@ impl From<JsonValue> for PqlValue {
 impl From<PqlValue> for JsonValue {
     fn from(pqlv: PqlValue) -> Self {
         match pqlv {
+            PqlValue::Missing => unreachable!(),
             PqlValue::Null => Self::Null,
             PqlValue::Str(string) => Self::Str(string),
             PqlValue::Boolean(boolean) => Self::Boolean(boolean),
@@ -66,7 +67,7 @@ impl From<PqlValue> for JsonValue {
             PqlValue::Int(int) => Self::Num(OrderedFloat(int as f64)),
             PqlValue::DateTime(datetime) => Self::Str(datetime.to_rfc3339()),
             PqlValue::Array(array) => {
-                Self::Array(array.into_iter().map(|v| Self::from(v)).collect::<Vec<_>>())
+                Self::Array(array.into_iter().map(Self::from).collect::<Vec<_>>())
             }
             PqlValue::Object(map) => Self::Object(
                 map.into_iter()

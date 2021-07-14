@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "partiql"
+name = "piqel"
 version = "0.1.0"
 description = ""
 authors = ["fuyutarow <fuyutarow@gmail.com>"]

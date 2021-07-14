@@ -23,6 +23,7 @@ pub enum TomlValue {
 impl From<PqlValue> for TomlValue {
     fn from(pqlv: PqlValue) -> Self {
         match pqlv {
+            PqlValue::Missing => unreachable!(),
             PqlValue::Null => Self::Null,
             PqlValue::Str(string) => Self::Str(string),
             PqlValue::Boolean(boolean) => Self::Boolean(boolean),
@@ -34,6 +35,7 @@ impl From<PqlValue> for TomlValue {
                     .into_iter()
                     .filter_map(|v| match v {
                         PqlValue::Null => None,
+                        PqlValue::Missing => None,
                         _ => Some(Self::from(v)),
                     })
                     .collect::<Vec<_>>(),
@@ -43,6 +45,7 @@ impl From<PqlValue> for TomlValue {
                 let mut paris_for_map = vec![];
                 for (k, v) in map.into_iter() {
                     match v {
+                        PqlValue::Missing => {}
                         PqlValue::Null => {}
                         PqlValue::Object(_) => {
                             paris_for_map.push((k, Self::from(v)));

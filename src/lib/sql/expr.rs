@@ -1,9 +1,10 @@
 use std::collections::HashSet;
+use std::str::FromStr;
 
 use collect_mac::collect;
-
 use ordered_float::OrderedFloat;
 
+use crate::parser;
 use crate::sql::Env;
 use crate::sql::Selector;
 use crate::sql::Sql;
@@ -65,6 +66,21 @@ impl From<Expr> for String {
         match expr {
             Expr::Selector(selector) => selector.to_string(),
             Expr::Value(value) => value.to_json().expect("to json"),
+            _ => todo!(),
+        }
+    }
+}
+
+impl FromStr for Expr {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> anyhow::Result<Self> {
+        match parser::expressions::parse_expr(s) {
+            Ok((_, expr)) => Ok(expr),
+            Err(nom::Err::Error(err)) => {
+                eprint!("{}", err);
+                anyhow::bail!("failed")
+            }
             _ => todo!(),
         }
     }
@@ -176,6 +192,52 @@ impl Expr {
             }
         }
     }
+
+    pub fn to_path(&self) -> Option<Selector> {
+        match self.to_owned() {
+            Self::Value(_value) => None,
+            Self::Selector(selector) => Some(selector),
+            Self::Star => todo!(),
+            Self::Func(_) => todo!(),
+            Self::Sql(_) => todo!(),
+            Self::Add(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                (Some(s1), Some(s2)) => Some(s1.intersect(&s2)),
+                (Some(s1), _) => Some(s1),
+                (_, Some(s2)) => Some(s2),
+                _ => None,
+            },
+            Self::Sub(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                (Some(s1), Some(s2)) => Some(s1.intersect(&s2)),
+                (Some(s1), _) => Some(s1),
+                (_, Some(s2)) => Some(s2),
+                _ => None,
+            },
+            Self::Mul(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                (Some(s1), Some(s2)) => Some(s1.intersect(&s2)),
+                (Some(s1), _) => Some(s1),
+                (_, Some(s2)) => Some(s2),
+                _ => None,
+            },
+            Self::Div(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                (Some(s1), Some(s2)) => Some(s1.intersect(&s2)),
+                (Some(s1), _) => Some(s1),
+                (_, Some(s2)) => Some(s2),
+                _ => None,
+            },
+            Self::Rem(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                (Some(s1), Some(s2)) => Some(s1.intersect(&s2)),
+                (Some(s1), _) => Some(s1),
+                (_, Some(s2)) => Some(s2),
+                _ => None,
+            },
+            Self::Exp(box expr1, box expr2) => match (expr1.to_path(), expr2.to_path()) {
+                (Some(s1), Some(s2)) => Some(s1.intersect(&s2)),
+                (Some(s1), _) => Some(s1),
+                (_, Some(s2)) => Some(s2),
+                _ => None,
+            },
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -191,7 +253,8 @@ mod tests {
     use crate::parser;
     use crate::planner::LogicalPlan;
     use crate::sql::Env;
-
+    use crate::sql::Expr;
+    use crate::sql::Selector;
     use crate::sql::Sql;
     use crate::value::PqlValue;
 
@@ -206,6 +269,28 @@ mod tests {
         let res = plan.execute(&mut env);
 
         assert_eq!(res, PqlValue::from_str(r#"[{ "aa": 12 }]"#)?);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_common_path() -> anyhow::Result<()> {
+        let expr = Expr::from_str("a.b.c + a.b.d")?;
+
+        let res = expr.to_path();
+
+        assert_eq!(res, Some(Selector::from(r#"a.b"#)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_common_math() -> anyhow::Result<()> {
+        let expr = Expr::from_str("a.b * 2")?;
+
+        let res = expr.to_path();
+
+        assert_eq!(res, Some(Selector::from(r#"a.b"#)));
 
         Ok(())
     }
