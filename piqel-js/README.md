@@ -20,7 +20,7 @@ yarn add piqel
 ```
 
 ## Usage
-```js:test_partiql.py
+```js:test_piqel.py
 import piqel
 
 def test_evaluate():

@@ -18,7 +18,7 @@ poetry add piqel
 ```
 
 ## Usage
-```py:test_partiql.py
+```py:test_piqel.py
 import piqel as pq
 
 data = {

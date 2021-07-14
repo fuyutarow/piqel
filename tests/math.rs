@@ -1,8 +1,8 @@
 use std::convert::TryFrom;
 
-use partiql::parser;
-use partiql::sql::Env;
-use partiql::value::PqlValue;
+use piqel::parser;
+use piqel::sql::Env;
+use piqel::value::PqlValue;
 
 #[test]
 fn calc() -> anyhow::Result<()> {

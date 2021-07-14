@@ -8,7 +8,7 @@ fn piqel(py: Python, m: &PyModule) -> PyResult<()> {
 
     #[pyfn(m, "loads")]
     fn loads(py: Python, input: &str, from: &str) -> PyResult<Py<PyAny>> {
-        let data = partiql::engine::loads(input, from).expect("load");
+        let data = piqel::engine::loads(input, from).expect("load");
         let obj = pythonize(py, &data).unwrap();
         Ok(obj)
     }
@@ -16,14 +16,14 @@ fn piqel(py: Python, m: &PyModule) -> PyResult<()> {
     #[pyfn(m, "dumps")]
     fn dumps(py: Python, obj: Py<PyAny>, to: &str) -> PyResult<String> {
         let data = depythonize(obj.as_ref(py)).unwrap();
-        let output = partiql::engine::dumps(data, to).expect("dump");
+        let output = piqel::engine::dumps(data, to).expect("dump");
         Ok(output)
     }
 
     #[pyfn(m, "query_evaluate")]
     fn query_evaluate(py: Python, obj: Py<PyAny>, q: &str) -> PyResult<Py<PyAny>> {
         let data = depythonize(obj.as_ref(py)).unwrap();
-        let data = partiql::engine::query_evaluate(data, q).expect("query evaluate");
+        let data = piqel::engine::query_evaluate(data, q).expect("query evaluate");
         let obj = pythonize(py, &data).unwrap();
         Ok(obj)
     }

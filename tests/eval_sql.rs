@@ -1,9 +1,8 @@
 use std::str::FromStr;
 
-use partiql::planner::evaluate;
-use partiql::sql::Sql;
-
-use partiql::value::PqlValue;
+use piqel::planner::evaluate;
+use piqel::sql::Sql;
+use piqel::value::PqlValue;
 
 fn get_sql_data_output(qi: &str) -> anyhow::Result<(Sql, PqlValue, PqlValue)> {
     let sql = {
