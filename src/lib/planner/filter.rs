@@ -1,7 +1,7 @@
 use crate::sql::re_from_str;
 use crate::sql::Env;
 use crate::sql::Expr;
-use crate::sql::Selector;
+
 use crate::sql::WhereCond;
 use crate::value::PqlValue;
 
@@ -48,7 +48,7 @@ impl PqlValue {
             }
             PqlValue::Object(object) => {
                 let obj = match cond.to_path().map(|selector| selector.get(depth)) {
-                    Some(Some((head))) => {
+                    Some(Some(head)) => {
                         if let Some(src) = object.get(head.to_string().as_str()) {
                             if let Some(dist) = src.to_owned().restrict3(cond, depth + 1) {
                                 let mut restricted = object.to_owned();
@@ -107,11 +107,11 @@ mod tests {
     use std::str::FromStr;
 
     use crate::pqlir_parser;
-    use crate::sql::Env;
+
     use crate::sql::Expr;
-    use crate::sql::Field;
+
     use crate::sql::Selector;
-    use crate::sql::Sql;
+
     use crate::sql::WhereCond;
     use crate::value::PqlValue;
 

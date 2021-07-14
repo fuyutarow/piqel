@@ -215,7 +215,7 @@ mod tests {
     use crate::sql::Expr;
     use crate::sql::Selector;
     use crate::sql::Sql;
-    use crate::value::JsonValue;
+
     use crate::value::PqlValue;
     use indexmap::IndexMap as Map;
     use std::str::FromStr;
@@ -368,7 +368,7 @@ mod tests {
         // assert_eq!(PqlValue::from(rows.to_owned()), form1);
 
         let records = Records::from(rows);
-        let v = PqlValue::from(records.to_owned());
+        let _v = PqlValue::from(records.to_owned());
         dbg!(&records);
         // v.print();
         // assert_eq!(PqlValue::from(records.to_owned()), form2);

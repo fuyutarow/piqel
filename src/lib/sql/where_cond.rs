@@ -1,4 +1,3 @@
-use crate::sql::field::Field;
 use crate::sql::Env;
 use crate::sql::Expr;
 use crate::sql::Selector;

@@ -4,7 +4,7 @@ use crate::planner::project::Projection;
 use crate::sql::clause::Limit;
 use crate::sql::clause::OrderBy;
 use crate::sql::Env;
-use crate::sql::Expr;
+
 use crate::sql::Sql;
 use crate::value::BPqlValue;
 use crate::value::PqlValue;

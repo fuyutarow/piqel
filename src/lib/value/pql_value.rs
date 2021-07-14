@@ -11,7 +11,6 @@ use ordered_float::OrderedFloat;
 use rayon::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-use crate::planner::{self, WhereCond};
 use crate::sql::Selector;
 use crate::sql::SelectorNode;
 use crate::value::PqlVector;
@@ -473,10 +472,8 @@ mod tests {
     use std::collections::VecDeque;
     use std::str::FromStr;
 
-    use indexmap::IndexMap as Map;
     use ordered_float::OrderedFloat;
 
-    use crate::parser;
     use crate::planner::LogicalPlan;
     use crate::pqlir_parser;
     use crate::sql::Env;
@@ -561,7 +558,7 @@ mod tests {
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     dat.n + 3 AS n3,
@@ -616,7 +613,7 @@ SELECT
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     dat.n - 3 AS n3,
@@ -672,7 +669,7 @@ SELECT
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     dat.n * 3 AS n3,
@@ -727,7 +724,7 @@ SELECT
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     dat.n / 3 AS n3,
@@ -789,7 +786,7 @@ SELECT
         let mut env = Env::default();
         env.insert("", &Expr::from(data));
 
-        let mut sql = Sql::from_str(
+        let sql = Sql::from_str(
             r#"
 SELECT
     no,
