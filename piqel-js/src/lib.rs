@@ -15,7 +15,7 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn greet() {
-    alert("Hello, partiql!");
+    alert("Hello, piqel!");
 }
 
 #[wasm_bindgen]

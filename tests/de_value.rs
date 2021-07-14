@@ -1,4 +1,4 @@
-use partiql::pqlir_parser;
+use piqel::pqlir_parser;
 
 #[test]
 fn bag() {

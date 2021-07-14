@@ -1,6 +1,6 @@
 [package]
 name = "piqel"
-version = "0.202107.1"
+version = "0.202107.3"
 edition = "2018"
 description = "A implementation of PartiQL"
 homepage = "https://github.com/fuyutarow/piqel"

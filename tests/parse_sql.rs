@@ -2,12 +2,12 @@ use std::str::FromStr;
 
 use ordered_float::OrderedFloat;
 
-use partiql::sql::Expr;
-use partiql::sql::Field;
-use partiql::sql::Selector;
-use partiql::sql::Sql;
-use partiql::sql::WhereCond;
-use partiql::value::PqlValue;
+use piqel::sql::Expr;
+use piqel::sql::Field;
+use piqel::sql::Selector;
+use piqel::sql::Sql;
+use piqel::sql::WhereCond;
+use piqel::value::PqlValue;
 
 fn get_sql(qi: &str) -> anyhow::Result<Sql> {
     let input = std::fs::read_to_string(format!("samples/{}.sql", qi)).unwrap();

@@ -1,6 +1,5 @@
 use collect_mac::collect;
 use indexmap::IndexMap as Map;
-
 use nom::branch::alt;
 use nom::bytes::complete::{tag, tag_no_case};
 use nom::character::complete::alphanumeric1;
@@ -48,8 +47,8 @@ pub fn parse_field(input: &str) -> IResult<&str, Field> {
 
 /// ```
 /// use std::str::FromStr;
-/// use partiql::parser;
-/// use partiql::value::PqlValue;
+/// use piqel::parser;
+/// use piqel::value::PqlValue;
 /// fn main() -> anyhow::Result<()> {
 ///   let value = parser::expressions::pqlvalue_with_alias_to_pql_value(r#"[1,2,3] AS arr"#)?.1;
 ///   let expected = PqlValue::from_str(r#"{ "arr" : [1,2,3] }"#)?;

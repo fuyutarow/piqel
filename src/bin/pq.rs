@@ -5,10 +5,10 @@ use std::str::FromStr;
 
 use structopt::StructOpt;
 
-use partiql::lang::{Lang, LangType};
-use partiql::parser;
-use partiql::planner::evaluate;
-use partiql::sql::Sql;
+use piqel::lang::{Lang, LangType};
+use piqel::parser;
+use piqel::planner::evaluate;
+use piqel::sql::Sql;
 
 fn read_from_stdin() -> anyhow::Result<String> {
     let mut buf = String::new();
