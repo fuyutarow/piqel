@@ -162,17 +162,17 @@ impl PqlValue {
         }
     }
 
-    pub fn select_by_selector(&self, selector: &Selector) -> Option<Self> {
+    pub fn select_by_selector(&self, selector: &Selector) -> Self {
         match self {
             Self::Object(_map) => {
                 if let Some((key, tail)) = selector.split_first() {
                     if let Some(obj) = self.select_by_key(&key) {
                         obj.select_by_selector(&tail)
                     } else {
-                        Some(PqlValue::Missing)
+                        PqlValue::Missing
                     }
                 } else {
-                    Some(self.to_owned())
+                    self.to_owned()
                 }
             }
             Self::Array(array) => {
@@ -183,26 +183,29 @@ impl PqlValue {
                                 todo!()
                             } else {
                                 let key_u = key_i as usize;
-                                array.get(key_u).map(|v| v.to_owned())
+                                array
+                                    .get(key_u)
+                                    .map(|value| value.to_owned())
+                                    .unwrap_or(Self::Missing)
                             }
                         }
                         _ => {
                             let new_array = array
                                 .into_iter()
-                                .filter_map(|value| value.select_by_selector(&selector))
+                                .map(|value| value.select_by_selector(&selector))
                                 .collect::<Vec<_>>();
-                            Some(Self::Array(new_array))
+                            Self::Array(new_array)
                         }
                     }
                 } else {
                     let new_array = array
                         .into_iter()
-                        .filter_map(|value| value.select_by_selector(&selector))
+                        .map(|value| value.select_by_selector(&selector))
                         .collect::<Vec<_>>();
-                    Some(Self::Array(new_array))
+                    Self::Array(new_array)
                 }
             }
-            _ => Some(self.clone()),
+            _ => self.to_owned(),
         }
     }
 
@@ -508,7 +511,7 @@ mod tests {
             .collect::<VecDeque<SelectorNode>>(),
         });
 
-        assert_eq!(selected_value, Some(pqlir_parser::from_str("2")?));
+        assert_eq!(selected_value, pqlir_parser::from_str("2")?);
         Ok(())
     }
 

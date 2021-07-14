@@ -43,7 +43,7 @@ impl Env {
         self.data.get_mut(key)
     }
 
-    pub fn get_by_selector(&self, selector: &Selector) -> Option<PqlValue> {
+    pub fn get_by_selector(&self, selector: &Selector) -> PqlValue {
         if let Some((head, tail)) = selector.split_first() {
             if let Some(expr) = self.get(head.to_string().as_str()) {
                 match expr {
@@ -51,7 +51,7 @@ impl Env {
                         let v = if tail.data.len() > 0 {
                             value.select_by_selector(&tail)
                         } else {
-                            Some(value)
+                            value
                         };
                         v
                     }

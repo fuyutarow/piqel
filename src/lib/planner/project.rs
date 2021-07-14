@@ -35,16 +35,12 @@ impl PqlValue {
         alias: Option<String>,
         selector: &Selector,
     ) -> (String, Self) {
-        if let Some(value) = self.select_by_selector(&selector) {
-            let key = alias.clone().unwrap_or({
-                let last = selector.to_vec().last().unwrap().to_string();
-                last
-            });
-            (key, value)
-        } else {
-            dbg!(&selector);
-            todo!()
-        }
+        let value = self.select_by_selector(&selector);
+        let key = alias.clone().unwrap_or({
+            let last = selector.to_vec().last().unwrap().to_string();
+            last
+        });
+        (key, value)
     }
 
     pub fn select_by_fields(&self, field_list: &[Field], env: &Env) -> Option<Self> {
@@ -53,16 +49,12 @@ impl PqlValue {
         for field in field_list {
             match &field.expr {
                 Expr::Selector(selector) => {
-                    if let Some(value) = self.select_by_selector(&selector) {
-                        let key = field.alias.clone().unwrap_or({
-                            let last = selector.to_vec().last().unwrap().to_string();
-                            last
-                        });
-                        new_map.insert(key, value);
-                    } else {
-                        dbg!(&selector);
-                        todo!()
-                    }
+                    let value = self.select_by_selector(&selector);
+                    let key = field.alias.clone().unwrap_or({
+                        let last = selector.to_vec().last().unwrap().to_string();
+                        last
+                    });
+                    new_map.insert(key, value);
                 }
                 _ => {
                     let value = field.to_owned().expr.eval(&env);

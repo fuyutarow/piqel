@@ -136,7 +136,7 @@ impl Expr {
     pub fn eval(self, env: &Env) -> PqlValue {
         match self.to_owned() {
             Self::Value(value) => value,
-            Self::Selector(selector) => selector.evaluate(&env).unwrap_or_default(),
+            Self::Selector(selector) => selector.evaluate(&env),
             Self::Star => todo!(),
             Self::Func(_) => todo!(),
             Self::Sql(_) => todo!(),

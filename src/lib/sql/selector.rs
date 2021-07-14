@@ -202,7 +202,7 @@ impl Selector {
         }
     }
 
-    pub fn evaluate(&self, env: &Env) -> Option<PqlValue> {
+    pub fn evaluate(&self, env: &Env) -> PqlValue {
         if let Some((head, tail)) = self.expand_fullpath(&env).split_first() {
             if let Some(expr) = env.get(head.to_string().as_str()) {
                 match expr {
@@ -210,7 +210,7 @@ impl Selector {
                         let v = if tail.data.len() > 0 {
                             value.select_by_selector(&tail)
                         } else {
-                            Some(value)
+                            value
                         };
                         v
                     }
@@ -310,7 +310,7 @@ mod tests {
 
         assert_eq!(
             selector.evaluate(&env),
-            Some(PqlValue::from_str(
+            PqlValue::from_str(
                 r#"
 [
   "Bob Smith",
@@ -318,7 +318,7 @@ mod tests {
   "Jane Smith"
 ]
 "#
-            )?)
+            )?
         );
         Ok(())
     }
@@ -340,7 +340,7 @@ mod tests {
         let selector = Selector::from_str("e.projects")?;
         assert_eq!(
             selector.evaluate(&env),
-            Some(PqlValue::from_str(
+            PqlValue::from_str(
                 r#"
 [
   [
@@ -362,7 +362,7 @@ mod tests {
   ]
 ]
 "#
-            )?)
+            )?
         );
         Ok(())
     }
@@ -384,7 +384,7 @@ mod tests {
         let selector = Selector::from_str("p")?;
         assert_eq!(
             selector.evaluate(&env),
-            Some(PqlValue::from_str(
+            PqlValue::from_str(
                 r#"
     [
       [
@@ -406,7 +406,7 @@ mod tests {
       ]
     ]
     "#
-            )?)
+            )?
         );
         Ok(())
     }
@@ -423,7 +423,7 @@ mod tests {
         };
 
         let selector = Selector::from_str("n")?;
-        assert_eq!(selector.evaluate(&env), Some(PqlValue::from_str("3")?));
+        assert_eq!(selector.evaluate(&env), PqlValue::from_str("3")?);
         Ok(())
     }
 
@@ -436,6 +436,24 @@ mod tests {
 
         assert_eq!(res, Selector::from("a.b"));
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_eval_first_element() -> anyhow::Result<()> {
+        let data = get_data()?;
+        let env = Env::from(data);
+
+        let selector = Selector::from_str("hr.employeesNest.projects[0]")?;
+
+        assert_eq!(
+            selector.evaluate(&env),
+            PqlValue::from(vec![
+                PqlValue::from_str(r#" { "name": "AWS Redshift Spectrum querying" } "#)?,
+                PqlValue::Missing,
+                PqlValue::from_str(r#" { "name": "AWS Redshift security" } "#)?
+            ])
+        );
         Ok(())
     }
 }
