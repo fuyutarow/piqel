@@ -162,47 +162,50 @@ impl PqlValue {
         }
     }
 
-    pub fn select_by_selector(&self, selector: &Selector) -> Option<Self> {
+    pub fn select_by_selector(&self, selector: &Selector) -> Self {
         match self {
             Self::Object(_map) => {
                 if let Some((key, tail)) = selector.split_first() {
                     if let Some(obj) = self.select_by_key(&key) {
                         obj.select_by_selector(&tail)
                     } else {
-                        Some(PqlValue::Missing)
+                        PqlValue::Missing
                     }
                 } else {
-                    Some(self.to_owned())
+                    self.to_owned()
                 }
             }
             Self::Array(array) => {
-                if let Some((key, _tail)) = selector.split_first() {
+                if let Some((key, tail)) = selector.split_first() {
                     match key {
                         SelectorNode::Number(key_i) => {
                             if key_i < 0 {
                                 todo!()
                             } else {
                                 let key_u = key_i as usize;
-                                array.get(key_u).map(|v| v.to_owned())
+                                array
+                                    .get(key_u)
+                                    .map(|value| value.select_by_selector(&tail))
+                                    .unwrap_or(Self::Missing)
                             }
                         }
                         _ => {
                             let new_array = array
                                 .into_iter()
-                                .filter_map(|value| value.select_by_selector(&selector))
+                                .map(|value| value.select_by_selector(&selector))
                                 .collect::<Vec<_>>();
-                            Some(Self::Array(new_array))
+                            Self::Array(new_array)
                         }
                     }
                 } else {
                     let new_array = array
                         .into_iter()
-                        .filter_map(|value| value.select_by_selector(&selector))
+                        .map(|value| value.select_by_selector(&selector))
                         .collect::<Vec<_>>();
-                    Some(Self::Array(new_array))
+                    Self::Array(new_array)
                 }
             }
-            _ => Some(self.clone()),
+            _ => self.to_owned(),
         }
     }
 
@@ -508,7 +511,7 @@ mod tests {
             .collect::<VecDeque<SelectorNode>>(),
         });
 
-        assert_eq!(selected_value, Some(pqlir_parser::from_str("2")?));
+        assert_eq!(selected_value, PqlValue::from_str("2")?);
         Ok(())
     }
 
@@ -536,7 +539,6 @@ mod tests {
         }) {
             *partiql_value = PqlValue::from(20.);
         };
-        dbg!(&value);
 
         assert_eq!(value, PqlValue::from_str(r#"{ "arr": [1,20,4] }"#)?);
         Ok(())
@@ -798,7 +800,6 @@ LIMIT 3
         let plan = LogicalPlan::from(sql);
 
         let res = plan.execute(&mut env);
-        dbg!(&res);
         res.print();
 
         assert_eq!(

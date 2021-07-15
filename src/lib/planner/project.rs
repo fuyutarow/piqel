@@ -35,16 +35,12 @@ impl PqlValue {
         alias: Option<String>,
         selector: &Selector,
     ) -> (String, Self) {
-        if let Some(value) = self.select_by_selector(&selector) {
-            let key = alias.clone().unwrap_or({
-                let last = selector.to_vec().last().unwrap().to_string();
-                last
-            });
-            (key, value)
-        } else {
-            dbg!(&selector);
-            todo!()
-        }
+        let value = self.select_by_selector(&selector);
+        let key = alias.clone().unwrap_or({
+            let last = selector.to_vec().last().unwrap().to_string();
+            last
+        });
+        (key, value)
     }
 
     pub fn select_by_fields(&self, field_list: &[Field], env: &Env) -> Option<Self> {
@@ -53,16 +49,12 @@ impl PqlValue {
         for field in field_list {
             match &field.expr {
                 Expr::Selector(selector) => {
-                    if let Some(value) = self.select_by_selector(&selector) {
-                        let key = field.alias.clone().unwrap_or({
-                            let last = selector.to_vec().last().unwrap().to_string();
-                            last
-                        });
-                        new_map.insert(key, value);
-                    } else {
-                        dbg!(&selector);
-                        todo!()
-                    }
+                    let value = self.select_by_selector(&selector);
+                    let key = field.alias.clone().unwrap_or({
+                        let last = selector.to_vec().last().unwrap().to_string();
+                        last
+                    });
+                    new_map.insert(key, value);
                 }
                 _ => {
                     let value = field.to_owned().expr.eval(&env);
@@ -422,6 +414,61 @@ mod tests {
 [
     { 'id': 3, 'name': 'Bob Smith' },
     { 'id': 4, 'name': 'Susan Smith', 'title': 'Dev Mgr' },
+    { 'id': 6, 'name': 'Jane Smith', 'title': 'Software Eng 2'}
+]
+                "#,
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_project_a_missing_value2() -> anyhow::Result<()> {
+        let env = Env::from(PqlValue::from(vec![
+            PqlValue::from_str(
+                r#"
+    { 'id': 3, 'name': 'Bob Smith' }
+            "#,
+            )?,
+            PqlValue::Missing,
+            PqlValue::from_str(
+                r#"
+    { 'id': 6, 'name': 'Jane Smith', 'title': 'Software Eng 2'}
+            "#,
+            )?,
+        ]));
+        let sql = Sql::from_str(r#"SELECT id, name, title"#)?;
+        let logical_plan = LogicalPlan::from(sql);
+        dbg!(&logical_plan);
+
+        let name = Expr::from(Selector::from("title")).eval(&env);
+        dbg!(&name);
+
+        let v = logical_plan
+            .project
+            .0
+            .iter()
+            .map(|field| {
+                let field = field.expand_fullpath(&env);
+                let (alias, expr) = field.rename();
+                let value = expr.eval(&env);
+                dbg!(&alias, &value);
+                (alias, value)
+            })
+            .collect::<Map<String, PqlValue>>();
+
+        let v = Rows::from(PqlValue::Object(v));
+        let v = Records::from(v);
+        let v = v.into_list();
+        let v = PqlValue::from(v);
+
+        assert_eq!(
+            PqlValue::from(v),
+            PqlValue::from_str(
+                r#"
+[
+    { 'id': 3, 'name': 'Bob Smith' },
+    {},
     { 'id': 6, 'name': 'Jane Smith', 'title': 'Software Eng 2'}
 ]
                 "#,

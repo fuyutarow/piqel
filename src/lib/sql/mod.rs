@@ -1,14 +1,16 @@
 mod env;
 mod expr;
 mod field;
+mod func;
 mod selector;
 mod sql;
 mod utils;
 mod where_cond;
 
 pub use env::Env;
-pub use expr::{Expr, Func};
+pub use expr::Expr;
 pub use field::Field;
+pub use func::Func;
 pub use selector::Selector;
 pub use selector::SelectorNode;
 pub use sql::Sql;

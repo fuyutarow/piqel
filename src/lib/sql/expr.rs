@@ -6,6 +6,7 @@ use ordered_float::OrderedFloat;
 
 use crate::parser;
 use crate::sql::Env;
+use crate::sql::Func;
 use crate::sql::Selector;
 use crate::sql::Sql;
 use crate::value::PqlValue;
@@ -135,7 +136,7 @@ impl Expr {
     pub fn eval(self, env: &Env) -> PqlValue {
         match self.to_owned() {
             Self::Value(value) => value,
-            Self::Selector(selector) => selector.evaluate(&env).unwrap_or_default(),
+            Self::Selector(selector) => selector.evaluate(&env),
             Self::Star => todo!(),
             Self::Func(_) => todo!(),
             Self::Sql(_) => todo!(),
@@ -238,12 +239,6 @@ impl Expr {
             },
         }
     }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Func {
-    Count(Expr),
-    Upper(Expr),
 }
 
 #[cfg(test)]

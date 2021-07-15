@@ -121,7 +121,7 @@ pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
         parse_star_as_expr,
         parser::math::parse,
         parser::elements::float_number,
-        parser::func::count,
+        parser::func::function,
     ))(input)
 }
 

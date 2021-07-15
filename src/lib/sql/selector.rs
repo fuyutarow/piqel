@@ -163,13 +163,34 @@ impl Selector {
         self.data.clone().into_iter().collect::<Vec<SelectorNode>>()
     }
 
+    fn rec_get_full_path(&self, env: &Env, trace_path: &mut Selector) {
+        if let Some((first, tail)) = self.split_first() {
+            if let Some(alias_path) = env.get_as_selector(&first.to_string()) {
+                alias_path.rec_get_full_path(env, trace_path)
+            } else {
+                (*trace_path).data.push_back(first);
+            }
+            if tail.data.len() > 0 {
+                let tail_path = Selector::from(tail);
+                let mut vec_path = tail_path.to_vec().into_iter().collect::<VecDeque<_>>();
+                (*trace_path).data.append(&mut vec_path);
+            }
+        }
+    }
+
+    pub fn expand_fullpath2(&self, env: &Env) -> Self {
+        let mut trace_path = Selector::default();
+        self.rec_get_full_path(env, &mut trace_path);
+        trace_path
+    }
+
     pub fn expand_fullpath(&self, env: &Env) -> Self {
         if let Some((head, tail)) = self.split_first() {
             let mut selector = Selector::default();
 
             selector.data.append(
-                &mut env
-                    .expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()))
+                &mut Selector::from(vec![head].as_slice())
+                    .expand_fullpath2(&env)
                     .data,
             );
             selector.data.append(&mut tail.data.to_owned());
@@ -177,10 +198,6 @@ impl Selector {
         } else {
             todo!()
         }
-    }
-
-    pub fn expand_fullpath2(&self, env: &Env) -> Self {
-        env.expand_fullpath_as_selector(&self)
     }
 
     pub fn expand_abspath(&self, env: &Env) -> Self {
@@ -191,8 +208,8 @@ impl Selector {
             }
 
             selector.data.append(
-                &mut env
-                    .expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()))
+                &mut Selector::from(vec![head].as_slice())
+                    .expand_fullpath2(env)
                     .data,
             );
             selector.data.append(&mut tail.data.to_owned());
@@ -202,7 +219,7 @@ impl Selector {
         }
     }
 
-    pub fn evaluate(&self, env: &Env) -> Option<PqlValue> {
+    pub fn evaluate(&self, env: &Env) -> PqlValue {
         if let Some((head, tail)) = self.expand_fullpath(&env).split_first() {
             if let Some(expr) = env.get(head.to_string().as_str()) {
                 match expr {
@@ -210,12 +227,12 @@ impl Selector {
                         let v = if tail.data.len() > 0 {
                             value.select_by_selector(&tail)
                         } else {
-                            Some(value)
+                            value
                         };
                         v
                     }
                     Expr::Selector(selector) => {
-                        let s = selector.expand_fullpath(&env);
+                        let s = selector.expand_fullpath2(&env);
                         s.evaluate(&env)
                     }
                     Expr::Star => todo!(),
@@ -310,7 +327,7 @@ mod tests {
 
         assert_eq!(
             selector.evaluate(&env),
-            Some(PqlValue::from_str(
+            PqlValue::from_str(
                 r#"
 [
   "Bob Smith",
@@ -318,7 +335,7 @@ mod tests {
   "Jane Smith"
 ]
 "#
-            )?)
+            )?
         );
         Ok(())
     }
@@ -340,7 +357,7 @@ mod tests {
         let selector = Selector::from_str("e.projects")?;
         assert_eq!(
             selector.evaluate(&env),
-            Some(PqlValue::from_str(
+            PqlValue::from_str(
                 r#"
 [
   [
@@ -362,8 +379,9 @@ mod tests {
   ]
 ]
 "#
-            )?)
+            )?
         );
+
         Ok(())
     }
 
@@ -384,7 +402,7 @@ mod tests {
         let selector = Selector::from_str("p")?;
         assert_eq!(
             selector.evaluate(&env),
-            Some(PqlValue::from_str(
+            PqlValue::from_str(
                 r#"
     [
       [
@@ -406,7 +424,7 @@ mod tests {
       ]
     ]
     "#
-            )?)
+            )?
         );
         Ok(())
     }
@@ -423,7 +441,7 @@ mod tests {
         };
 
         let selector = Selector::from_str("n")?;
-        assert_eq!(selector.evaluate(&env), Some(PqlValue::from_str("3")?));
+        assert_eq!(selector.evaluate(&env), PqlValue::from_str("3")?);
         Ok(())
     }
 
@@ -436,6 +454,33 @@ mod tests {
 
         assert_eq!(res, Selector::from("a.b"));
 
+        Ok(())
+    }
+
+    #[test]
+    fn test_eval_first_element() -> anyhow::Result<()> {
+        let data = get_data()?;
+        let env = Env::from(data);
+
+        let selector = Selector::from_str("hr.employeesNest.projects[0]")?;
+        assert_eq!(
+            selector.evaluate(&env),
+            PqlValue::from(vec![
+                PqlValue::from_str(r#" { "name": "AWS Redshift Spectrum querying" } "#)?,
+                PqlValue::Missing,
+                PqlValue::from_str(r#" { "name": "AWS Redshift security" } "#)?
+            ])
+        );
+
+        let selector = Selector::from_str("hr.employeesNest.projects[0].name")?;
+        assert_eq!(
+            selector.evaluate(&env),
+            PqlValue::from(vec![
+                PqlValue::from("AWS Redshift Spectrum querying"),
+                PqlValue::Missing,
+                PqlValue::from("AWS Redshift security")
+            ])
+        );
         Ok(())
     }
 }

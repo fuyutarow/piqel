@@ -43,7 +43,7 @@ impl Env {
         self.data.get_mut(key)
     }
 
-    pub fn get_by_selector(&self, selector: &Selector) -> Option<PqlValue> {
+    pub fn get_by_selector(&self, selector: &Selector) -> PqlValue {
         if let Some((head, tail)) = selector.split_first() {
             if let Some(expr) = self.get(head.to_string().as_str()) {
                 match expr {
@@ -51,7 +51,7 @@ impl Env {
                         let v = if tail.data.len() > 0 {
                             value.select_by_selector(&tail)
                         } else {
-                            Some(value)
+                            value
                         };
                         v
                     }
@@ -70,38 +70,6 @@ impl Env {
             Some(Expr::Selector(selector)) => Some(selector),
             _ => None,
         }
-    }
-
-    fn rec_get_full_path(&self, selector: &Selector, trace_path: &mut Selector) {
-        if let Some((first, tail)) = selector.split_first() {
-            if let Some(alias_path) = self.get_as_selector(&first.to_string()) {
-                self.rec_get_full_path(&alias_path, trace_path)
-            } else {
-                (*trace_path)
-                    .data
-                    .push_back(SelectorNode::String(first.to_string()));
-            }
-            if tail.data.len() > 0 {
-                let tail_path = Selector::from(tail);
-                let mut vec_path = tail_path
-                    .to_vec()
-                    .into_iter()
-                    .map(|s| SelectorNode::String(s.to_string()))
-                    .collect::<VecDeque<_>>();
-                (*trace_path).data.append(&mut vec_path);
-            }
-        }
-    }
-
-    pub fn expand_fullpath_as_selector(&self, selector: &Selector) -> Selector {
-        let mut trace_path = Selector::default();
-
-        self.rec_get_full_path(selector, &mut trace_path);
-        trace_path
-    }
-
-    pub fn expand_fullpath(&self, expr: &Expr) -> Expr {
-        expr.expand_fullpath(self)
     }
 }
 
@@ -130,13 +98,17 @@ FROM
         Drain(sql.from_clause).execute(&mut env);
 
         assert_eq!(
-            env.expand_fullpath(&Field::from_str("e.name AS employeeName")?.expr)
+            Field::from_str("e.name AS employeeName")?
+                .expr
+                .expand_fullpath(&env)
                 .to_string(),
             "hr.employeesNest.name",
         );
 
         assert_eq!(
-            env.expand_fullpath(&Field::from_str("p.name AS projectName")?.expr)
+            Field::from_str("p.name AS projectName")?
+                .expr
+                .expand_fullpath(&env)
                 .to_string(),
             "hr.employeesNest.projects.name",
         );

@@ -20,7 +20,7 @@ module.exports = {
   projectName: 'piqel',
   themeConfig: {
     navbar: {
-      title: 'PartiQL-rs',
+      title: 'piqel',
       logo: {
         alt: 'My Facebook Project Logo',
         src: 'img/logo.svg',
@@ -106,11 +106,11 @@ module.exports = {
         //   ],
         // },
       ],
-      logo: {
-        alt: 'Facebook Open Source Logo',
-        src: 'img/oss_logo.png',
-        href: 'https://opensource.facebook.com',
-      },
+      // logo: {
+      //   alt: 'Facebook Open Source Logo',
+      //   src: 'img/oss_logo.png',
+      //   href: 'https://opensource.facebook.com',
+      // },
       // Please do not remove the credits, help to publicize Docusaurus :)
       copyright: `Copyright © ${new Date().getFullYear()} Facebook, Inc. Built with Docusaurus.`,
     },

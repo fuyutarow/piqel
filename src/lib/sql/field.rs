@@ -29,7 +29,7 @@ impl FromStr for Field {
 impl Field {
     pub fn expand_fullpath(&self, env: &Env) -> Self {
         Self {
-            expr: env.expand_fullpath(&self.expr),
+            expr: self.expr.expand_fullpath(&env),
             alias: self.alias.to_owned(),
         }
     }

@@ -9,15 +9,23 @@
 
 module.exports = {
   docs: {
-    "pq (CLI)": [
+    "piqel": [
+      "index",
       "pq/01",
-      "pq/02",
-    ],
-    "piqel (cargo)": [
       'rs/01',
-      'rs/02',
+      'js/01',
+      'py/01',
     ],
-    "partiql.js (npm)": ['mdx'],
-    "piqel-py (pypi)": ['py/01'],
-  },
-};
+    //   "pq (CLI)": [
+    //     "pq/01",
+    //     // "pq/02",
+    //   ],
+    //   "piqel (cargo)": [
+    //     'rs/01',
+    //     // 'rs/02',
+    //   ],
+    //   "partiql-js (npm)": ['mdx'],
+    //   "piqel-py (pypi)": ['py/01'],
+    // },
+  }
+}
