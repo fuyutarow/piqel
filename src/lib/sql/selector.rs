@@ -168,17 +168,11 @@ impl Selector {
             if let Some(alias_path) = env.get_as_selector(&first.to_string()) {
                 alias_path.rec_get_full_path(env, trace_path)
             } else {
-                (*trace_path)
-                    .data
-                    .push_back(SelectorNode::String(first.to_string()));
+                (*trace_path).data.push_back(first);
             }
             if tail.data.len() > 0 {
                 let tail_path = Selector::from(tail);
-                let mut vec_path = tail_path
-                    .to_vec()
-                    .into_iter()
-                    .map(|s| SelectorNode::String(s.to_string()))
-                    .collect::<VecDeque<_>>();
+                let mut vec_path = tail_path.to_vec().into_iter().collect::<VecDeque<_>>();
                 (*trace_path).data.append(&mut vec_path);
             }
         }
@@ -469,13 +463,22 @@ mod tests {
         let env = Env::from(data);
 
         let selector = Selector::from_str("hr.employeesNest.projects[0]")?;
-
         assert_eq!(
             selector.evaluate(&env),
             PqlValue::from(vec![
                 PqlValue::from_str(r#" { "name": "AWS Redshift Spectrum querying" } "#)?,
                 PqlValue::Missing,
                 PqlValue::from_str(r#" { "name": "AWS Redshift security" } "#)?
+            ])
+        );
+
+        let selector = Selector::from_str("hr.employeesNest.projects[0].name")?;
+        assert_eq!(
+            selector.evaluate(&env),
+            PqlValue::from(vec![
+                PqlValue::from("AWS Redshift Spectrum querying"),
+                PqlValue::Missing,
+                PqlValue::from("AWS Redshift security")
             ])
         );
         Ok(())

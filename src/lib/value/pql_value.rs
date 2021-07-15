@@ -176,7 +176,7 @@ impl PqlValue {
                 }
             }
             Self::Array(array) => {
-                if let Some((key, _tail)) = selector.split_first() {
+                if let Some((key, tail)) = selector.split_first() {
                     match key {
                         SelectorNode::Number(key_i) => {
                             if key_i < 0 {
@@ -185,7 +185,7 @@ impl PqlValue {
                                 let key_u = key_i as usize;
                                 array
                                     .get(key_u)
-                                    .map(|value| value.to_owned())
+                                    .map(|value| value.select_by_selector(&tail))
                                     .unwrap_or(Self::Missing)
                             }
                         }
@@ -539,7 +539,6 @@ mod tests {
         }) {
             *partiql_value = PqlValue::from(20.);
         };
-        dbg!(&value);
 
         assert_eq!(value, PqlValue::from_str(r#"{ "arr": [1,20,4] }"#)?);
         Ok(())
@@ -801,7 +800,6 @@ LIMIT 3
         let plan = LogicalPlan::from(sql);
 
         let res = plan.execute(&mut env);
-        dbg!(&res);
         res.print();
 
         assert_eq!(

@@ -98,11 +98,25 @@ fn q9() -> anyhow::Result<()> {
 }
 
 // #[test]
-// fn q12() -> anyhow::Result<()> {
-//     let (sql, data, output) = get_sql_data_output("q12")?;
-//     dbg!(&sql);
+// fn q10() -> anyhow::Result<()> {
+//     let (sql, data, output) = get_sql_data_output("q10")?;
 //     let res = evaluate(sql, data);
-//     res.print();
 //     assert_eq!(res, output);
 //     Ok(())
 // }
+
+// #[test]
+// fn q11() -> anyhow::Result<()> {
+//     let (sql, data, output) = get_sql_data_output("q11")?;
+//     let res = evaluate(sql, data);
+//     assert_eq!(res, output);
+//     Ok(())
+// }
+
+#[test]
+fn q12() -> anyhow::Result<()> {
+    let (sql, data, output) = get_sql_data_output("q12")?;
+    let res = evaluate(sql, data);
+    assert_eq!(res, output);
+    Ok(())
+}
