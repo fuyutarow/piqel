@@ -511,7 +511,7 @@ mod tests {
             .collect::<VecDeque<SelectorNode>>(),
         });
 
-        assert_eq!(selected_value, pqlir_parser::from_str("2")?);
+        assert_eq!(selected_value, PqlValue::from_str("2")?);
         Ok(())
     }
 

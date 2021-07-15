@@ -163,13 +163,40 @@ impl Selector {
         self.data.clone().into_iter().collect::<Vec<SelectorNode>>()
     }
 
+    fn rec_get_full_path(&self, env: &Env, trace_path: &mut Selector) {
+        if let Some((first, tail)) = self.split_first() {
+            if let Some(alias_path) = env.get_as_selector(&first.to_string()) {
+                alias_path.rec_get_full_path(env, trace_path)
+            } else {
+                (*trace_path)
+                    .data
+                    .push_back(SelectorNode::String(first.to_string()));
+            }
+            if tail.data.len() > 0 {
+                let tail_path = Selector::from(tail);
+                let mut vec_path = tail_path
+                    .to_vec()
+                    .into_iter()
+                    .map(|s| SelectorNode::String(s.to_string()))
+                    .collect::<VecDeque<_>>();
+                (*trace_path).data.append(&mut vec_path);
+            }
+        }
+    }
+
+    pub fn expand_fullpath2(&self, env: &Env) -> Self {
+        let mut trace_path = Selector::default();
+        self.rec_get_full_path(env, &mut trace_path);
+        trace_path
+    }
+
     pub fn expand_fullpath(&self, env: &Env) -> Self {
         if let Some((head, tail)) = self.split_first() {
             let mut selector = Selector::default();
 
             selector.data.append(
-                &mut env
-                    .expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()))
+                &mut Selector::from(vec![head].as_slice())
+                    .expand_fullpath2(&env)
                     .data,
             );
             selector.data.append(&mut tail.data.to_owned());
@@ -177,10 +204,6 @@ impl Selector {
         } else {
             todo!()
         }
-    }
-
-    pub fn expand_fullpath2(&self, env: &Env) -> Self {
-        env.expand_fullpath_as_selector(&self)
     }
 
     pub fn expand_abspath(&self, env: &Env) -> Self {
@@ -191,8 +214,8 @@ impl Selector {
             }
 
             selector.data.append(
-                &mut env
-                    .expand_fullpath_as_selector(&Selector::from(vec![head].as_slice()))
+                &mut Selector::from(vec![head].as_slice())
+                    .expand_fullpath2(env)
                     .data,
             );
             selector.data.append(&mut tail.data.to_owned());
@@ -215,7 +238,7 @@ impl Selector {
                         v
                     }
                     Expr::Selector(selector) => {
-                        let s = selector.expand_fullpath(&env);
+                        let s = selector.expand_fullpath2(&env);
                         s.evaluate(&env)
                     }
                     Expr::Star => todo!(),
@@ -364,6 +387,7 @@ mod tests {
 "#
             )?
         );
+
         Ok(())
     }
 
