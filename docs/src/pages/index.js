@@ -16,33 +16,31 @@ import useBaseUrl from '@docusaurus/useBaseUrl';
 import styles from './styles.module.css';
 
 const features = [
+
   {
-    title: 'Easy to Use',
+    title: 'SQL-like query',
     imageUrl: 'img/undraw_docusaurus_mountain.svg',
     description: (
       <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
+        You can use SELECT, WHERE, ORDER BY, LIMIT clauses to select and transform data.
       </>
     ),
   },
   {
-    title: 'Focus on What Matters',
+    title: 'Supported data format',
     imageUrl: 'img/undraw_docusaurus_tree.svg',
     description: (
       <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
+        CSV, JSON, YAML, TOML. Table data as used in RDB and structured data such as JSON cab be accessed by SQL-like query.
       </>
     ),
   },
   {
-    title: 'Powered by React',
+    title: 'Wide range of uses',
     imageUrl: 'img/undraw_docusaurus_react.svg',
     description: (
       <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
+        This can be used as a CLI tool (pq),  as a PartiqQL server with piqel(rust) or piqel-js, or data analysis with piqel-py.
       </>
     ),
   },
@@ -72,7 +70,7 @@ export default function Home() {
       description="Description will go into a meta tag in <head />">
       <header className={clsx('hero hero--primary', styles.heroBanner)}>
         <div className="container">
-          <img src="/static/img/logo.png"/>
+          <img src="img/logo.png"/>
           {/* <h1 className="hero__title">{siteConfig.title}</h1> */}
           <p className="hero__subtitle">{siteConfig.tagline}</p>
           <div className={styles.buttons}>

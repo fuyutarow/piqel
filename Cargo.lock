@@ -1058,7 +1058,7 @@ dependencies = [
 
 [[package]]
 name = "piqel"
-version = "0.202107.4"
+version = "0.202107.5"
 dependencies = [
  "anyhow",
  "atty",
