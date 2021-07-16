@@ -718,9 +718,9 @@ dependencies = [
 
 [[package]]
 name = "piqel"
-version = "0.202107.3"
+version = "0.202107.4"
 dependencies = [
- "piqel 0.202107.4",
+ "piqel 0.202107.5",
  "pyo3",
  "pyo3-built",
  "pyo3-chrono",
@@ -729,7 +729,7 @@ dependencies = [
 
 [[package]]
 name = "piqel"
-version = "0.202107.4"
+version = "0.202107.5"
 dependencies = [
  "anyhow",
  "atty",

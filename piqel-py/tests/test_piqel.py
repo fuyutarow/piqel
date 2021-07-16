@@ -6,7 +6,7 @@ import pandas as pd
 
 # %%
 def test_version():
-    assert __version__ == "0.202107.3"
+    assert __version__ == "0.202107.4"
 
 
 # %%

@@ -37,13 +37,12 @@ tobe = '''
 
 ## Family
 
-| content | lang | package |
-| --- | --- | --- |
-| [pq](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs) | CLI (brew, scoop) | |
-| [piqel](https://github.com/fuyutarow/piqel) | Rust (cargo) | https://crates.io/crates/piqel |
-| [piqel-js](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js) | JavaScript (npm) | https://www.npmjs.com/package/piqel |
-| [piqel-py](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py) | Python (pip) | https://pypi.org/project/piqel |
-
+| | language | source, docs | package |
+| --- | --- | --- | --- |
+| pq | CLI (brew, scoop)| [source](https://github.com/fuyutarow/piqel/blob/alpha/src/bin/pq.rs), [doc](https://piqel.vercel.app/docs/pq)  | |
+| piqel | Rust (cargo) | [source](https://github.com/fuyutarow/piqel), [doc](https://piqel.vercel.app/docs/pq) | https://crates.io/crates/piqel |
+| piqel-js | JavaScript (npm) | [source](https://github.com/fuyutarow/piqel/tree/alpha/piqel-js), [doc](https://piqel.vercel.app/docs/piqel-js) | https://www.npmjs.com/package/piqel |
+| piqel-py | Python (pip) | [source](https://github.com/fuyutarow/piqel/tree/alpha/piqel-py), [doc](https://piqel.vercel.app/docs/piqel-py) | https://pypi.org/project/piqel |
 
 
 ## Table of Contants
@@ -60,6 +59,9 @@ tobe = '''
 
 ## Features
 
+- SQL-like query ...  You can use SELECT, WHERE, ORDER BY, LIMIT clauses to select and transform data.
+- Supported data format ... CSV, JSON, YAML, TOML. Table data as used in RDB and structured data such as JSON cab be accessed by SQL-like query.
+- Wide range of uses ... This can be used as a CLI tool (pq),  as a PartiqQL server with piqel(rust) or piqel-js, or data analysis with piqel-py.
 
 ## Motivation
 What's [PartiQL](https://partiql.org/)?
