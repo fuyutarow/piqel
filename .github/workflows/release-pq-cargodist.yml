@@ -34,6 +34,7 @@ jobs:
         run: |
           BIN_ZIP=./${BIN_NAME}-${VERSION}-x86_64-linux.zip
           sudo apt-get -qq install musl-tools
+          rustup default x86_64-unknown-linux-musl
           cargo build --locked --release --bin pq --features "cli table"
           zip -j ${BIN_ZIP} target/x86_64-unknown-linux-musl/release/${BIN_NAME}
           echo "::set-output name=sha::$(shasum -a 256 ${BIN_ZIP} |awk '{print $1}')"
@@ -45,6 +46,7 @@ jobs:
         id: build_mac
         run: |
           BIN_ZIP=./${BIN_NAME}-${VERSION}-x86_64-mac.zip
+          rustup default x86_64-apple-darwin
           cargo build --locked --release --bin pq --features "cli table"
           zip -j ${BIN_ZIP} target/x86_64-apple-darwin/release/${BIN_NAME}
           echo "::set-output name=sha::$(shasum -a 256 ${BIN_ZIP} |awk '{print $1}')"
@@ -55,6 +57,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         id: build_windows
         run: |
+          rustup default x86_64-pc-windows-msvc
           cargo build --locked --release --bin pq --features "cli table"
           # 7z a pq-x86_64-pc-windows-msvc.zip target/release/pq.exe
           mv ./target/release/pq.exe .
