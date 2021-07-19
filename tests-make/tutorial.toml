@@ -1,0 +1,292 @@
+[tests.filtering_by_string_match]
+script = '''
+INPUT=$(cat<<EOS
+{
+    "hr": {
+        "employees": [
+            { "id": 3, "name": "Bob Smith",   "title": null },
+            { "id": 4, "name": "Susan Smith", "title": "Dev Mgr" },
+            { "id": 6, "name": "Jane Smith",  "title": "Software Eng 2"}
+        ]
+    }
+}
+EOS
+)
+echo ${INPUT} | ./target/debug/pq -q "
+SELECT e.id,
+       e.name AS employeeName,
+       e.title AS title
+FROM hr.employees e
+WHERE e.title = 'Dev Mgr'
+"
+'''
+tobe = '''
+[
+  {
+    "id": 4,
+    "employeeName": "Susan Smith",
+    "title": "Dev Mgr"
+  }
+]
+'''
+
+[tests.unnesting_a_nested_collection]
+script = '''
+INPUT=$(cat<<EOS
+{
+  "hr": {
+      "employeesNest": [
+         {
+          "id": 3,
+          "name": "Bob Smith",
+          "title": null,
+          "projects": [ { "name": "AWS Redshift Spectrum querying" },
+                        { "name": "AWS Redshift security" },
+                        { "name": "AWS Aurora security" }
+                      ]
+          },
+          {
+              "id": 4,
+              "name": "Susan Smith",
+              "title": "Dev Mgr",
+              "projects": []
+          },
+          {
+              "id": 6,
+              "name": "Jane Smith",
+              "title": "Software Eng 2",
+              "projects": [ { "name": "AWS Redshift security" } ]
+          }
+      ]
+    }
+}
+EOS
+)
+echo ${INPUT} | ./target/debug/pq -q "
+SELECT e.name AS employeeName,
+       p.name AS projectName
+FROM hr.employeesNest AS e,
+     e.projects AS p
+WHERE p.name LIKE '%security%'
+"
+'''
+tobe = '''
+[
+  {
+    "employeeName": "Bob Smith",
+    "projectName": "AWS Redshift security"
+  },
+  {
+    "employeeName": "Bob Smith",
+    "projectName": "AWS Aurora security"
+  },
+  {
+    "employeeName": "Jane Smith",
+    "projectName": "AWS Redshift security"
+  }
+]
+'''
+
+[tests.unnesting_arrays_of_scalars]
+script = '''
+INPUT=$(cat<<EOS
+{
+    "hr": {
+        "employeesNestScalars": [
+            {
+                "id": 3,
+                "name": "Bob Smith",
+                "title": null,
+                "projects": [
+                    "AWS Redshift Spectrum querying",
+                    "AWS Redshift security",
+                    "AWS Aurora security"
+                ]
+            },
+            {
+                "id": 4,
+                "name": "Susan Smith",
+                "title": "Dev Mgr",
+                "projects": []
+            },
+            {
+                "id": 6,
+                "name": "Jane Smith",
+                "title": "Software Eng 2",
+                "projects": [ "AWS Redshift security" ]
+            }
+        ]
+    }
+}
+EOS
+)
+echo ${INPUT} | ./target/debug/pq -q "
+SELECT e.name AS employeeName,
+       p AS projectName
+FROM hr.employeesNestScalars AS e,
+     e.projects AS p
+WHERE p LIKE '%security%'
+"
+'''
+tobe = '''
+[
+  {
+    "employeeName": "Bob Smith",
+    "projectName": "AWS Redshift security"
+  },
+  {
+    "employeeName": "Bob Smith",
+    "projectName": "AWS Aurora security"
+  },
+  {
+    "employeeName": "Jane Smith",
+    "projectName": "AWS Redshift security"
+  }
+]
+'''
+
+
+[tests.unnesting_arrays_of_arrays]
+script = '''
+INPUT=$(cat<<EOS
+{
+    "matrices": [
+        {
+            "id": 3,
+            "matrix": [
+                [2, 4, 6],
+                [1, 3, 5, 7],
+                [9, 0]
+            ]
+        },
+        {
+            "id": 4,
+            "matrix": [
+                [5, 8],
+                [ ]
+            ]
+
+        }
+    ]
+}
+EOS
+)
+echo ${INPUT} | ./target/debug/pq -q "
+SELECT t.id AS id,
+       x AS even
+FROM matrices AS t,
+     t.matrix AS y,
+     y AS x
+WHERE x % 2 = 0
+"
+'''
+tobe = '''
+[
+  {
+    "id": 3,
+    "even": 2
+  },
+  {
+    "id": 3,
+    "even": 4
+  },
+  {
+    "id": 3,
+    "even": 6
+  },
+  {
+    "id": 3,
+    "even": 0
+  },
+  {
+    "id": 4,
+    "even": 8
+  }
+]
+'''
+
+[tests.accessing_missing_attributes]
+script = '''
+INPUT=$(cat<<EOS
+{
+    "hr": {
+        "employeesWithMissing": [
+            { "id": 3, "name": "Bob Smith" },
+            { "id": 4, "name": "Susan Smith", "title": "Dev Mgr" },
+            { "id": 6, "name": "Jane Smith", "title": "Software Eng 2"}
+        ]
+    }
+}
+EOS
+)
+echo ${INPUT} | ./target/debug/pq -q "
+SELECT e.id,
+       e.name AS employeeName,
+       e.title AS title
+FROM hr.employeesWithMissing AS e
+WHERE e.title = 'Dev Mgr'
+"
+'''
+tobe = '''
+[
+  {
+    "id": 4,
+    "employeeName": "Susan Smith",
+    "title": "Dev Mgr"
+  }
+]
+'''
+
+[tests.accessing_array_elements_by_order]
+script = '''
+INPUT=$(cat<<EOS
+{
+  "hr": {
+      "employeesNest": [
+         {
+          "id": 3,
+          "name": "Bob Smith",
+          "title": null,
+          "projects": [ { "name": "AWS Redshift Spectrum querying" },
+                        { "name": "AWS Redshift security" },
+                        { "name": "AWS Aurora security" }
+                      ]
+          },
+          {
+              "id": 4,
+              "name": "Susan Smith",
+              "title": "Dev Mgr",
+              "projects": []
+          },
+          {
+              "id": 6,
+              "name": "Jane Smith",
+              "title": "Software Eng 2",
+              "projects": [ { "name": "AWS Redshift security" } ]
+          }
+      ]
+    }
+}
+EOS
+)
+echo ${INPUT} | ./target/debug/pq -q "
+SELECT e.name AS employeeName,
+       e.projects[0].name AS firstProjectName
+FROM hr.employeesNest AS e
+"
+'''
+tobe = '''
+[
+  {
+    "employeeName": "Bob Smith",
+    "firstProjectName": "AWS Redshift Spectrum querying"
+  },
+  {
+    "employeeName": "Susan Smith"
+  },
+  {
+    "employeeName": "Jane Smith",
+    "firstProjectName": "AWS Redshift security"
+  }
+]
+'''
