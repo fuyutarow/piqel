@@ -554,11 +554,7 @@ mod tests {
         let data = PqlValue::from_str(
             r#"
 {
-    "dat": [
-        { "n": 1 },
-        { "n": 2 },
-        { "n": 3 }
-    ]
+    "dat": [ { "n": 1 }, { "n": 2 }, { "n": 3 } ]
 }
 "#,
         )?;
@@ -582,21 +578,9 @@ SELECT
             PqlValue::from_str(
                 r#"
 [
-  {
-    "n3": 4.0,
-    "n4": 5.0,
-    "nn": 2.0
-  },
-  {
-    "n3": 5.0,
-    "n4": 6.0,
-    "nn": 4.0
-  },
-  {
-    "n3": 6.0,
-    "n4": 7.0,
-    "nn": 6.0
-  }
+  { "n3": 4.0, "n4": 5.0, "nn": 2.0 },
+  { "n3": 5.0, "n4": 6.0, "nn": 4.0 },
+  { "n3": 6.0, "n4": 7.0, "nn": 6.0 }
 ]
                 "#
             )?
@@ -609,10 +593,7 @@ SELECT
         let data = PqlValue::from_str(
             r#"
 {
-    "dat": [
-        { "n": 1 },
-        { "n": 2 },
-        { "n": 3 }
+    "dat": [ { "n": 1 }, { "n": 2 }, { "n": 3 }
     ]
 }
 "#,
@@ -638,21 +619,9 @@ SELECT
             PqlValue::from_str(
                 r#"
 [
-  {
-    "n3": -2.0,
-    "n4": 3.0,
-    "nn": 0.0
-  },
-  {
-    "n3": -1.0,
-    "n4": 2.0,
-    "nn": 0.0
-  },
-  {
-    "n3": 0.0,
-    "n4": 1.0,
-    "nn": 0.0
-  }
+  { "n3": -2.0, "n4": 3.0, "nn": 0.0 },
+  { "n3": -1.0, "n4": 2.0, "nn": 0.0 },
+  { "n3": 0.0, "n4": 1.0, "nn": 0.0 }
 ]
                 "#
             )?
@@ -665,11 +634,7 @@ SELECT
         let data = PqlValue::from_str(
             r#"
 {
-    "dat": [
-        { "n": 1 },
-        { "n": 2 },
-        { "n": 3 }
-    ]
+    "dat": [ { "n": 1 }, { "n": 2 }, { "n": 3 } ]
 }
 "#,
         )?;
@@ -693,21 +658,9 @@ SELECT
             PqlValue::from_str(
                 r#"
 [
-  {
-    "n3": 3.0,
-    "n4": 4.0,
-    "nn": 1.0
-  },
-  {
-    "n3": 6.0,
-    "n4": 8.0,
-    "nn": 4.0
-  },
-  {
-    "n3": 9.0,
-    "n4": 12.0,
-    "nn": 9.0
-  }
+  { "n3": 3.0, "n4": 4.0, "nn": 1.0 },
+  { "n3": 6.0, "n4": 8.0, "nn": 4.0 },
+  { "n3": 9.0, "n4": 12.0, "nn": 9.0 }
 ]
                 "#
             )?
@@ -720,11 +673,7 @@ SELECT
         let data = PqlValue::from_str(
             r#"
 {
-    "dat": [
-        { "n": 1 },
-        { "n": 2 },
-        { "n": 3 }
-    ]
+    "dat": [ { "n": 1 }, { "n": 2 }, { "n": 3 } ]
 }
 "#,
         )?;
@@ -749,21 +698,9 @@ SELECT
             PqlValue::from_str(
                 r#"
 [
-  {
-    "n3": 0.3333333333333333,
-    "n4": 4.0,
-    "nn": 1.0
-  },
-  {
-    "n3": 0.6666666666666666,
-    "n4": 2.0,
-    "nn": 1.0
-  },
-  {
-    "n3": 1.0,
-    "n4": 1.3333333333333333,
-    "nn": 1.0
-  }
+  { "n3": 0.3333333333333333, "n4": 4.0, "nn": 1.0 },
+  { "n3": 0.6666666666666666, "n4": 2.0, "nn": 1.0 },
+  { "n3": 1.0, "n4": 1.3333333333333333, "nn": 1.0 }
 ]
 
                 "#
@@ -846,44 +783,6 @@ LIMIT 3
             )?
         );
 
-        Ok(())
-    }
-
-    #[test]
-    fn test_parse_value() -> anyhow::Result<()> {
-        let value = PqlValue::from_str(
-            r#"
-{
-  'hr': {
-      'employeesNest': <<
-         {
-          'id': 3,
-          'name': 'Bob Smith',
-          'title': null,
-          'projects': [ { 'name': 'AWS Redshift Spectrum querying' },
-                        { 'name': 'AWS Redshift security' },
-                        { 'name': 'AWS Aurora security' }
-                      ]
-          },
-          {
-              'id': 4,
-              'name': 'Susan Smith',
-              'title': 'Dev Mgr',
-              'projects': []
-          },
-          {
-              'id': 6,
-              'name': 'Jane Smith',
-              'title': 'Software Eng 2',
-              'projects': [ { 'name': 'AWS Redshift security' } ]
-          }
-      >>
-    }
-}
-        "#,
-        )?;
-        dbg!(&value);
-        assert_eq!(1, 2);
         Ok(())
     }
 

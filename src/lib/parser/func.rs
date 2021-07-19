@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::{tag, tag_no_case};
-use nom::character::complete::char;
+use nom::character::complete::{char, multispace0};
 use nom::combinator::cut;
 use nom::sequence::{preceded, terminated, tuple};
 use nom::IResult;
@@ -8,12 +8,12 @@ use nom::IResult;
 use crate::sql::Expr;
 use crate::sql::Func;
 
-use crate::parser::{parse_expr, whitespace};
+use crate::parser::parse_expr;
 
 pub fn function(input: &str) -> IResult<&str, Expr> {
     let (input, (funcname, _, expr)) = tuple((
         preceded(
-            whitespace,
+            multispace0,
             alt((
                 tag_no_case("count"),
                 tag_no_case("upper"),
@@ -25,8 +25,8 @@ pub fn function(input: &str) -> IResult<&str, Expr> {
         ),
         char('('),
         cut(terminated(
-            preceded(whitespace, parse_expr),
-            preceded(whitespace, char(')')),
+            preceded(multispace0, parse_expr),
+            preceded(multispace0, char(')')),
         )),
     ))(input)?;
 

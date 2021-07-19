@@ -119,84 +119,69 @@ fn q3() -> anyhow::Result<()> {
     Ok(())
 }
 
-// #[test]
-// fn q4_1() -> anyhow::Result<()> {
-//     let input = r#"
-// SELECT e.name AS employeeName,
-//   ( SELECT p
-//     FROM e.projects AS p
-//     WHERE p.name LIKE '%querying%'
-//   ) AS queryProjectsNum
-// FROM hr.employeesNest AS e
-//     "#;
-//     let sql = Sql::from_str(&input)?;
+#[test]
+fn q4_1() -> anyhow::Result<()> {
+    let input = r#"
+SELECT e.name AS employeeName,
+  ( SELECT p
+    FROM e.projects AS p
+    WHERE p.name LIKE '%querying%'
+  ) AS queryProjectsNum
+FROM hr.employeesNest AS e
+    "#;
+    let sql = Sql::from_str(&input)?;
 
-//     assert_eq!(
-//         sql,
-//         Sql {
-//             select_clause: vec![
-//                 Field::from_str("e.name AS employeeName")?,
-//                 Field {
-//                     value: Expr::Expr(Expr::Sql(Sql {
-//                         select_clause: vec![Field::from_str("p")?,],
-//                         from_clause: vec![Field::from_str("e.projects AS p")?],
-//                         left_join_clause: vec![],
-//                         where_clause: Some(Box::new(WhereCond::Like {
-//                             expr: Expr::Path(Selector::from("p.name"),),
-//                             right: "%querying%".to_owned()
-//                         })),
-//                         orderby: None,
-//                         limit: None,
-//                     })),
-//                     alias: Some("queryProjectsNum".to_owned()),
-//                 },
-//             ],
-//             from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
-//             left_join_clause: vec![],
-//             where_clause: None,
-//             orderby: None,
-//             limit: None,
-//         }
-//     );
-//     Ok(())
-// }
+    assert_eq!(
+        sql,
+        Sql {
+            select_clause: vec![
+                Field::from_str("e.name AS employeeName")?,
+                Field::from_str(
+                    r#"(
+                    SELECT p
+                    FROM e.projects AS p
+                    WHERE p.name LIKE '%querying%'
+                    ) AS queryProjectsNum
+                "#
+                )?,
+            ],
+            from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
+            left_join_clause: vec![],
+            where_clause: None,
+            orderby: None,
+            limit: None,
+        }
+    );
+    Ok(())
+}
 
-// #[test]
-// fn q4() -> anyhow::Result<()> {
-//     let sql = get_sql("q4")?;
+#[test]
+fn q4() -> anyhow::Result<()> {
+    let sql = get_sql("q4")?;
 
-//     assert_eq!(
-//         sql,
-//         Sql {
-//             select_clause: vec![
-//                 Field::from_str("e.name AS employeeName")?,
-//                 Field {
-//                     value: Expr::Expr(Expr::Sql(Sql {
-//                         select_clause: vec![Field {
-//                             value: Expr::Expr(Expr::Func(Box::new(Func::Count(Expr::Star)))),
-//                             alias: None
-//                         }],
-//                         from_clause: vec![Field::from_str("e.projects AS p")?],
-//                         left_join_clause: vec![],
-//                         where_clause: Some(Box::new(WhereCond::Like {
-//                             expr: Expr::Path(Selector::from("p.name"),),
-//                             right: "%querying%".to_owned()
-//                         })),
-//                         orderby: None,
-//                         limit: None,
-//                     })),
-//                     alias: Some("queryProjectsNum".to_owned()),
-//                 },
-//             ],
-//             from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
-//             left_join_clause: vec![],
-//             where_clause: None,
-//             orderby: None,
-//             limit: None,
-//         }
-//     );
-//     Ok(())
-// }
+    assert_eq!(
+        sql,
+        Sql {
+            select_clause: vec![
+                Field::from_str("e.name AS employeeName")?,
+                Field::from_str(
+                    r#"(
+                    SELECT COUNT(*)
+                    FROM e.projects AS p
+                    WHERE p.name LIKE '%querying%'
+                    ) AS queryProjectsNum
+                "#
+                )?,
+            ],
+            from_clause: vec![Field::from_str("hr.employeesNest AS e")?],
+            left_join_clause: vec![],
+            where_clause: None,
+            orderby: None,
+            limit: None,
+        }
+    );
+    Ok(())
+}
 
 #[test]
 fn q5() {

@@ -13,7 +13,6 @@ pub use crate::parser::expressions;
 pub use crate::parser::keywords;
 pub use crate::parser::parse_expr;
 pub use crate::parser::parse_value;
-pub use crate::parser::string_allowed_in_field;
 pub use crate::sql::clause;
 use crate::sql::Field;
 use crate::sql::WhereCond;
@@ -105,7 +104,7 @@ pub fn parse_where_like(input: &str) -> IResult<&str, WhereCond> {
 pub fn orderby(input: &str) -> IResult<&str, clause::OrderBy> {
     let (input, (_, field_name, opt_asc_or_desc)) = tuple((
         tag_no_case("ORDER BY"),
-        preceded(multispace0, string_allowed_in_field),
+        preceded(multispace0, elements::sql_identifier),
         preceded(
             multispace0,
             opt(alt((tag_no_case("ASC"), tag_no_case("DESC")))),

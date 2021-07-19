@@ -1,17 +1,24 @@
+use nom::bytes::complete::tag_no_case;
+use nom::bytes::complete::take_while1;
+use nom::character::complete::alphanumeric1;
+use nom::character::complete::char;
 use nom::character::complete::multispace0;
-use nom::{
-    branch::alt,
-    combinator::opt,
-    sequence::{preceded, tuple},
-    IResult,
-};
+use nom::combinator::map;
+use nom::combinator::not;
+use nom::combinator::peek;
+use nom::sequence::delimited;
+use nom::sequence::preceded;
+use nom::sequence::tuple;
+use nom::{branch::alt, combinator::opt, IResult};
 
 use crate::parser::clauses;
-
+use crate::parser::elements;
+use crate::sql::Expr;
+use crate::sql::Field;
 use crate::sql::Sql;
 
 pub fn from_str(input: &str) -> anyhow::Result<Sql> {
-    match parse_planner_sql(input) {
+    match parse_sql(input) {
         Ok((_, sql)) => Ok(sql),
         Err(nom::Err::Incomplete(_needed)) => {
             anyhow::bail!("needed")
@@ -29,7 +36,25 @@ pub fn from_str(input: &str) -> anyhow::Result<Sql> {
     }
 }
 
-pub fn parse_planner_sql(input: &str) -> IResult<&str, Sql> {
+pub fn parse_sql_as_field(input: &str) -> IResult<&str, Field> {
+    map(
+        tuple((
+            delimited(
+                preceded(multispace0, char('(')),
+                preceded(multispace0, parse_sql),
+                preceded(multispace0, char(')')),
+            ),
+            preceded(multispace0, tag_no_case("AS")),
+            preceded(multispace0, elements::sql_identifier),
+        )),
+        |(sql, _, alias)| Field {
+            expr: Expr::Sql(sql),
+            alias: Some(alias.to_string()),
+        },
+    )(input)
+}
+
+pub fn parse_sql(input: &str) -> IResult<&str, Sql> {
     alt((parse_sql21, parse_sql22))(input)
 }
 

@@ -15,8 +15,6 @@ use nom::IResult;
 
 pub use crate::parser;
 pub use crate::parser::elements;
-pub use crate::parser::elements::string_allowed_in_field;
-pub use crate::parser::whitespace;
 use crate::pqlir_parser;
 pub use crate::sql::clause;
 use crate::sql::Expr;
@@ -30,7 +28,7 @@ pub fn pqlvalue_as_field(input: &str) -> IResult<&str, Field> {
         pqlir_parser::root,
         opt(preceded(
             opt(preceded(multispace0, tag_no_case("AS"))),
-            preceded(multispace0, alphanumeric1),
+            preceded(multispace0, elements::sql_identifier),
         )),
     ))(input)?;
 
@@ -42,7 +40,12 @@ pub fn pqlvalue_as_field(input: &str) -> IResult<&str, Field> {
 }
 
 pub fn parse_field(input: &str) -> IResult<&str, Field> {
-    alt((expr_as_field, pqlvalue_as_field, selector_as_field))(input)
+    alt((
+        expr_as_field,
+        pqlvalue_as_field,
+        selector_as_field,
+        parser::select_statement::parse_sql_as_field,
+    ))(input)
 }
 
 /// ```
@@ -76,7 +79,7 @@ pub fn selector_as_field(input: &str) -> IResult<&str, Field> {
         parse_selector,
         opt(preceded(
             opt(preceded(multispace0, tag_no_case("AS"))),
-            preceded(multispace0, alphanumeric1),
+            preceded(multispace0, elements::sql_identifier),
         )),
     ))(input)?;
 
@@ -92,7 +95,7 @@ pub fn projection(input: &str) -> IResult<&str, (Selector, Option<String>)> {
         parse_selector,
         opt(preceded(
             opt(preceded(multispace0, tag_no_case("AS"))),
-            preceded(multispace0, alphanumeric1),
+            preceded(multispace0, elements::sql_identifier),
         )),
     ))(input)?;
     Ok((input, (selector, opt_alias.map(String::from))))
@@ -104,7 +107,7 @@ pub fn expr_as_field(input: &str) -> IResult<&str, Field> {
         parse_expr,
         opt(preceded(
             opt(preceded(multispace0, tag_no_case("AS"))),
-            preceded(multispace0, alphanumeric1),
+            preceded(multispace0, elements::sql_identifier),
         )),
     ))(input)?;
 
@@ -121,7 +124,6 @@ pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
         parse_star_as_expr,
         parser::math::parse,
         parser::elements::float_number,
-        parser::func::function,
     ))(input)
 }
 
@@ -134,18 +136,10 @@ pub fn parse_sql_as_expr(_input: &str) -> IResult<&str, Expr> {
     // map(parse_field, |sql| Expr::Sql(sql))(input)
 }
 
-pub fn parse_alias_in_from_clause(input: &str) -> IResult<&str, String> {
-    let (input, (_, alias)) = tuple((
-        opt(preceded(whitespace, tag_no_case("AS"))),
-        preceded(whitespace, string_allowed_in_field),
-    ))(input)?;
-    Ok((input, alias))
-}
-
 pub fn parse_selector(input: &str) -> IResult<&str, Selector> {
     pub fn selecotrnode_with_index<'a>(input: &str) -> IResult<&str, Vec<SelectorNode>> {
         let (input, (s, opt_i)) = tuple((
-            string_allowed_in_field,
+            elements::sql_identifier,
             opt(delimited(char('['), elements::integer, char(']'))),
         ))(input)?;
 

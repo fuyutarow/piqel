@@ -14,10 +14,11 @@ use nom::IResult;
 use ordered_float::OrderedFloat;
 
 use crate::value::PqlValue;
-pub use elements::{float_number, string_allowed_in_field, whitespace};
+pub use elements::float_number;
 pub use expressions::parse_expr;
 pub use expressions::parse_field;
 pub use expressions::parse_path_as_expr;
+pub use select_statement::parse_sql;
 
 pub fn parse_value(input: &str) -> IResult<&str, PqlValue> {
     alt((
