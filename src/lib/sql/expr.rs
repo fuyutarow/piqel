@@ -5,6 +5,7 @@ use collect_mac::collect;
 use ordered_float::OrderedFloat;
 
 use crate::parser;
+use crate::planner::LogicalPlan;
 use crate::sql::Env;
 use crate::sql::Func;
 use crate::sql::Selector;
@@ -129,7 +130,11 @@ impl Expr {
                 Box::new((*left).expand_fullpath(&env)),
                 Box::new((*right).expand_fullpath(&env)),
             ),
-            Expr::Sql(_) => todo!(),
+            Expr::Sql(sql) => {
+                let logical_plan = LogicalPlan::from(sql.to_owned());
+                let value = logical_plan.execute(&mut env.to_owned());
+                Self::Value(value)
+            }
         }
     }
 

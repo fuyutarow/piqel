@@ -40,10 +40,11 @@ INPUT=$(cat<<EOS
           "id": 3,
           "name": "Bob Smith",
           "title": null,
-          "projects": [ { "name": "AWS Redshift Spectrum querying" },
-                        { "name": "AWS Redshift security" },
-                        { "name": "AWS Aurora security" }
-                      ]
+          "projects": [
+              { "name": "AWS Redshift Spectrum querying" },
+              { "name": "AWS Redshift security" },
+              { "name": "AWS Aurora security" }
+            ]
           },
           {
               "id": 4,
@@ -145,7 +146,6 @@ tobe = '''
 ]
 '''
 
-
 [tests.unnesting_arrays_of_scalars]
 script = '''
 INPUT=$(cat<<EOS
@@ -156,10 +156,11 @@ INPUT=$(cat<<EOS
           "id": 3,
           "name": "Bob Smith",
           "title": null,
-          "projects": [ { "name": "AWS Redshift Spectrum querying" },
-                        { "name": "AWS Redshift security" },
-                        { "name": "AWS Aurora security" }
-                      ]
+          "projects": [
+              { "name": "AWS Redshift Spectrum querying" },
+              { "name": "AWS Redshift security" },
+              { "name": "AWS Aurora security" }
+            ]
           },
           {
               "id": 4,
@@ -219,7 +220,6 @@ tobe = '''
   }
 ]
 '''
-
 
 [tests.unnesting_arrays_of_arrays]
 script = '''
@@ -322,10 +322,11 @@ INPUT=$(cat<<EOS
           "id": 3,
           "name": "Bob Smith",
           "title": null,
-          "projects": [ { "name": "AWS Redshift Spectrum querying" },
-                        { "name": "AWS Redshift security" },
-                        { "name": "AWS Aurora security" }
-                      ]
+          "projects": [
+              { "name": "AWS Redshift Spectrum querying" },
+              { "name": "AWS Redshift security" },
+              { "name": "AWS Aurora security" }
+            ]
           },
           {
               "id": 4,
@@ -362,6 +363,67 @@ tobe = '''
   {
     "employeeName": "Jane Smith",
     "firstProjectName": "AWS Redshift security"
+  }
+]
+'''
+
+[tests.projection_of_subqueries]
+script = '''
+INPUT=$(cat<<EOS
+{
+  "hr": {
+      "employeesNest": [
+         {
+          "id": 3,
+          "name": "Bob Smith",
+          "title": null,
+          "projects": [
+              { "name": "AWS Redshift Spectrum querying" },
+              { "name": "AWS Redshift security" },
+              { "name": "AWS Aurora security" }
+            ]
+          },
+          {
+              "id": 4,
+              "name": "Susan Smith",
+              "title": "Dev Mgr",
+              "projects": []
+          },
+          {
+              "id": 6,
+              "name": "Jane Smith",
+              "title": "Software Eng 2",
+              "projects": [ { "name": "AWS Redshift security" } ]
+          }
+      ]
+    }
+}
+EOS
+)
+echo ${INPUT} | ./target/debug/pq -q "
+SELECT e.name AS employeeName,
+  ( SELECT p
+    FROM e.projects AS p
+    WHERE p.name LIKE '%querying%'
+  ) AS queryProjectsNum
+FROM hr.employeesNest AS e
+"
+'''
+tobe = '''
+[
+  {
+    "employeeName": "Bob Smith",
+    "queryProjectsNum": {
+      "projects": {
+        "name": "AWS Redshift Spectrum querying"
+      }
+    }
+  },
+  {
+    "employeeName": "Susan Smith"
+  },
+  {
+    "employeeName": "Jane Smith"
   }
 ]
 '''

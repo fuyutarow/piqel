@@ -210,6 +210,7 @@ mod tests {
 
     use crate::value::PqlValue;
     use indexmap::IndexMap as Map;
+    use std::os::raw::c_longlong;
     use std::str::FromStr;
 
     #[test]
@@ -356,15 +357,7 @@ mod tests {
 
         let rows = Rows::from(form0.to_owned());
         let v = PqlValue::from(rows.to_owned());
-        v.print();
-        // assert_eq!(PqlValue::from(rows.to_owned()), form1);
-
         let records = Records::from(rows);
-        let _v = PqlValue::from(records.to_owned());
-        dbg!(&records);
-        // v.print();
-        // assert_eq!(PqlValue::from(records.to_owned()), form2);
-
         let list = records.into_list();
         assert_eq!(PqlValue::from(list.to_owned()), form3);
 
@@ -384,10 +377,6 @@ mod tests {
         )?);
         let sql = Sql::from_str(r#"SELECT id, name, title"#)?;
         let logical_plan = LogicalPlan::from(sql);
-        dbg!(&logical_plan);
-
-        let name = Expr::from(Selector::from("title")).eval(&env);
-        dbg!(&name);
 
         let v = logical_plan
             .project
@@ -397,7 +386,6 @@ mod tests {
                 let field = field.expand_fullpath(&env);
                 let (alias, expr) = field.rename();
                 let value = expr.eval(&env);
-                dbg!(&alias, &value);
                 (alias, value)
             })
             .collect::<Map<String, PqlValue>>();
@@ -439,10 +427,6 @@ mod tests {
         ]));
         let sql = Sql::from_str(r#"SELECT id, name, title"#)?;
         let logical_plan = LogicalPlan::from(sql);
-        dbg!(&logical_plan);
-
-        let name = Expr::from(Selector::from("title")).eval(&env);
-        dbg!(&name);
 
         let v = logical_plan
             .project
@@ -452,7 +436,6 @@ mod tests {
                 let field = field.expand_fullpath(&env);
                 let (alias, expr) = field.rename();
                 let value = expr.eval(&env);
-                dbg!(&alias, &value);
                 (alias, value)
             })
             .collect::<Map<String, PqlValue>>();
@@ -471,6 +454,102 @@ mod tests {
     {},
     { 'id': 6, 'name': 'Jane Smith', 'title': 'Software Eng 2'}
 ]
+                "#,
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_subqueries() -> anyhow::Result<()> {
+        let mut env = Env::from(PqlValue::from_str(
+            r#"
+{
+  "hr": {
+      "employeesNest": [
+         {
+            "id": 3,
+            "name": "Bob Smith",
+            "title": null,
+            "projects": [
+                { "name": "AWS Redshift Spectrum querying" },
+                { "name": "AWS Redshift security" },
+                { "name": "AWS Aurora security" }
+            ]
+          },
+          {
+              "id": 4,
+              "name": "Susan Smith",
+              "title": "Dev Mgr",
+              "projects": []
+          },
+          {
+              "id": 6,
+              "name": "Jane Smith",
+              "title": "Software Eng 2",
+              "projects": [ { "name": "AWS Redshift security" } ]
+          }
+      ]
+    }
+}
+        "#,
+        )?);
+        let sql = Sql::from_str(
+            r#"
+SELECT e.name AS employeeName,
+  ( SELECT p
+    FROM e.projects AS p
+    WHERE p.name LIKE '%querying%'
+  ) AS queryProjectsNum
+FROM hr.employeesNest AS e
+        "#,
+        )?;
+        let logical_plan = LogicalPlan::from(sql);
+
+        for drain in logical_plan.drains {
+            drain.execute(&mut env);
+        }
+
+        logical_plan.filter.execute(&mut env);
+
+        let v = logical_plan
+            .project
+            .0
+            .iter()
+            .map(|field| {
+                let field = field.expand_fullpath(&env);
+                let (alias, expr) = field.rename();
+                let value = expr.eval(&env);
+                (alias, value)
+            })
+            .collect::<Map<String, PqlValue>>();
+
+        let v = Rows::from(PqlValue::Object(v));
+        let v = Records::from(v);
+        let v = v.into_list();
+        let v = PqlValue::from(v);
+
+        v.print();
+        assert_eq!(
+            PqlValue::from(v),
+            PqlValue::from_str(
+                r#"
+<<
+  {
+    'employeeName': 'Bob Smith',
+    'queryProjectsNum': {
+      'projects': {
+        'name': 'AWS Redshift Spectrum querying'
+      }
+    }
+  },
+  {
+    'employeeName': 'Susan Smith'
+  },
+  {
+    'employeeName': 'Jane Smith'
+  }
+>>
                 "#,
             )?
         );
