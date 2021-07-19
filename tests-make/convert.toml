@@ -1,9 +1,14 @@
 [env]
 INPUT = '''
 {
-  "name": "Mew",
-  "id": 151,
-  "fleeRate": 0.1
+  "no": 1,
+  "name": "Bulbasaur",
+  "types": [
+    "Grass",
+    "Poison"
+  ],
+  "height": 0.70,
+  "weight": 6.9
 }
 '''
 
@@ -13,9 +18,14 @@ echo $INPUT | ./target/debug/pq -t json
 '''
 tobe = '''
 {
-  "name": "Mew",
-  "id": 151,
-  "fleeRate": 0.1
+  "no": 1,
+  "name": "Bulbasaur",
+  "types": [
+    "Grass",
+    "Poison"
+  ],
+  "height": 0.7,
+  "weight": 6.9
 }
 '''
 
@@ -24,7 +34,7 @@ script = '''
 echo $INPUT | ./target/debug/pq -t json -c
 '''
 tobe = '''
-{"name":"Mew","id":151,"fleeRate":0.1}
+{"no":1,"name":"Bulbasaur","types":["Grass","Poison"],"height":0.7,"weight":6.9}
 '''
 
 
@@ -33,9 +43,14 @@ script = '''
 echo $INPUT | ./target/debug/pq -t toml
 '''
 tobe = '''
-name = 'Mew'
-id = 151
-fleeRate = 0.1
+no = 1
+name = 'Bulbasaur'
+types = [
+    'Grass',
+    'Poison',
+]
+height = 0.7
+weight = 6.9
 
 '''
 
@@ -44,9 +59,13 @@ script = '''
 echo $INPUT | ./target/debug/pq -t yaml
 '''
 tobe = '''
-name: Mew
-id: 151
-fleeRate: 0.1
+"no": 1
+name: Bulbasaur
+types:
+  - Grass
+  - Poison
+height: 0.7
+weight: 6.9
 
 '''
 
@@ -55,5 +74,23 @@ script = '''
 echo $INPUT | ./target/debug/pq -t xml
 '''
 tobe = '''
-<name>Mew</name><id>151</id><fleeRate>0.1</fleeRate>
+<no>1</no><name>Bulbasaur</name><types>GrassPoison</types><height>0.7</height><weight>6.9</weight>
+'''
+
+
+[tests.to-partiql]
+script = '''
+echo $INPUT | ./target/debug/pq -t partiql
+'''
+tobe = '''
+{
+  "no": 1,
+  "name": "Bulbasaur",
+  "types": <<
+    "Grass",
+    "Poison"
+  >>,
+  "height": 0.7,
+  "weight": 6.9
+}
 '''

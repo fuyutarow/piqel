@@ -1485,9 +1485,9 @@ dependencies = [
 
 [[package]]
 name = "serde_partiql"
-version = "1.1.64"
+version = "1.1.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c2ee6c1faff6d960db86d6babf179dd680ae80c8a806f98c0fcf578aa82838d"
+checksum = "5a742333663d1bf8948822cc22855dedccd4639577086dc60b0c55e9cee6ae9a"
 dependencies = [
  "itoa",
  "ryu",

@@ -18,6 +18,7 @@ pub enum LangType {
     Xml,
     #[cfg(feature = "table")]
     Csv,
+    Partiql,
 }
 
 impl Default for LangType {
@@ -62,6 +63,7 @@ impl Lang {
             LangType::Toml => Self::from_as_toml(input),
             LangType::Yaml => Self::from_as_yaml(input),
             LangType::Xml => Self::from_as_xml(input),
+            LangType::Partiql => Self::from_as_partiql(input),
         }
     }
 
@@ -137,6 +139,20 @@ impl Lang {
         }
     }
 
+    pub fn from_as_partiql(input: &str) -> anyhow::Result<Self> {
+        if let Ok(data) = PqlValue::from_str(input) {
+            Ok(Self {
+                data,
+                text: input.to_string(),
+                from: LangType::Partiql,
+                to: LangType::Partiql,
+                colnames: Vec::default(),
+            })
+        } else {
+            anyhow::bail!("fail to parse input as xml");
+        }
+    }
+
     pub fn sort_keys(&mut self) {
         let json = serde_json::to_string(&self.data).unwrap();
         let bdata = serde_json::from_str::<BPqlValue>(&json).unwrap();
@@ -171,7 +187,6 @@ impl Lang {
             }
             (LangType::Json, _) if compact => serde_json::to_string(&self.data).unwrap(),
             (LangType::Json, _) => serde_json::to_string_pretty(&self.data).unwrap(),
-            (_, true) => self.text.to_owned(),
             (LangType::Toml, _) => {
                 let v = TomlValue::from(self.data.to_owned());
                 toml::to_string_pretty(&v).unwrap()
@@ -181,6 +196,7 @@ impl Lang {
                 .trim_start_matches("---\n")
                 .to_string(),
             (LangType::Xml, _) => quick_xml::se::to_string(&self.data).unwrap(),
+            (LangType::Partiql, _) => serde_partiql::to_string_pretty(&self.data)?,
         };
 
         Ok(output)

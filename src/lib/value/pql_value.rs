@@ -252,23 +252,6 @@ impl PqlValue {
         }
     }
 
-    pub fn print(&self) -> anyhow::Result<()> {
-        println!("{}", self.to_json()?);
-        Ok(())
-    }
-
-    pub fn to_json(&self) -> serde_json::Result<String> {
-        self.to_jsonp()
-    }
-
-    pub fn to_jsonp(&self) -> serde_json::Result<String> {
-        serde_json::to_string_pretty(self)
-    }
-
-    pub fn to_jsonc(&self) -> serde_json::Result<String> {
-        serde_json::to_string(self)
-    }
-
     pub fn into_array(self) -> Self {
         let v: Vec<PqlValue> = self.into();
         PqlValue::Array(v)
@@ -289,6 +272,28 @@ impl PqlValue {
             }
             _ => self,
         }
+    }
+
+    pub fn print(&self) -> anyhow::Result<()> {
+        let s = self.to_string_pretty()?;
+        println!("{}", s);
+        Ok(())
+    }
+
+    pub fn to_string(&self) -> serde_partiql::Result<String> {
+        serde_partiql::to_string(self)
+    }
+
+    pub fn to_string_pretty(&self) -> serde_partiql::Result<String> {
+        serde_partiql::to_string_pretty(self)
+    }
+
+    pub fn to_jsonp(&self) -> serde_json::Result<String> {
+        serde_json::to_string_pretty(self)
+    }
+
+    pub fn to_jsonc(&self) -> serde_json::Result<String> {
+        serde_json::to_string(self)
     }
 }
 
@@ -839,6 +844,60 @@ LIMIT 3
 ]
         "#
             )?
+        );
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_parse_value() -> anyhow::Result<()> {
+        let value = PqlValue::from_str(
+            r#"
+{
+  'hr': {
+      'employeesNest': <<
+         {
+          'id': 3,
+          'name': 'Bob Smith',
+          'title': null,
+          'projects': [ { 'name': 'AWS Redshift Spectrum querying' },
+                        { 'name': 'AWS Redshift security' },
+                        { 'name': 'AWS Aurora security' }
+                      ]
+          },
+          {
+              'id': 4,
+              'name': 'Susan Smith',
+              'title': 'Dev Mgr',
+              'projects': []
+          },
+          {
+              'id': 6,
+              'name': 'Jane Smith',
+              'title': 'Software Eng 2',
+              'projects': [ { 'name': 'AWS Redshift security' } ]
+          }
+      >>
+    }
+}
+        "#,
+        )?;
+        dbg!(&value);
+        assert_eq!(1, 2);
+        Ok(())
+    }
+
+    #[test]
+    fn test_print_value() -> anyhow::Result<()> {
+        let value = PqlValue::from_str(r#"[1,2,3]"#)?;
+        dbg!(&value);
+        assert_eq!(
+            value.to_string_pretty()?,
+            r#"<<
+  1.0,
+  2.0,
+  3.0
+>>"#
         );
 
         Ok(())

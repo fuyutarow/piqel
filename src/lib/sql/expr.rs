@@ -66,7 +66,7 @@ impl From<Expr> for String {
     fn from(expr: Expr) -> Self {
         match expr {
             Expr::Selector(selector) => selector.to_string(),
-            Expr::Value(value) => value.to_json().expect("to json"),
+            Expr::Value(value) => value.to_jsonc().expect("to json"),
             _ => todo!(),
         }
     }

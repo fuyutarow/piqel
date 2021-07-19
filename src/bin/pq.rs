@@ -30,11 +30,11 @@ struct Opt {
     query: Option<String>,
 
     /// target config file
-    #[structopt(short, long, possible_values(&["csv", "json", "toml", "yaml", "xml"]))]
+    #[structopt(short, long, possible_values(&["csv", "json", "toml", "yaml", "xml", "partiql"]))]
     from: Option<String>,
 
     /// target config file
-    #[structopt(short, long, possible_values(&["csv", "json", "toml", "yaml", "xml"]))]
+    #[structopt(short, long, possible_values(&["csv", "json", "toml", "yaml", "xml", "partiql"]))]
     to: Option<String>,
 
     /// sort keys of objects on output. it on works when --to option is json, currently

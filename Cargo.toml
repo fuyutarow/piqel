@@ -39,7 +39,7 @@ serde = "1.0.126"
 serde_derive = "1.0.126"
 serde_json = { version = "1.0.64", features = ["preserve_order"] }
 serde_yaml = "0.8.17"
-serde_partiql = "1.1.64"
+serde_partiql = "1.1.65"
 structopt = { version = "0.3.21", optional = true }
 toml = "0.5.8"
 rayon = "1.5"
