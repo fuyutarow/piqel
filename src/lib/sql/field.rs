@@ -27,7 +27,7 @@ impl FromStr for Field {
 }
 
 impl Field {
-    pub fn expand_fullpath(&self, env: &Env) -> Self {
+    pub fn expand_fullpath(self, env: &Env) -> Self {
         Self {
             expr: self.expr.expand_fullpath(&env),
             alias: self.alias.to_owned(),
@@ -45,7 +45,16 @@ impl Field {
         } else {
             let alias = match &self.expr {
                 Expr::Selector(selector) => selector.to_vec().last().unwrap().to_string(),
-                _ => todo!(),
+                Expr::Star => todo!(),
+                Expr::Value(_) => todo!(),
+                Expr::Func(_) => "".to_string(),
+                Expr::Add(_, _) => todo!(),
+                Expr::Sub(_, _) => todo!(),
+                Expr::Mul(_, _) => todo!(),
+                Expr::Div(_, _) => todo!(),
+                Expr::Rem(_, _) => todo!(),
+                Expr::Exp(_, _) => todo!(),
+                Expr::Sql(_) => todo!(),
             };
             (alias, self.expr)
         }

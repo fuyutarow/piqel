@@ -15,7 +15,7 @@ impl Projection {
     pub fn execute(self, env: &Env) -> Vec<PqlValue> {
         let v = self
             .0
-            .iter()
+            .into_iter()
             .map(|field| {
                 let field = field.expand_fullpath(&env);
                 let (alias, expr) = field.rename();
@@ -381,7 +381,7 @@ mod tests {
         let v = logical_plan
             .project
             .0
-            .iter()
+            .into_iter()
             .map(|field| {
                 let field = field.expand_fullpath(&env);
                 let (alias, expr) = field.rename();
@@ -431,7 +431,7 @@ mod tests {
         let v = logical_plan
             .project
             .0
-            .iter()
+            .into_iter()
             .map(|field| {
                 let field = field.expand_fullpath(&env);
                 let (alias, expr) = field.rename();

@@ -33,6 +33,12 @@ impl Default for Expr {
     }
 }
 
+impl From<usize> for Expr {
+    fn from(u: usize) -> Self {
+        Self::Value(PqlValue::Int(u as i64))
+    }
+}
+
 impl From<i64> for Expr {
     fn from(i: i64) -> Self {
         Self::Value(PqlValue::Int(i))
@@ -100,12 +106,12 @@ impl Expr {
         }
     }
 
-    pub fn expand_fullpath(&self, env: &Env) -> Self {
+    pub fn expand_fullpath(self, env: &Env) -> Self {
         match self {
             Self::Selector(path) => Self::Selector(path.expand_fullpath2(&env)),
             Expr::Value(_) => self.to_owned(),
             Expr::Star => todo!(),
-            Expr::Func(_) => todo!(),
+            Expr::Func(func) => Self::Func(Box::new(func.expand_fullpath(&env))),
             Self::Add(left, right) => Self::Add(
                 Box::new((*left).expand_fullpath(&env)),
                 Box::new((*right).expand_fullpath(&env)),
@@ -130,11 +136,7 @@ impl Expr {
                 Box::new((*left).expand_fullpath(&env)),
                 Box::new((*right).expand_fullpath(&env)),
             ),
-            Expr::Sql(sql) => {
-                let logical_plan = LogicalPlan::from(sql.to_owned());
-                let value = logical_plan.execute(&mut env.to_owned());
-                Self::Value(value)
-            }
+            Expr::Sql(_) => self.to_owned(),
         }
     }
 
@@ -143,14 +145,18 @@ impl Expr {
             Self::Value(value) => value,
             Self::Selector(selector) => selector.evaluate(&env),
             Self::Star => todo!(),
-            Self::Func(_) => todo!(),
-            Self::Sql(_) => todo!(),
+            Self::Func(box func) => func.evaluate(&env),
             Self::Add(box expr1, box expr2) => (expr1).eval(&env) + (expr2).eval(&env),
             Self::Sub(box expr1, box expr2) => (expr1).eval(&env) - (expr2).eval(&env),
             Self::Mul(box expr1, box expr2) => (expr1).eval(&env) * (expr2).eval(&env),
             Self::Div(box expr1, box expr2) => (expr1).eval(&env) / (expr2).eval(&env),
             Self::Rem(box expr1, box expr2) => (expr1).eval(&env) % (expr2).eval(&env),
             Self::Exp(box expr1, box expr2) => (expr1).eval(&env).powf((expr2).eval(&env)),
+            Expr::Sql(sql) => {
+                let logical_plan = LogicalPlan::from(sql.to_owned());
+                let value = logical_plan.execute(&mut env.to_owned());
+                value
+            }
         }
     }
 

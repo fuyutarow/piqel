@@ -83,9 +83,27 @@ impl From<&str> for PqlValue {
     }
 }
 
+impl From<String> for PqlValue {
+    fn from(s: String) -> Self {
+        Self::Str(s)
+    }
+}
+
 impl From<bool> for PqlValue {
     fn from(b: bool) -> Self {
         Self::Boolean(b)
+    }
+}
+
+impl From<usize> for PqlValue {
+    fn from(u: usize) -> Self {
+        Self::Int(u as i64)
+    }
+}
+
+impl From<i32> for PqlValue {
+    fn from(i: i32) -> Self {
+        Self::Int(i as i64)
     }
 }
 
@@ -789,7 +807,6 @@ LIMIT 3
     #[test]
     fn test_print_value() -> anyhow::Result<()> {
         let value = PqlValue::from_str(r#"[1,2,3]"#)?;
-        dbg!(&value);
         assert_eq!(
             value.to_string_pretty()?,
             r#"<<
