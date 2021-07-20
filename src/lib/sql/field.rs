@@ -39,6 +39,10 @@ impl Field {
         value
     }
 
+    pub fn is_aggregation(&self) -> bool {
+        self.expr.is_aggregation()
+    }
+
     pub fn rename(self) -> (String, Expr) {
         if let Some(alias) = self.alias {
             (alias, self.expr)

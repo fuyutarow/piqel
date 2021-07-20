@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::sql::Env;
 use crate::sql::Expr;
 use crate::value::PqlValue;
@@ -20,18 +22,31 @@ impl Func {
         match self {
             Func::Count(expr) => {
                 let v = expr.eval(env);
-                dbg!("func eval>>", &v);
-                let n = match v {
-                    PqlValue::Array(array) => array.len(),
+                match v {
+                    PqlValue::Array(array) => PqlValue::Array({
+                        let ns = array
+                            .into_iter()
+                            .map(|elem| match elem {
+                                PqlValue::Array(a) => PqlValue::from(a.len()),
+                                _ => unreachable!(),
+                            })
+                            .collect_vec();
+                        ns
+                    }),
                     _ => unreachable!(),
-                };
-                PqlValue::from(n)
+                }
             }
             Func::Upper(expr) => {
                 let v = expr.eval(env);
-                dbg!("func eval>>", &v);
                 v.to_uppercase()
             }
+        }
+    }
+
+    pub fn is_aggregation(&self) -> bool {
+        match self {
+            Func::Count(_) => true,
+            Func::Upper(_) => false,
         }
     }
 }

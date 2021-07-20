@@ -45,6 +45,8 @@ fn q2() -> anyhow::Result<()> {
 fn q3() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q3")?;
     let res = evaluate(sql, data);
+    res.print();
+    output.print();
     assert_eq!(res, output);
     Ok(())
 }

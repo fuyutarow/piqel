@@ -13,19 +13,46 @@ pub struct Projection(pub Vec<Field>);
 
 impl Projection {
     pub fn execute(self, env: &Env) -> Vec<PqlValue> {
-        let v = self
-            .0
-            .into_iter()
-            .map(|field| {
-                let field = field.expand_fullpath(&env);
-                let (alias, expr) = field.rename();
-                let value = expr.eval(env);
-                (alias, value)
-            })
-            .collect::<Map<String, PqlValue>>();
-        let v = Rows::from(PqlValue::Object(v));
-        let v = Records::from(v);
-        v.into_list()
+        let list = if self.0.iter().all(|v| !v.is_aggregation()) {
+            let v = self
+                .0
+                .into_iter()
+                .map(|field| {
+                    let field = field.expand_fullpath(&env);
+                    let (alias, expr) = field.rename();
+                    let value = expr.eval(&env);
+                    (alias, value)
+                })
+                .collect::<Map<String, PqlValue>>();
+
+            let v = Rows::from(PqlValue::Object(v));
+            let v = Records::from(v);
+            let v = v.into_list();
+            v
+        } else if self.0.iter().all(|v| v.is_aggregation()) {
+            let list = self
+                .0
+                .into_iter()
+                .map(|field| {
+                    let field = field.expand_fullpath(&env);
+                    let value = field.expr.eval(&env);
+                    value
+                })
+                .collect_vec();
+            if list.len() > 1 {
+                todo!()
+            } else if let Some(first) = list.first() {
+                match first {
+                    PqlValue::Array(array) => array.to_owned(),
+                    _ => todo!(),
+                }
+            } else {
+                todo!();
+            }
+        } else {
+            todo!();
+        };
+        list
     }
 }
 
@@ -149,8 +176,8 @@ impl From<Rows> for Records {
 
 impl From<Records> for PqlValue {
     fn from(records: Records) -> Self {
-        Self::Array(
-            records
+        Self::Array({
+            let rs = records
                 .0
                 .into_iter()
                 .map(|obj| {
@@ -160,8 +187,9 @@ impl From<Records> for PqlValue {
                             .collect::<Map<String, _>>(),
                     )
                 })
-                .collect::<Vec<_>>(),
-        )
+                .collect::<Vec<_>>();
+            rs
+        })
     }
 }
 
@@ -169,6 +197,7 @@ impl Records {
     pub fn into_list(self) -> Vec<PqlValue> {
         self.0
             .into_iter()
+            .filter_map(|e| e.values().all(|list| !list.is_empty()).then(|| e))
             .map(|record| {
                 let record = record
                     .into_iter()
@@ -210,6 +239,7 @@ mod tests {
 
     use crate::value::PqlValue;
     use indexmap::IndexMap as Map;
+    use itertools::Itertools;
     use std::os::raw::c_longlong;
     use std::str::FromStr;
 
@@ -223,12 +253,14 @@ mod tests {
       "AWS Redshift security",
       "AWS Aurora security"
     ],
+    [],
     [
       "AWS Redshift security"
     ]
   ],
   "employeeName": [
     "Bob Smith",
+    "Susan Smith",
     "Jane Smith"
   ]
 }
@@ -243,6 +275,7 @@ mod tests {
         "AWS Redshift security",
         "AWS Aurora security"
       ],
+      [],
       [
         "AWS Redshift security"
       ]
@@ -251,6 +284,7 @@ mod tests {
   {
     "employeeName": [
       "Bob Smith",
+      "Susan Smith",
       "Jane Smith"
     ]
   }
@@ -267,6 +301,13 @@ mod tests {
     ],
     "employeeName": [
       "Bob Smith"
+    ]
+  },
+  {
+    "projectName": [
+    ],
+    "employeeName": [
+      "Susan Smith"
     ]
   },
   {
@@ -366,7 +407,7 @@ mod tests {
 
     #[test]
     fn test_project_a_missing_value() -> anyhow::Result<()> {
-        let env = Env::from(PqlValue::from_str(
+        let mut env = Env::from(PqlValue::from_str(
             r#"
 [
     { 'id': 3, 'name': 'Bob Smith' },
@@ -377,26 +418,13 @@ mod tests {
         )?);
         let sql = Sql::from_str(r#"SELECT id, name, title"#)?;
         let logical_plan = LogicalPlan::from(sql);
-
-        let v = logical_plan
-            .project
-            .0
-            .into_iter()
-            .map(|field| {
-                let field = field.expand_fullpath(&env);
-                let (alias, expr) = field.rename();
-                let value = expr.eval(&env);
-                (alias, value)
-            })
-            .collect::<Map<String, PqlValue>>();
-
-        let v = Rows::from(PqlValue::Object(v));
-        let v = Records::from(v);
-        let v = v.into_list();
-        let v = PqlValue::from(v);
-
+        for drain in logical_plan.drains {
+            drain.execute(&mut env);
+        }
+        logical_plan.filter.execute(&mut env);
+        let r = logical_plan.project.execute(&env);
         assert_eq!(
-            PqlValue::from(v),
+            PqlValue::from(r),
             PqlValue::from_str(
                 r#"
 [
@@ -412,7 +440,7 @@ mod tests {
 
     #[test]
     fn test_project_a_missing_value2() -> anyhow::Result<()> {
-        let env = Env::from(PqlValue::from(vec![
+        let mut env = Env::from(PqlValue::from(vec![
             PqlValue::from_str(
                 r#"
     { 'id': 3, 'name': 'Bob Smith' }
@@ -427,26 +455,13 @@ mod tests {
         ]));
         let sql = Sql::from_str(r#"SELECT id, name, title"#)?;
         let logical_plan = LogicalPlan::from(sql);
-
-        let v = logical_plan
-            .project
-            .0
-            .into_iter()
-            .map(|field| {
-                let field = field.expand_fullpath(&env);
-                let (alias, expr) = field.rename();
-                let value = expr.eval(&env);
-                (alias, value)
-            })
-            .collect::<Map<String, PqlValue>>();
-
-        let v = Rows::from(PqlValue::Object(v));
-        let v = Records::from(v);
-        let v = v.into_list();
-        let v = PqlValue::from(v);
-
+        for drain in logical_plan.drains {
+            drain.execute(&mut env);
+        }
+        logical_plan.filter.execute(&mut env);
+        let r = logical_plan.project.execute(&env);
         assert_eq!(
-            PqlValue::from(v),
+            PqlValue::from(r),
             PqlValue::from_str(
                 r#"
 [
@@ -459,9 +474,8 @@ mod tests {
         );
         Ok(())
     }
-
     #[test]
-    fn test_subqueries() -> anyhow::Result<()> {
+    fn test_subquery() -> anyhow::Result<()> {
         let mut env = Env::from(PqlValue::from_str(
             r#"
 {
@@ -505,33 +519,13 @@ FROM hr.employeesNest AS e
         "#,
         )?;
         let logical_plan = LogicalPlan::from(sql);
-
         for drain in logical_plan.drains {
             drain.execute(&mut env);
         }
-
         logical_plan.filter.execute(&mut env);
-
-        let v = logical_plan
-            .project
-            .0
-            .iter()
-            .map(|field| {
-                let field = field.expand_fullpath(&env);
-                let (alias, expr) = field.rename();
-                let value = expr.eval(&env);
-                (alias, value)
-            })
-            .collect::<Map<String, PqlValue>>();
-
-        let v = Rows::from(PqlValue::Object(v));
-        let v = Records::from(v);
-        let v = v.into_list();
-        let v = PqlValue::from(v);
-
-        v.print();
+        let r = logical_plan.project.execute(&env);
         assert_eq!(
-            PqlValue::from(v),
+            PqlValue::from(r),
             PqlValue::from_str(
                 r#"
 <<
@@ -551,6 +545,83 @@ FROM hr.employeesNest AS e
   }
 >>
                 "#,
+            )?
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_subquery_with_COUNT_function() -> anyhow::Result<()> {
+        let mut env = Env::from(PqlValue::from_str(
+            r#"
+{
+    "hr": {
+        "employeesNest": [
+            {
+                "id": 3,
+                "name": "Bob Smith",
+                "title": null,
+                "projects": [
+                    { "name": "AWS Redshift Spectrum querying" },
+                    { "name": "AWS Redshift security" },
+                    { "name": "AWS Aurora security" }
+                ]
+            },
+            {
+                "id": 4,
+                "name": "Susan Smith",
+                "title": "Dev Mgr",
+                "projects": []
+            },
+            {
+                "id": 6,
+                "name": "Jane Smith",
+                "title": "Software Eng 2",
+                "projects": [ { "name": "AWS Redshift security" } ]
+            }
+        ]
+    }
+}
+                "#,
+        )?);
+        let sql = Sql::from_str(
+            r#"
+SELECT
+    e.name AS employeeName,
+    ( SELECT COUNT(p)
+    FROM e.projects AS p
+    WHERE p.name LIKE '%security%'
+    ) AS queryProjectsNum
+FROM hr.employeesNest AS e
+                "#,
+        )?;
+        let logical_plan = LogicalPlan::from(sql);
+
+        for drain in logical_plan.drains {
+            drain.execute(&mut env);
+        }
+        logical_plan.filter.execute(&mut env);
+        let r = logical_plan.project.execute(&env);
+
+        assert_eq!(
+            PqlValue::from(r),
+            PqlValue::from_str(
+                r#"
+[
+  {
+    "employeeName": "Bob Smith",
+    "queryProjectsNum": 2
+  },
+  {
+    "employeeName": "Susan Smith",
+    "queryProjectsNum": 0
+  },
+  {
+    "employeeName": "Jane Smith",
+    "queryProjectsNum": 1
+  }
+]
+                        "#,
             )?
         );
         Ok(())

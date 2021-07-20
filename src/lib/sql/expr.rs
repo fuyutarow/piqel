@@ -140,6 +140,13 @@ impl Expr {
         }
     }
 
+    pub fn is_aggregation(&self) -> bool {
+        match self {
+            Self::Func(func) => func.is_aggregation(),
+            _ => false,
+        }
+    }
+
     pub fn eval(self, env: &Env) -> PqlValue {
         match self.to_owned() {
             Self::Value(value) => value,

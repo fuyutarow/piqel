@@ -1,3 +1,5 @@
+use serde::__private::de::InPlaceSeed;
+
 use crate::sql::re_from_str;
 use crate::sql::Env;
 use crate::sql::Expr;
@@ -44,7 +46,7 @@ impl PqlValue {
                         vv
                     })
                     .collect::<Vec<_>>();
-                (!arr.is_empty()).then(|| PqlValue::from(arr))
+                Some(PqlValue::Array(arr))
             }
             PqlValue::Object(object) => {
                 let obj = match cond.to_path().map(|selector| selector.get(depth)) {
@@ -60,7 +62,6 @@ impl PqlValue {
                             }
                         } else {
                             // MISSING
-                            // Some(PqlValue::Null)
                             None
                         }
                     }
@@ -246,6 +247,12 @@ mod tests {
         ]
     },
     {
+        'id': 4,
+        'name': 'Susan Smith',
+        'title': 'Dev Mgr',
+        'projects': []
+    },
+    {
         'id': 6,
         'name': 'Jane Smith',
         'title': 'Software Eng 2',
@@ -304,6 +311,12 @@ mod tests {
             'AWS Redshift security',
             'AWS Aurora security'
         ]
+    },
+    {
+        'id': 4,
+        'name': 'Susan Smith',
+        'title': 'Dev Mgr',
+        'projects': []
     },
     {
         'id': 6,
