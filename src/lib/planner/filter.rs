@@ -180,7 +180,7 @@ mod tests {
         )?;
         let cond = WhereCond::Eq {
             expr: Expr::from(Selector::from("id")),
-            right: PqlValue::from(6.),
+            right: PqlValue::from(6),
         };
         let res = value.restrict3(&cond, 0);
         let expected = pqlir_parser::pql_value(
@@ -344,10 +344,10 @@ mod tests {
        ",
         )?;
 
-        // let env = Env::from(value.to_owned());
+        dbg!(&value);
         let cond = WhereCond::Eq {
             expr: Expr::from_str("n%2")?,
-            right: PqlValue::from(0.),
+            right: PqlValue::from(0),
         };
         let res = value.restrict3(&cond, 0);
         let expected = pqlir_parser::pql_value(

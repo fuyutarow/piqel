@@ -120,11 +120,7 @@ pub fn expr_as_field(input: &str) -> IResult<&str, Field> {
 
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
     // The math::parse must be placed after the parse_path_as_expr to prevent the inf keyword from being parsed.
-    alt((
-        parse_star_as_expr,
-        parser::math::parse,
-        parser::elements::float_number,
-    ))(input)
+    parser::math::parse(input)
 }
 
 pub fn parse_star_as_expr(input: &str) -> IResult<&str, Expr> {

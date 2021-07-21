@@ -102,15 +102,15 @@ mod tests {
                 r#"
 [
   {
-    'id': 3.0,
+    'id': 3,
     'upper': 'BOB SMITH'
   },
   {
-    'id': 4.0,
+    'id': 4,
     'upper': 'SUSAN SMITH'
   },
   {
-    'id': 6.0,
+    'id': 6,
     'upper': 'JANE SMITH'
   }
 ]
