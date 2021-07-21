@@ -12,12 +12,14 @@ use nom::character::complete::space1;
 use nom::character::is_alphanumeric;
 use nom::combinator::cut;
 use nom::combinator::map;
+use nom::combinator::map_res;
 use nom::combinator::not;
 use nom::combinator::peek;
-use nom::error::{ErrorKind, ParseError};
+use nom::error::{context, ContextError, ErrorKind, ParseError};
 use nom::multi::many1;
 use nom::number::complete::recognize_float;
 use nom::sequence::delimited;
+use nom::sequence::tuple;
 use nom::sequence::{preceded, terminated};
 use nom::{IResult, InputLength};
 
@@ -52,15 +54,26 @@ pub fn sql_identifier(input: &str) -> IResult<&str, String> {
     )(input)
 }
 
-pub fn integer<'a>(input: &'a str) -> IResult<&'a str, u64> {
-    let (input, s) = digit1(input)?;
-    match s.parse::<u64>() {
-        Ok(i) => Ok((input, i)),
-        Err(_) => Err(nom::Err::Error(ParseError::from_error_kind(
-            input,
-            ErrorKind::Float,
-        ))),
-    }
+pub fn unsinged_integer<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    input: &'a str,
+) -> IResult<&'a str, u64, E> {
+    map(digit1, |s: &str| s.parse::<u64>().unwrap())(input)
+}
+
+pub fn integer<'a, E: ParseError<&'a str> + ContextError<&'a str>>(
+    input: &'a str,
+) -> IResult<&'a str, i64, E> {
+    alt((
+        map(digit1, |s: &str| s.parse::<i64>().unwrap()),
+        map(
+            preceded(tuple((char('-'), multispace0)), digit1),
+            |s: &str| -s.parse::<i64>().expect("int"),
+        ),
+    ))(input)
+}
+
+pub fn integer_as_expr(input: &str) -> IResult<&str, Expr> {
+    map(integer, |i| Expr::from(i as i64))(input)
 }
 
 /// Unlike nom::complete::{float, double}, this function does not parse `inf` keyword

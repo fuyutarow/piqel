@@ -76,7 +76,10 @@ fn q6() -> anyhow::Result<()> {
 #[test]
 fn q7() -> anyhow::Result<()> {
     let (sql, data, output) = get_sql_data_output("q7")?;
+    dbg!(&data);
     let res = evaluate(sql, data);
+
+    dbg!(&res, &output);
     assert_eq!(res, output);
     Ok(())
 }

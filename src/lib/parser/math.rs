@@ -68,6 +68,7 @@ pub fn parse_path_or_num(input: &str) -> IResult<&str, Expr> {
     delimited(
         space0,
         alt((
+            parser::elements::integer_as_expr,
             parser::float_number,
             parser::func::function,
             parser::parse_path_as_expr,
@@ -83,7 +84,10 @@ fn parse_number(input: &str) -> IResult<&str, Expr> {
 #[cfg(test)]
 mod tests {
     use super::parse;
-    use crate::sql::{Expr, Selector};
+    use crate::{
+        parser,
+        sql::{Expr, Selector},
+    };
 
     #[test]
     fn parse_sub_sub_path() {
@@ -111,11 +115,8 @@ mod tests {
             Ok((
                 "",
                 Expr::Sub(
-                    Box::new(Expr::Sub(
-                        Box::new(Expr::from(1.0)),
-                        Box::new(Expr::from(2.0)),
-                    )),
-                    Box::new(Expr::from(3.0)),
+                    Box::new(Expr::Sub(Box::new(Expr::from(1)), Box::new(Expr::from(2)),)),
+                    Box::new(Expr::from(3)),
                 )
             ))
         );
@@ -128,7 +129,7 @@ mod tests {
             parsed,
             Ok((
                 "",
-                Expr::Add(Box::new(Expr::from(12.0)), Box::new(Expr::from(34.0)))
+                Expr::Add(Box::new(Expr::from(12)), Box::new(Expr::from(34)))
             ))
         );
     }
@@ -140,7 +141,7 @@ mod tests {
             parsed,
             Ok((
                 "",
-                Expr::Sub(Box::new(Expr::from(12.0)), Box::new(Expr::from(34.0)))
+                Expr::Sub(Box::new(Expr::from(12)), Box::new(Expr::from(34)))
             ))
         );
     }
@@ -155,12 +156,12 @@ mod tests {
                 Expr::Sub(
                     Box::new(Expr::Add(
                         Box::new(Expr::Sub(
-                            Box::new(Expr::from(12.0)),
-                            Box::new(Expr::from(34.0))
+                            Box::new(Expr::from(12)),
+                            Box::new(Expr::from(34))
                         )),
-                        Box::new(Expr::from(15.0))
+                        Box::new(Expr::from(15))
                     )),
-                    Box::new(Expr::from(9.0))
+                    Box::new(Expr::from(9))
                 )
             ))
         );
@@ -170,16 +171,10 @@ mod tests {
     fn test_parse_multi_level_expression() {
         let parsed = parse("1 * 2 + 3 / 4 ^ 6");
         let expected = Expr::Add(
-            Box::new(Expr::Mul(
-                Box::new(Expr::from(1.0)),
-                Box::new(Expr::from(2.0)),
-            )),
+            Box::new(Expr::Mul(Box::new(Expr::from(1)), Box::new(Expr::from(2)))),
             Box::new(Expr::Div(
-                Box::new(Expr::from(3.0)),
-                Box::new(Expr::Exp(
-                    Box::new(Expr::from(4.0)),
-                    Box::new(Expr::from(6.0)),
-                )),
+                Box::new(Expr::from(3)),
+                Box::new(Expr::Exp(Box::new(Expr::from(4)), Box::new(Expr::from(6)))),
             )),
         );
         assert_eq!(parsed, Ok(("", expected)));
@@ -189,11 +184,8 @@ mod tests {
     fn test_parse_expression_with_parantheses() {
         let parsed = parse("(1 + 2) * 3");
         let expected = Expr::Mul(
-            Box::new(Expr::Add(
-                Box::new(Expr::from(1.0)),
-                Box::new(Expr::from(2.0)),
-            )),
-            Box::new(Expr::from(3.0)),
+            Box::new(Expr::Add(Box::new(Expr::from(1)), Box::new(Expr::from(2)))),
+            Box::new(Expr::from(3)),
         );
         assert_eq!(parsed, Ok(("", expected)));
     }

@@ -33,6 +33,18 @@ impl Default for Expr {
     }
 }
 
+impl From<usize> for Expr {
+    fn from(u: usize) -> Self {
+        Self::Value(PqlValue::Int(u as i64))
+    }
+}
+
+impl From<i32> for Expr {
+    fn from(i: i32) -> Self {
+        Self::Value(PqlValue::Int(i as i64))
+    }
+}
+
 impl From<i64> for Expr {
     fn from(i: i64) -> Self {
         Self::Value(PqlValue::Int(i))

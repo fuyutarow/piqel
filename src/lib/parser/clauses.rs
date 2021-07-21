@@ -126,7 +126,7 @@ pub fn orderby(input: &str) -> IResult<&str, clause::OrderBy> {
 pub fn limit(input: &str) -> IResult<&str, clause::Limit> {
     let (input, (_, limit, opt_offset)) = tuple((
         tag_no_case("LIMIT"),
-        preceded(multispace0, elements::integer),
+        preceded(multispace0, elements::unsinged_integer),
         opt(preceded(multispace0, offset)),
     ))(input)?;
 
@@ -137,7 +137,7 @@ pub fn limit(input: &str) -> IResult<&str, clause::Limit> {
 pub fn offset(input: &str) -> IResult<&str, u64> {
     preceded(
         tag_no_case("OFFSET"),
-        preceded(multispace0, elements::integer),
+        preceded(multispace0, elements::unsinged_integer),
     )(input)
 }
 

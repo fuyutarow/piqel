@@ -8,11 +8,11 @@ use piqel::value::PqlValue;
 fn calc() -> anyhow::Result<()> {
     let input = "1 - 2 - 3";
     let (_, expr) = parser::math::parse(&input)?;
-    assert_eq!(expr.eval(&Env::default()), PqlValue::from(-4.));
+    assert_eq!(expr.eval(&Env::default()), PqlValue::from(-4));
 
     let input = "12 - 34 + 15 - 9";
     let (_, expr) = parser::math::parse(&input)?;
-    assert_eq!(expr.eval(&Env::default()), PqlValue::from(-16.));
+    assert_eq!(expr.eval(&Env::default()), PqlValue::from(-16));
 
     let input = "1 * 2 + 3 / 4 ^ 6";
     let (_, expr) = parser::math::parse(&input)?;
@@ -20,7 +20,7 @@ fn calc() -> anyhow::Result<()> {
 
     let input = "(1 + 2) * 3";
     let (_, expr) = parser::math::parse(&input)?;
-    assert_eq!(expr.eval(&Env::default()), PqlValue::from(9.));
+    assert_eq!(expr.eval(&Env::default()), PqlValue::from(9));
 
     Ok(())
 }

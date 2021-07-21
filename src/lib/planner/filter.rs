@@ -1,3 +1,5 @@
+use nom::dbg_dmp;
+
 use crate::sql::re_from_str;
 use crate::sql::Env;
 use crate::sql::Expr;
@@ -15,6 +17,7 @@ impl Filter {
             if let Some(expr) = env.get("") {
                 let data = match expr {
                     Expr::Value(value) => {
+                        dbg!(&value, &cond);
                         let restricted = value.restrict3(&cond, 0).expect("restricted value");
                         Expr::from(restricted)
                     }
@@ -35,6 +38,7 @@ impl Filter {
 
 impl PqlValue {
     fn restrict3(self, cond: &WhereCond, depth: usize) -> Option<Self> {
+        // dbg!(&self);
         match &self {
             PqlValue::Array(array) => {
                 let arr = array
@@ -44,9 +48,11 @@ impl PqlValue {
                         vv
                     })
                     .collect::<Vec<_>>();
+                dbg!(&arr);
                 (!arr.is_empty()).then(|| PqlValue::from(arr))
             }
             PqlValue::Object(object) => {
+                dbg!("@2");
                 let obj = match cond.to_path().map(|selector| selector.get(depth)) {
                     Some(Some(head)) => {
                         if let Some(src) = object.get(head.to_string().as_str()) {
@@ -73,6 +79,7 @@ impl PqlValue {
             }
             value => match cond.to_owned() {
                 WhereCond::Eq { expr, right } => {
+                    dbg!("@3");
                     if expr.eval(&Env::from(value.to_owned())) == right {
                         Some(value.to_owned())
                     } else {
@@ -80,6 +87,7 @@ impl PqlValue {
                     }
                 }
                 WhereCond::Neq { expr, right } => {
+                    dbg!("@4");
                     if expr.eval(&Env::from(value.to_owned())) != right {
                         Some(value.to_owned())
                     } else {
@@ -87,6 +95,7 @@ impl PqlValue {
                     }
                 }
                 WhereCond::Like { expr: _, right } => {
+                    dbg!("@5");
                     if let PqlValue::Str(string) = &value {
                         if re_from_str(&right).is_match(&string) {
                             Some(value.to_owned())
@@ -179,7 +188,7 @@ mod tests {
         )?;
         let cond = WhereCond::Eq {
             expr: Expr::from(Selector::from("id")),
-            right: PqlValue::from(6.),
+            right: PqlValue::from(6),
         };
         let res = value.restrict3(&cond, 0);
         let expected = pqlir_parser::pql_value(
@@ -331,10 +340,10 @@ mod tests {
        ",
         )?;
 
-        // let env = Env::from(value.to_owned());
+        dbg!(&value);
         let cond = WhereCond::Eq {
             expr: Expr::from_str("n%2")?,
-            right: PqlValue::from(0.),
+            right: PqlValue::from(0),
         };
         let res = value.restrict3(&cond, 0);
         let expected = pqlir_parser::pql_value(

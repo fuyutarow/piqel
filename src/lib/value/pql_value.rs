@@ -89,6 +89,18 @@ impl From<bool> for PqlValue {
     }
 }
 
+impl From<usize> for PqlValue {
+    fn from(i: usize) -> Self {
+        Self::Int(i as i64)
+    }
+}
+
+impl From<i32> for PqlValue {
+    fn from(i: i32) -> Self {
+        Self::Int(i as i64)
+    }
+}
+
 impl From<i64> for PqlValue {
     fn from(i: i64) -> Self {
         Self::Int(i)
@@ -542,7 +554,7 @@ mod tests {
             .into_iter()
             .collect::<VecDeque<SelectorNode>>(),
         }) {
-            *partiql_value = PqlValue::from(20.);
+            *partiql_value = PqlValue::from(20);
         };
 
         assert_eq!(value, PqlValue::from_str(r#"{ "arr": [1,20,4] }"#)?);
@@ -578,9 +590,9 @@ SELECT
             PqlValue::from_str(
                 r#"
 [
-  { "n3": 4.0, "n4": 5.0, "nn": 2.0 },
-  { "n3": 5.0, "n4": 6.0, "nn": 4.0 },
-  { "n3": 6.0, "n4": 7.0, "nn": 6.0 }
+  { "n3": 4, "n4": 5, "nn": 2 },
+  { "n3": 5, "n4": 6, "nn": 4 },
+  { "n3": 6, "n4": 7, "nn": 6 }
 ]
                 "#
             )?
@@ -619,9 +631,9 @@ SELECT
             PqlValue::from_str(
                 r#"
 [
-  { "n3": -2.0, "n4": 3.0, "nn": 0.0 },
-  { "n3": -1.0, "n4": 2.0, "nn": 0.0 },
-  { "n3": 0.0, "n4": 1.0, "nn": 0.0 }
+  { "n3": -2, "n4": 3, "nn": 0 },
+  { "n3": -1, "n4": 2, "nn": 0 },
+  { "n3": 0, "n4": 1, "nn": 0 }
 ]
                 "#
             )?
@@ -658,9 +670,9 @@ SELECT
             PqlValue::from_str(
                 r#"
 [
-  { "n3": 3.0, "n4": 4.0, "nn": 1.0 },
-  { "n3": 6.0, "n4": 8.0, "nn": 4.0 },
-  { "n3": 9.0, "n4": 12.0, "nn": 9.0 }
+  { "n3": 3, "n4": 4, "nn": 1 },
+  { "n3": 6, "n4": 8, "nn": 4 },
+  { "n3": 9, "n4": 12, "nn": 9 }
 ]
                 "#
             )?
@@ -702,7 +714,6 @@ SELECT
   { "n3": 0.6666666666666666, "n4": 2.0, "nn": 1.0 },
   { "n3": 1.0, "n4": 1.3333333333333333, "nn": 1.0 }
 ]
-
                 "#
             )?
         );
@@ -749,9 +760,9 @@ LIMIT 3
             PqlValue::from_str(
                 r#"
 [
-  { "no": 7.0, "bmi": 36.0 },
-  { "no": 9.0, "bmi": 33.3984375 },
-  { "no": 10.0, "bmi": 32.22222222222222 }
+  { "no": 7, "bmi": 36.0 },
+  { "no": 9, "bmi": 33.3984375 },
+  { "no": 10, "bmi": 32.22222222222222 }
 ]
         "#
             )?
@@ -775,9 +786,9 @@ LIMIT 3
             PqlValue::from_str(
                 r#"
 [
-  [ 2.0, 4.0 ],
-  [ 6.0 ],
-  [ 8.0 ]
+  [ 2, 4 ],
+  [ 6 ],
+  [ 8 ]
 ]
         "#
             )?
@@ -793,9 +804,9 @@ LIMIT 3
         assert_eq!(
             value.to_string_pretty()?,
             r#"<<
-  1.0,
-  2.0,
-  3.0
+  1,
+  2,
+  3
 >>"#
         );
 
