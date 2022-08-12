@@ -31,11 +31,10 @@ impl Pool {
 }
 
 #[wasm_bindgen]
-pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> Option<String> {
-    piqel::engine::evaluate(sql, input, from, to).ok()
-}
-
-#[wasm_bindgen]
-pub fn addi(a: i32, b: i32) -> i32 {
-    a + b
+pub fn fact(n: u32) -> u32 {
+    if n <= 1 {
+        1
+    } else {
+        n * fact(n - 1)
+    }
 }

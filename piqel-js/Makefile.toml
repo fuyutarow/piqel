@@ -5,12 +5,12 @@ curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 [tasks."build:js"]
 script = '''
-wasm-pack build --target bundler
+wasm-pack build --target nodejs
 '''
 
 [tasks."release:js"]
 script = '''
-wasm-pack build --target bundler --release
+wasm-pack build --target nodejs --release
 '''
 
 [tasks."publish:js"]
