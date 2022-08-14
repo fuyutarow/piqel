@@ -1,24 +1,24 @@
 [tool.poetry]
+authors = ["fuyutarow <fuyutarow@gmail.com>"]
+description = ""
 name = "piqel"
 version = "0.1.0"
-description = ""
-authors = ["fuyutarow <fuyutarow@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
 pandas = "^1.2.5"
+python = "^3.9"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+black = {version = "^21.6b0", allow-prereleases = true}
 maturin = "^0.10.6"
-black = { version="^21.6b0", allow-prereleases=true }
+poetry = "^1.1.14"
+pytest = "^7.1.2"
 
 [tool.maturin]
 bindings = "cffi"
 manylinux = "off"
 
 [tool.black]
-line-length = 100
 exclude = '''
 /(
     \.git
@@ -32,3 +32,4 @@ exclude = '''
   | dist
 )/
 '''
+line-length = 100
