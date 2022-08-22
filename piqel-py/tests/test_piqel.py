@@ -6,55 +6,100 @@ import pandas as pd
 
 # %%
 def test_version():
-    assert __version__ == "0.202107.4"
+    assert __version__ == "0.202208.0"
 
 
 # %%
-def test_query():
-    data = {
-        "SHELL": "/bin/bash",
-        "NAME": "my machine name",
-        "PWD": "/home/fuyutarow/piqel",
-        "LOGNAME": "fuyutarow",
-        "HOME": "/home/fuyutarow",
-        "LANG": "C.UTF-8",
-        "USER": "fuyutarow",
-        "HOSTTYPE": "x86_64",
-        "_": "/usr/bin/env",
-    }
+def test_query_from_object():
+    data = [
+        {
+            "name": "Python",
+            "info": {
+                "since": 1995,
+                "extension": "py",
+            },
+        },
+        {
+            "name": "JavaScript",
+            "info": {
+                "since": 2000,
+                "extension": "js",
+            },
+        },
+        {
+            "name": "Rust",
+            "info": {
+                "since": 2010,
+                "extension": "rs",
+            },
+        },
+    ]
     dl = pq.DataLake(data)
-    dl = dl.query("SELECT NAME, LOGNAME")
-    output = dl.to("json")
-    expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
-    assert output == expected
-
-
-# %%
-def test_loads_json_and_query():
-    input = """
-{
-  "SHELL": "/bin/bash",
-  "NAME": "my machine name",
-  "PWD": "/home/fuyutarow/piqel",
-  "LOGNAME": "fuyutarow",
-  "HOME": "/home/fuyutarow",
-  "LANG": "C.UTF-8",
-  "USER": "fuyutarow",
-  "HOSTTYPE": "x86_64",
-  "_": "/usr/bin/env"
-}
+    dl = dl.query(
+        """
+SELECT
+  name,
+  info.since,
+  info.extension AS ext
+  ORDER BY since DESC
     """
-    output = (
-        pq.loads(input)
-        .query(
-            """
-SELECT NAME, LOGNAME
-"""
-        )
-        .to("json")
     )
-    expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
-    assert output == expected
+    assert dl.to_dict() == [
+        {
+            "name": "Rust",
+            "since": 2010,
+            "ext": 'rs'
+        },
+        {
+            "name": "JavaScript",
+            "since": 2000,
+            "ext": 'js'
+        },
+        {
+            "name": "Python",
+            "since": 1995,
+            "ext": 'py'
+        }
+    ]
+
+
+def test_loads_json_and_query():
+    pass
+#     input = """[
+#     {
+#         "name": "Python",
+#         "info": {
+#             "since": 1995,
+#             "extension": "py",
+#         },
+#     },
+#     {
+#         "name": "JavaScript",
+#         "info": {
+#             "since": 2000,
+#             "extension": "js",
+#         },
+#     },
+#     {
+#         "name": "Rust",
+#         "info": {
+#             "since": 2010,
+#             "extension": "rs",
+#         },
+#     },
+# ]"""
+#     pq.loads(input)
+#     output = (
+#         pq.loads(input)
+#         .query(
+#             """
+# SELECT NAME, LOGNAME
+# """
+#         )
+#         .to("json")
+#     )
+    # expected = """[{"NAME":"my machine name","LOGNAME":"fuyutarow"}]"""
+    # assert output == expected
 
 
 # %%

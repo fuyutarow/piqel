@@ -1,0 +1,22 @@
+{
+    "name": "nodejs",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "pq": "vite-node src/index.js",
+        "pq2": "node src/index.js",
+        "pq3": "ts-node src/index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "vite-node": "^0.21.1"
+    },
+    "dependencies": {
+        "piqel": "link:../../pkg",
+        "uuid-v4-wasm": "^0.5.0"
+    }
+}

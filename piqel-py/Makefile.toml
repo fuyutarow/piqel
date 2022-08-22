@@ -1,13 +1,13 @@
+[tasks."build:py"]
+script = '''
+poetry install
+poetry run maturin build
+'''
+
 [tasks."install:py"]
 dependencies = ["build:py"]
 script = '''
-poetry install
 poetry run maturin develop
-'''
-
-[tasks."build:py"]
-script = '''
-poetry run maturin build
 '''
 
 [tasks."test:py"]

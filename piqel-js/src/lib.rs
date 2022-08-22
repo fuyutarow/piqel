@@ -9,21 +9,32 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
+pub struct Pool {
+    body: String,
 }
 
 #[wasm_bindgen]
-pub fn greet() {
-    alert("Hello, piqel!");
+impl Pool {
+    pub fn new(body: &str) -> Self {
+        Self {
+            body: body.to_string(),
+        }
+    }
+
+    pub fn get_body(&self) -> String {
+        self.body.to_owned()
+    }
+
+    pub fn query(&self, query: &str) -> Option<String> {
+        piqel::engine::evaluate(query, &self.body, "json", "json").ok()
+    }
 }
 
 #[wasm_bindgen]
-pub fn add(a: i32, b: i32) -> i32 {
-    a + b
-}
-
-#[wasm_bindgen]
-pub fn evaluate(sql: &str, input: &str, from: &str, to: &str) -> Option<String> {
-    piqel::engine::evaluate(sql, input, from, to).ok()
+pub fn fact(n: u32) -> u32 {
+    if n <= 1 {
+        1
+    } else {
+        n * fact(n - 1)
+    }
 }
