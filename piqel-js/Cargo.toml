@@ -9,7 +9,7 @@ license = "MIT"
 name = "piqel"
 readme = "README.md"
 repository = "https://github.com/fuyutarow/piqel.git"
-version = "0.202208.0"
+version = "0.202208.1"
 
 [lib]
 crate-type = ["cdylib"]
