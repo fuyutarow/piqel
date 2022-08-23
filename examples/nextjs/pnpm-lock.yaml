@@ -6,7 +6,6 @@ specifiers:
   '@types/react-dom': 18.0.6
   eslint: 8.22.0
   eslint-config-next: 12.2.5
-  hono: ^2.0.9
   next: 12.2.5
   piqel: ^0.202208.1
   react: 18.2.0
@@ -14,7 +13,6 @@ specifiers:
   typescript: 4.7.4
 
 dependencies:
-  hono: 2.0.9
   next: 12.2.5_biqbaboplfbrettd7655fr4n2y
   piqel: 0.202208.1
   react: 18.2.0
@@ -1099,11 +1097,6 @@ packages:
     dependencies:
       function-bind: 1.1.1
     dev: true
-
-  /hono/2.0.9:
-    resolution: {integrity: sha512-Uw/CQVeNBCSjXFgv5N1TDOSypRmDNkS0nFzGV40B94YmNQnkW+xod82ElApTstotR5ps3Kxb2JJ/EkSaWkT81w==}
-    engines: {node: '>=11.0.0'}
-    dev: false
 
   /ignore/5.2.0:
     resolution: {integrity: sha512-CmxgYGiEPCLhfLnpPp1MoRmifwEIOgjcHXxOBjv7mY96c+eWScsOP9c112ZyLdWHi0FxHjI+4uVhKYp/gcdRmQ==}
