@@ -21,27 +21,37 @@ function initMiddleware(middleware: any) {
 
 // Initialize the cors middleware
 // https://github.com/vercel/next.js/blob/canary/examples/api-routes-cors/pages/api/cors.js
-const cors = initMiddleware(
-  // You can read more about the available options here: https://github.com/expressjs/cors#configuration-options
-  Cors({
-    // Only allow requests with GET, POST and OPTIONS
-    methods: ['GET'],
-    origin: 'https://piqel.pages.dev',
-  })
-)
+const cors = (clientUrl: string) => {
+  const whitelists = [
+    "http://localhost",
+    'https://piqel.pages.dev',
+  ]
+
+  if (whitelists.some(pattern => clientUrl.startsWith(pattern))) {
+    return initMiddleware(
+      Cors({
+        // Only allow requests with GET, POST and OPTIONS
+        methods: ['GET'],
+        origin: clientUrl,
+      })
+    )
+  } else {
+    return () => { }
+  }
+}
 
 
 export default async (req: NextApiRequest, res: NextApiResponse<unknown>) => {
-  await cors(req, res)
+  await cors(req.headers.origin ?? "")(req, res)
 
-  // @ts-ignore
-  const params = new URLSearchParams(req.query);
 
-  const url = params.get('url') ?? ""
-  const query = params.get('q')
+  const { url, q: query } = req.query as {
+    url: string
+    q: string
+  }
   const r = await fetch(url)
   const d = await r.json()
-  const data = Pool.new(JSON.stringify(d)).query(query as string) ?? ""
+  const data = Pool.new(JSON.stringify(d)).query(query) ?? ""
 
   res.status(200).json(
     JSON.parse(data)
