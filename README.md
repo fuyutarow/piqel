@@ -1,12 +1,15 @@
 <div align="center">
   <div>
-    <img src="https://raw.githubusercontent.com/fuyutarow/piqel/alpha/docs/static/img/label.png">
+    <img width="368" alt="image" src="https://user-images.githubusercontent.com/14998939/186230936-977af168-9879-4a44-ac29-5a0bbd4abd11.png">
   </div>
-  <strong>An implementation of PartiQL written in Rust</strong>
   <h3>
     <a href="https://piqel.pages.dev">Document(WIP)</a>
   </h3>
+  <video autoplay="" loop="" contorol="">
+    <source src="https://user-images.githubusercontent.com/14998939/186226990-96f8345f-a6cd-420f-8d3d-dd8fb5ddca6b.mp4" type="video/mp4">
+  </video>
 </div>
+
 <pre class="code-block"><code class="language-toml:tests-make/hello.toml toml:tests-make/hello.toml">[tests.hello]
 script = '''
 cat&lt;&lt;EOS | pq -q &quot;SELECT NAME, LOGNAME&quot; -t json
