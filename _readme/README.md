@@ -5,37 +5,13 @@
   <h3>
     <a href="https://piqel.pages.dev">Document(WIP)</a>
   </h3>
-    <div>
+  <strong>
+    A command line tool for data processing with SQL queries. json, yaml, toml to your favorite format.
+  </strong>
+  <div>
     <img width="600" alt="image" src="https://user-images.githubusercontent.com/14998939/186355873-036d7e63-3326-4e24-a105-9f8486d03ee6.gif">
   </div>
 </div>
-
-```toml:tests-make/hello.toml
-[tests.hello]
-script = '''
-cat<<EOS | pq -q "SELECT NAME, LOGNAME" -t json
-{
-  "SHELL": "/bin/bash",
-  "NAME": "my machine name",
-  "PWD": "/home/fuyutarow/piqel",
-  "LOGNAME": "fuyutarow",
-  "HOME": "/home/fuyutarow",
-  "LANG": "C.UTF-8",
-  "USER": "fuyutarow",
-  "HOSTTYPE": "x86_64",
-  "_": "/usr/bin/env"
-}
-EOS
-'''
-tobe = '''
-[
-  {
-    "NAME": "my machine name",
-    "LOGNAME": "fuyutarow"
-  }
-]
-'''
-```
 
 ## Family
 

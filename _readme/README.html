@@ -5,35 +5,13 @@
   <h3>
     <a href="https://piqel.pages.dev">Document(WIP)</a>
   </h3>
-    <div>
+  <strong>
+    A command line tool for data processing with SQL queries. json, yaml, toml to your favorite format.
+  </strong>
+  <div>
     <img width="600" alt="image" src="https://user-images.githubusercontent.com/14998939/186355873-036d7e63-3326-4e24-a105-9f8486d03ee6.gif">
   </div>
 </div>
-<pre class="code-block"><code class="language-toml:tests-make/hello.toml toml:tests-make/hello.toml">[tests.hello]
-script = '''
-cat&lt;&lt;EOS | pq -q &quot;SELECT NAME, LOGNAME&quot; -t json
-{
-  &quot;SHELL&quot;: &quot;/bin/bash&quot;,
-  &quot;NAME&quot;: &quot;my machine name&quot;,
-  &quot;PWD&quot;: &quot;/home/fuyutarow/piqel&quot;,
-  &quot;LOGNAME&quot;: &quot;fuyutarow&quot;,
-  &quot;HOME&quot;: &quot;/home/fuyutarow&quot;,
-  &quot;LANG&quot;: &quot;C.UTF-8&quot;,
-  &quot;USER&quot;: &quot;fuyutarow&quot;,
-  &quot;HOSTTYPE&quot;: &quot;x86_64&quot;,
-  &quot;_&quot;: &quot;/usr/bin/env&quot;
-}
-EOS
-'''
-tobe = '''
-[
-  {
-    &quot;NAME&quot;: &quot;my machine name&quot;,
-    &quot;LOGNAME&quot;: &quot;fuyutarow&quot;
-  }
-]
-'''
-</code></pre>
 <h2 id="family" tabindex="-1">Family</h2>
 <table>
 <thead>
