@@ -7,3 +7,6 @@
 [submodule "samples/pokemon.json"]
 	path = samples/pokemon.json
 	url = https://github.com/fuyutarow/pokemon.json
+[submodule "docs"]
+	path = docs
+	url = https://github.com/fuyutarow/piqel-docs
