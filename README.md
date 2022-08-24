@@ -4,7 +4,7 @@
   </div>
   <strong>An implementation of PartiQL written in Rust</strong>
   <h3>
-    <a href="https://partiql.vercel.app">Document(WIP)</a>
+    <a href="https://piqel.pages.dev">Document(WIP)</a>
   </h3>
 </div>
 <pre class="code-block"><code class="language-toml:tests-make/hello.toml toml:tests-make/hello.toml">[tests.hello]
