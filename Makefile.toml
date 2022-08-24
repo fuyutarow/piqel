@@ -15,7 +15,7 @@ npm i -g markdown-to-document ;: use mdtodoc for publish:README
 [tasks."release:readme"]
 # GitHub Flavored Markdown (GFM) does not support footnotes. So use `mdtodoc` to convert markdown to html.
 script = '''
-mdtodoc docs/README.md -e light
+mdtodoc _readme/README.md -e light
 '''
 
 [tasks.pq]
@@ -31,8 +31,8 @@ makers build:js
 '''
 
 [tasks."build:pq"]
-command = "cargo"
 args = ["build", "--bin", "pq", "--features", "cli table"]
+command = "cargo"
 
 [tasks."build:js"]
 script = '''
@@ -53,12 +53,12 @@ makers build:py
 '''
 
 [tasks.release]
-command = "cargo"
 args = ["build", "--release"]
+command = "cargo"
 
 [tasks."release:pq"]
-command = "cargo"
 args = ["build", "--bin", "pq", "--release", "--features", "cli table"]
+command = "cargo"
 
 [tasks."release:js"]
 script = '''
@@ -106,9 +106,9 @@ makers test:py
 '''
 
 [tasks."test:lib"]
-dependencies = ["build"]
-command = "cargo"
 args = ["test"]
+command = "cargo"
+dependencies = ["build"]
 
 [tasks."test:pq"]
 dependencies = ["build:pq"]
